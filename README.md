@@ -6,28 +6,10 @@ The project validates your configuration, renders test scripts using Jinja2 temp
 
 ## Setup
 
-Create and activate a virtual environment (recommended):
+Set up the virtual environment and install all dependencies:
 
 ```bash
-python -m venv .venv
-```
-
-- **On Windows:**
-
-  ```bash
-  .venv\Scripts\activate
-  ```
-
-- **On macOS/Linux:**
-
-  ```bash
-  source .venv/bin/activate
-  ```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
+make dev_env
 ```
 
 ## CLI Usage
