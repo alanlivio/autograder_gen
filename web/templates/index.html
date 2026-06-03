@@ -8,120 +8,129 @@
     <div>
         <h1 class="mb-1">Autograder Generator</h1>
         <p class="text-muted mb-0" style="max-width: 650px; font-size: 0.95rem;">
-            A tool for lecturers to automatically generate assessment scripts for <a href="https://guides.gradescope.com/hc/en-us/articles/22066635961357-Grading-a-Programming-Assignment" target="_blank">Grading a Programming Assignment</a> on Gradescope. It supports filling out this interactive web form or uploading a YAML configuration, which then generates a packaged ZIP file ready to be uploaded to Gradescope.
+            A tool for lecturers to automatically generate assessment scripts for <a
+                href="https://guides.gradescope.com/hc/en-us/articles/22066635961357-Grading-a-Programming-Assignment"
+                target="_blank">Grading a Programming Assignment</a> on Gradescope. It supports filling out this
+            interactive web form or uploading a YAML configuration, which then generates a packaged ZIP file ready to be
+            uploaded to Gradescope.
         </p>
     </div>
     <div class="d-flex gap-2">
-      <input type="file" id="config-upload" class="d-none" accept=".yaml,.yml" onchange="handleConfigUpload(this)">
-      <button type="button" class="btn btn-primary" id="validate-btn" onclick="validateConfig(false)">
-        <i class="fas fa-check-circle me-1"></i> Validate & Export
-      </button>
-      <button type="button" class="btn btn-warning d-none" id="edit-btn" onclick="toggleFormLock(false)">
-        <i class="fas fa-edit me-1"></i> Edit Configuration
-      </button>
-      <button type="button" class="btn btn-outline-primary d-none" id="generate-btn" onclick="submitForGeneration()">
-        <i class="fas fa-file-archive me-1"></i> Generate All ZIPs
-      </button>
+        <input type="file" id="config-upload" class="d-none" accept=".yaml,.yml" onchange="handleConfigUpload(this)">
+        <button type="button" class="btn btn-primary" id="validate-btn" onclick="validateConfig(false)">
+            <i class="fas fa-check-circle me-1"></i> Validate & Export
+        </button>
+        <button type="button" class="btn btn-warning d-none" id="edit-btn" onclick="toggleFormLock(false)">
+            <i class="fas fa-edit me-1"></i> Edit Configuration
+        </button>
+        <button type="button" class="btn btn-outline-primary d-none" id="generate-btn" onclick="submitForGeneration()">
+            <i class="fas fa-file-archive me-1"></i> Generate All ZIPs
+        </button>
     </div>
 </div>
 
 <div id="alert-container"></div>
 
 <div id="export-section" class="card border-primary mb-4 d-none">
-  <div class="card-header bg-primary text-white">
-    <h5 class="mb-0">Export Assets</h5>
-  </div>
-  <div class="card-body">
-    <div class="d-flex flex-wrap gap-3 align-items-center">
-      <button type="button" class="btn btn-outline-secondary" onclick="downloadYamlConfig()">
-        <i class="fas fa-download me-1"></i> Export YAML
-      </button>
-      <button type="button" class="btn btn-info text-white" onclick="downloadExport('description')">
-        <i class="fas fa-file-word me-1"></i> description.docx
-      </button>
-      <button type="button" class="btn btn-success" onclick="submitForGeneration(this)">
-        <i class="fas fa-file-zipper me-1"></i> autograder.zip
-      </button>
-      <button type="button" class="btn btn-outline-success" onclick="downloadExport('correct')">
-        <i class="fas fa-file-zipper me-1"></i> correct_answer.zip
-      </button>
-      <button type="button" class="btn btn-outline-danger" onclick="downloadExport('wrong')">
-        <i class="fas fa-file-zipper me-1"></i> wrong_answer.zip
-      </button>
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Export Assets</h5>
     </div>
-  </div>
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <button type="button" class="btn btn-outline-secondary" onclick="downloadYamlConfig()">
+                <i class="fas fa-download me-1"></i> Export YAML
+            </button>
+            <button type="button" class="btn btn-info text-white" onclick="downloadExport('description')">
+                <i class="fas fa-file-word me-1"></i> description.docx
+            </button>
+            <button type="button" class="btn btn-success" onclick="submitForGeneration(this)">
+                <i class="fas fa-file-zipper me-1"></i> autograder.zip
+            </button>
+            <button type="button" class="btn btn-outline-success" onclick="downloadExport('correct')">
+                <i class="fas fa-file-zipper me-1"></i> correct_answer.zip
+            </button>
+            <button type="button" class="btn btn-outline-danger" onclick="downloadExport('wrong')">
+                <i class="fas fa-file-zipper me-1"></i> wrong_answer.zip
+            </button>
+        </div>
+    </div>
 </div>
 
 <form id="autograder-form">
-  
-  <div class="row mb-4" id="global-config-section">
-    <div class="col-12">
-        <h3 class="border-bottom pb-2 mb-3 d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#global-config-collapse" style="cursor: pointer;">
-            Global Configuration
-            <i class="fas fa-chevron-down small text-muted"></i>
-        </h3>
-    </div>
-    <div id="global-config-collapse" class="collapse show w-100">
-      <div class="row px-3">
-        <div class="col-md-4">
-          <div class="mb-3">
-            <label for="language" class="form-label font-weight-bold">Language</label>
-            <select class="form-select" id="language" name="language">
-                <option value="python" selected>Python</option>
-                <option value="java">Java</option>
-            </select>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="mb-3">
-            <label for="version" class="form-label font-weight-bold">Version</label>
-            <input type="text" class="form-control" id="version" name="version" value="0.1">
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="mb-3">
-            <label for="global_time_limit" class="form-label font-weight-bold">Global Time Limit (ms)</label>
-            <input type="number" class="form-control" id="global_time_limit" name="global_time_limit" value="300" min="1">
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="mb-3">
-            <label for="setup_commands" class="form-label font-weight-bold">Setup Commands (one per line)</label>
-            <textarea class="form-control" id="setup_commands" name="setup_commands" rows="3"></textarea>
-          </div>
-        </div>
-        <div class="col-12">
-          <label class="form-label font-weight-bold">Required Files</label>
-          <div id="required-files-container">
-            <div class="input-group mb-2">
-              <input type="text" class="form-control" id="new-file-input" placeholder="e.g., solution.py">
-              <button type="button" class="btn btn-primary" onclick="addRequiredFile()">Add File</button>
-            </div>
-            <div id="required-files-list" class="border rounded p-3 bg-white" style="min-height: 80px;">
-                 <span class="text-muted small">No specific file requirements defined.</span>
-            </div>
-          </div>
-          <textarea id="files_necessary" name="files_necessary" class="d-none"></textarea>
-          <div class="form-text">Files that students MUST submit.</div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="mt-4" id="questions-section">
-    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4" data-bs-toggle="collapse" data-bs-target="#questions-collapse" style="cursor: pointer;">
-        <h3 class="mb-0">Questions</h3>
-        <div class="d-flex align-items-center gap-3">
-            <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addQuestion()">
-                <i class="fas fa-plus me-1"></i> Add Question
-            </button>
-            <i class="fas fa-chevron-down small text-muted"></i>
+    <div class="row mb-4" id="global-config-section">
+        <div class="col-12">
+            <h3 class="border-bottom pb-2 mb-3 d-flex justify-content-between align-items-center"
+                data-bs-toggle="collapse" data-bs-target="#global-config-collapse" style="cursor: pointer;">
+                Global Configuration
+                <i class="fas fa-chevron-down small text-muted"></i>
+            </h3>
+        </div>
+        <div id="global-config-collapse" class="collapse show w-100">
+            <div class="row px-3">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="language" class="form-label font-weight-bold">Language</label>
+                        <select class="form-select" id="language" name="language">
+                            <option value="python" selected>Python</option>
+                            <option value="java">Java</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="version" class="form-label font-weight-bold">Version</label>
+                        <input type="text" class="form-control" id="version" name="version" value="0.1">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="global_time_limit" class="form-label font-weight-bold">Global Time Limit
+                            (ms)</label>
+                        <input type="number" class="form-control" id="global_time_limit" name="global_time_limit"
+                            value="300" min="1">
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="setup_commands" class="form-label font-weight-bold">Setup Commands (one per
+                            line)</label>
+                        <textarea class="form-control" id="setup_commands" name="setup_commands" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label font-weight-bold">Required Files</label>
+                    <div id="required-files-container">
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control" id="new-file-input" placeholder="e.g., solution.py">
+                            <button type="button" class="btn btn-primary" onclick="addRequiredFile()">Add File</button>
+                        </div>
+                        <div id="required-files-list" class="border rounded p-3 bg-white" style="min-height: 80px;">
+                            <span class="text-muted small">No specific file requirements defined.</span>
+                        </div>
+                    </div>
+                    <textarea id="files_necessary" name="files_necessary" class="d-none"></textarea>
+                    <div class="form-text">Files that students MUST submit.</div>
+                </div>
+            </div>
         </div>
     </div>
-    <div id="questions-collapse" class="collapse show">
-        <div id="questions-list"></div>
+
+    <div class="mt-4" id="questions-section">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4" data-bs-toggle="collapse"
+            data-bs-target="#questions-collapse" style="cursor: pointer;">
+            <h3 class="mb-0">Questions</h3>
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addQuestion()">
+                    <i class="fas fa-plus me-1"></i> Add Question
+                </button>
+                <i class="fas fa-chevron-down small text-muted"></i>
+            </div>
+        </div>
+        <div id="questions-collapse" class="collapse show">
+            <div id="questions-list"></div>
+        </div>
     </div>
-  </div>
 </form>
 
 <!-- Blueprints for dynamic elements -->
@@ -135,17 +144,20 @@
                     <h5 class="mb-0">Question <span class="q-num">__Q_IDX__</span></h5>
                     <span class="badge bg-primary ms-3 q-total-points">0 pts</span>
                 </div>
-                <button type="button" class="btn-close" aria-label="Remove" onclick="removeQuestionWithConfirm(this)"></button>
+                <button type="button" class="btn-close" aria-label="Remove"
+                    onclick="removeQuestionWithConfirm(this)"></button>
             </div>
             <div class="card-body">
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <label class="form-label font-weight-bold">Question Name</label>
-                        <input type="text" class="form-control q-name-input" placeholder="e.g., Problem 1: Fibonacci" required>
+                        <input type="text" class="form-control q-name-input" placeholder="e.g., Problem 1: Fibonacci"
+                            required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label font-weight-bold">Description (for DOCX)</label>
-                        <textarea class="form-control q-description-input" rows="1" placeholder="Describe the question for students..."></textarea>
+                        <textarea class="form-control q-description-input" rows="1"
+                            placeholder="Describe the question for students..."></textarea>
                     </div>
                 </div>
                 <div>
@@ -174,7 +186,8 @@
                         <option value="function_test">Unit Test Function</option>
                     </select>
                 </div>
-                <button type="button" class="btn-close align-self-start" aria-label="Remove" onclick="removeMarkingItem(this)"></button>
+                <button type="button" class="btn-close align-self-start" aria-label="Remove"
+                    onclick="removeMarkingItem(this)"></button>
             </div>
             <div class="type-fields"></div>
         </div>
@@ -184,174 +197,174 @@
 
 {% block scripts %}
 <script>
-let questionCount = 0;
-let validationTimeout;
+    let questionCount = 0;
+    let validationTimeout;
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.querySelectorAll('#questions-list > .card').length === 0) {
-        addQuestion();
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.querySelectorAll('#questions-list > .card').length === 0) {
+            addQuestion();
+        }
+
+        document.addEventListener('input', (e) => {
+            if (e.target.name && e.target.name.includes('total_mark')) {
+                updateQuestionNumbers();
+            }
+
+            // Hide export section on any change until validated again
+            disableGenerateButton();
+
+            // Debounced validation
+            clearTimeout(validationTimeout);
+            validationTimeout = setTimeout(() => {
+                validateConfig(true); // silent validation
+            }, 1000);
+        });
+    });
+
+    function createNewConfig() {
+        if (confirm('Create new configuration? All unsaved changes will be lost.')) {
+            toggleFormLock(false);
+            document.getElementById('autograder-form').reset();
+            document.getElementById('questions-list').innerHTML = '';
+            document.getElementById('required-files-list').innerHTML = '';
+            document.getElementById('files_necessary').value = '';
+            document.getElementById('setup_commands').value = '';
+            questionCount = 0;
+            addQuestion();
+            updateQuestionNumbers();
+            disableGenerateButton();
+            clearAlerts();
+        }
     }
-    
-    document.addEventListener('input', (e) => {
-        if (e.target.name && e.target.name.includes('total_mark')) {
+
+    function addQuestion() {
+        const blueprint = document.getElementById('question-blueprint').firstElementChild;
+        const qDiv = blueprint.cloneNode(true);
+        const qId = questionCount++;
+        qDiv.id = `question-${qId}`;
+
+        document.getElementById('questions-list').appendChild(qDiv);
+        addMarkingItem(qDiv.querySelector('button[onclick="addMarkingItem(this)"]'));
+
+        initializeDragAndDrop(qDiv);
+        updateQuestionNumbers();
+    }
+
+    function toggleFormLock(lock) {
+        const form = document.getElementById('autograder-form');
+        const elements = form.querySelectorAll('input, select, textarea, button:not(.btn-close)');
+        elements.forEach(el => {
+            // Don't disable the hidden file input
+            if (el.id === 'config-upload') return;
+            el.disabled = lock;
+        });
+
+        // Also disable/enable the "Add Question" button in the header
+        const addQBtn = document.querySelector('button[onclick*="addQuestion"]');
+        if (addQBtn) addQBtn.disabled = lock;
+
+        // And remove buttons on questions
+        document.querySelectorAll('.btn-close').forEach(btn => btn.classList.toggle('d-none', lock));
+
+        // Gray out sections (including headings)
+        document.getElementById('global-config-section').classList.toggle('locked-section', lock);
+        document.getElementById('questions-section').classList.toggle('locked-section', lock);
+
+        // Toggle button visibility
+        document.getElementById('validate-btn').classList.toggle('d-none', lock);
+        document.getElementById('edit-btn').classList.toggle('d-none', !lock);
+
+        // Hide export section if unlocking
+        if (!lock) {
+            document.getElementById('export-section').classList.add('d-none');
+        }
+    }
+
+    function removeQuestionWithConfirm(btn) {
+        if (confirm('Delete this question and all its tests?')) {
+            btn.closest('.card').remove();
             updateQuestionNumbers();
         }
-        
-        // Hide export section on any change until validated again
-        disableGenerateButton();
-        
-        // Debounced validation
-        clearTimeout(validationTimeout);
-        validationTimeout = setTimeout(() => {
-            validateConfig(true); // silent validation
-        }, 1000);
-    });
-});
-
-function createNewConfig() {
-    if (confirm('Create new configuration? All unsaved changes will be lost.')) {
-        toggleFormLock(false);
-        document.getElementById('autograder-form').reset();
-        document.getElementById('questions-list').innerHTML = '';
-        document.getElementById('required-files-list').innerHTML = '';
-        document.getElementById('files_necessary').value = '';
-        document.getElementById('setup_commands').value = '';
-        questionCount = 0;
-        addQuestion();
-        updateQuestionNumbers();
-        disableGenerateButton();
-        clearAlerts();
     }
-}
 
-function addQuestion() {
-    const blueprint = document.getElementById('question-blueprint').firstElementChild;
-    const qDiv = blueprint.cloneNode(true);
-    const qId = questionCount++;
-    qDiv.id = `question-${qId}`;
-    
-    document.getElementById('questions-list').appendChild(qDiv);
-    addMarkingItem(qDiv.querySelector('button[onclick="addMarkingItem(this)"]'));
-    
-    initializeDragAndDrop(qDiv);
-    updateQuestionNumbers();
-}
+    function updateQuestionNumbers() {
+        const questions = document.querySelectorAll('#questions-list > .card');
+        questions.forEach((question, qIdx) => {
+            question.querySelector('.q-num').textContent = qIdx + 1;
+            const prefix = `questions-${qIdx}`;
 
-function toggleFormLock(lock) {
-    const form = document.getElementById('autograder-form');
-    const elements = form.querySelectorAll('input, select, textarea, button:not(.btn-close)');
-    elements.forEach(el => {
-        // Don't disable the hidden file input
-        if (el.id === 'config-upload') return;
-        el.disabled = lock;
-    });
-    
-    // Also disable/enable the "Add Question" button in the header
-    const addQBtn = document.querySelector('button[onclick*="addQuestion"]');
-    if (addQBtn) addQBtn.disabled = lock;
-    
-    // And remove buttons on questions
-    document.querySelectorAll('.btn-close').forEach(btn => btn.classList.toggle('d-none', lock));
-    
-    // Gray out sections (including headings)
-    document.getElementById('global-config-section').classList.toggle('locked-section', lock);
-    document.getElementById('questions-section').classList.toggle('locked-section', lock);
+            const nameInput = question.querySelector('.q-name-input');
+            if (nameInput) {
+                nameInput.name = `${prefix}-name`;
+                nameInput.id = `${prefix}-name`;
+            }
 
-    // Toggle button visibility
-    document.getElementById('validate-btn').classList.toggle('d-none', lock);
-    document.getElementById('edit-btn').classList.toggle('d-none', !lock);
-    
-    // Hide export section if unlocking
-    if (!lock) {
-        document.getElementById('export-section').classList.add('d-none');
-    }
-}
+            const descInput = question.querySelector('.q-description-input');
+            if (descInput) {
+                descInput.name = `${prefix}-description`;
+                descInput.id = `${prefix}-description`;
+            }
 
-function removeQuestionWithConfirm(btn) {
-    if (confirm('Delete this question and all its tests?')) {
-        btn.closest('.card').remove();
-        updateQuestionNumbers();
-    }
-}
+            const qTotalPointsSpan = question.querySelector('.q-total-points');
+            let questionTotal = 0;
 
-function updateQuestionNumbers() {
-    const questions = document.querySelectorAll('#questions-list > .card');
-    questions.forEach((question, qIdx) => {
-        question.querySelector('.q-num').textContent = qIdx + 1;
-        const prefix = `questions-${qIdx}`;
-        
-        const nameInput = question.querySelector('.q-name-input');
-        if (nameInput) {
-            nameInput.name = `${prefix}-name`;
-            nameInput.id = `${prefix}-name`;
-        }
-        
-        const descInput = question.querySelector('.q-description-input');
-        if (descInput) {
-            descInput.name = `${prefix}-description`;
-            descInput.id = `${prefix}-description`;
-        }
-        
-        const qTotalPointsSpan = question.querySelector('.q-total-points');
-        let questionTotal = 0;
+            const markingItems = question.querySelectorAll('.marking-item');
+            markingItems.forEach((item, miIdx) => {
+                const miPrefix = `${prefix}-marking_items-${miIdx}`;
 
-        const markingItems = question.querySelectorAll('.marking-item');
-        markingItems.forEach((item, miIdx) => {
-            const miPrefix = `${prefix}-marking_items-${miIdx}`;
-            
-            item.querySelectorAll('input, select, textarea').forEach(field => {
-                let suffix = '';
-                if (field.classList.contains('mi-type-select')) {
-                    suffix = 'type';
-                } else {
-                    const parts = field.id.split('-');
-                    suffix = parts[parts.length - 1];
-                }
-                
-                if (suffix) {
-                    field.name = `${miPrefix}-${suffix}`;
-                    field.id = `${miPrefix}-${suffix}`;
+                item.querySelectorAll('input, select, textarea').forEach(field => {
+                    let suffix = '';
+                    if (field.classList.contains('mi-type-select')) {
+                        suffix = 'type';
+                    } else {
+                        const parts = field.id.split('-');
+                        suffix = parts[parts.length - 1];
+                    }
+
+                    if (suffix) {
+                        field.name = `${miPrefix}-${suffix}`;
+                        field.id = `${miPrefix}-${suffix}`;
+                    }
+                });
+
+                const pointsField = item.querySelector('input[name$="-total_mark"]');
+                if (pointsField) {
+                    questionTotal += Number(pointsField.value) || 0;
                 }
             });
-            
-            const pointsField = item.querySelector('input[name$="-total_mark"]');
-            if (pointsField) {
-                questionTotal += Number(pointsField.value) || 0;
-            }
+
+            if (qTotalPointsSpan) qTotalPointsSpan.textContent = `${questionTotal} pts`;
         });
-        
-        if (qTotalPointsSpan) qTotalPointsSpan.textContent = `${questionTotal} pts`;
-    });
-}
+    }
 
-function addMarkingItem(btn) {
-    const miList = btn.closest('.card-body').querySelector('.marking-items-list');
-    const blueprint = document.getElementById('marking-item-blueprint').firstElementChild;
-    const miDiv = blueprint.cloneNode(true);
-    
-    miList.appendChild(miDiv);
-    showTypeFields(miDiv.querySelector('select'));
-    updateQuestionNumbers();
-    disableGenerateButton();
-}
+    function addMarkingItem(btn) {
+        const miList = btn.closest('.card-body').querySelector('.marking-items-list');
+        const blueprint = document.getElementById('marking-item-blueprint').firstElementChild;
+        const miDiv = blueprint.cloneNode(true);
 
-function removeMarkingItem(btn) {
-    btn.closest('.marking-item').remove();
-    updateQuestionNumbers();
-    disableGenerateButton();
-}
+        miList.appendChild(miDiv);
+        showTypeFields(miDiv.querySelector('select'));
+        updateQuestionNumbers();
+        disableGenerateButton();
+    }
 
-function showTypeFields(select) {
-    const type = select.value;
-    const mi = select.closest('.marking-item');
-    const qCard = mi.closest('.card');
-    const qIdx = Array.from(document.querySelectorAll('#questions-list > .card')).indexOf(qCard);
-    const miIdx = Array.from(mi.parentElement.children).indexOf(mi);
-    const prefix = `questions-${qIdx}-marking_items-${miIdx}`;
-    
-    mi.className = 'marking-item card card-body mb-3 border-start ' + type.replace(/_/g, '-') + '-border';
+    function removeMarkingItem(btn) {
+        btn.closest('.marking-item').remove();
+        updateQuestionNumbers();
+        disableGenerateButton();
+    }
 
-    let html = `
+    function showTypeFields(select) {
+        const type = select.value;
+        const mi = select.closest('.marking-item');
+        const qCard = mi.closest('.card');
+        const qIdx = Array.from(document.querySelectorAll('#questions-list > .card')).indexOf(qCard);
+        const miIdx = Array.from(mi.parentElement.children).indexOf(mi);
+        const prefix = `questions-${qIdx}-marking_items-${miIdx}`;
+
+        mi.className = 'marking-item card card-body mb-3 border-start ' + type.replace(/_/g, '-') + '-border';
+
+        let html = `
         <div class="row mb-2">
             <div class="col-md-9">
                 <label class="form-label small mb-1">Display Name (optional)</label>
@@ -384,8 +397,8 @@ function showTypeFields(select) {
         </div>
     `;
 
-    if (type === 'output_comparison') {
-        html += `
+        if (type === 'output_comparison') {
+            html += `
             <div class="mb-2">
                 <label class="form-label small mb-1">Standard Input</label>
                 <textarea class="form-control form-control-sm font-monospace" id="${prefix}-expected_input" name="${prefix}-expected_input" rows="3"></textarea>
@@ -395,8 +408,8 @@ function showTypeFields(select) {
                 <textarea class="form-control form-control-sm font-monospace" id="${prefix}-expected_output" name="${prefix}-expected_output" rows="5" required></textarea>
             </div>
         `;
-    } else if (type === 'signature_check') {
-        html += `
+        } else if (type === 'signature_check') {
+            html += `
             <div class="mb-2">
                 <label class="form-label small mb-1">Function Name *</label>
                 <input type="text" class="form-control form-control-sm font-monospace" id="${prefix}-function_name" name="${prefix}-function_name" required>
@@ -412,8 +425,8 @@ function showTypeFields(select) {
                 </div>
             </div>
         `;
-    } else if (type === 'function_test') {
-        html += `
+        } else if (type === 'function_test') {
+            html += `
             <div class="mb-2">
                 <label class="form-label small mb-1">Function Name *</label>
                 <input type="text" class="form-control form-control-sm font-monospace" id="${prefix}-function_name" name="${prefix}-function_name" required>
@@ -423,455 +436,485 @@ function showTypeFields(select) {
                 <textarea class="form-control form-control-sm font-monospace" id="${prefix}-test_cases" name="${prefix}-test_cases" rows="3" required></textarea>
             </div>
         `;
+        }
+
+        mi.querySelector('.type-fields').innerHTML = html;
+        populateTargetFileDropdown(mi.querySelector('select[id$="-target_file"]'));
     }
-    
-    mi.querySelector('.type-fields').innerHTML = html;
-    populateTargetFileDropdown(mi.querySelector('select[id$="-target_file"]'));
-}
 
-function addRequiredFile() {
-    const input = document.getElementById('new-file-input');
-    const filename = input.value.trim();
-    if (!filename) return;
+    function addRequiredFile() {
+        const input = document.getElementById('new-file-input');
+        const filename = input.value.trim();
+        if (!filename) return;
 
-    const filesTextarea = document.getElementById('files_necessary');
-    const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
-    
-    if (!files.includes(filename)) {
-        files.push(filename);
+        const filesTextarea = document.getElementById('files_necessary');
+        const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
+
+        if (!files.includes(filename)) {
+            files.push(filename);
+            filesTextarea.value = files.join('\n');
+            renderRequiredFilesList();
+            updateAllTargetFileDropdowns();
+        }
+        input.value = '';
+        disableGenerateButton();
+    }
+
+    function removeRequiredFile(filename) {
+        const filesTextarea = document.getElementById('files_necessary');
+        let files = filesTextarea.value.split('\n');
+        files = files.filter(f => f !== filename);
         filesTextarea.value = files.join('\n');
         renderRequiredFilesList();
         updateAllTargetFileDropdowns();
-    }
-    input.value = '';
-    disableGenerateButton();
-}
-
-function removeRequiredFile(filename) {
-    const filesTextarea = document.getElementById('files_necessary');
-    let files = filesTextarea.value.split('\n');
-    files = files.filter(f => f !== filename);
-    filesTextarea.value = files.join('\n');
-    renderRequiredFilesList();
-    updateAllTargetFileDropdowns();
-    disableGenerateButton();
-}
-
-function renderRequiredFilesList() {
-    const list = document.getElementById('required-files-list');
-    const filesTextarea = document.getElementById('files_necessary');
-    const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
-
-    if (files.length === 0) {
-        list.innerHTML = '<span class="text-muted small">No specific file requirements defined.</span>';
-        return;
+        disableGenerateButton();
     }
 
-    list.innerHTML = '';
-    files.forEach(file => {
-        const badge = document.createElement('span');
-        badge.className = 'badge bg-light text-dark border me-2 mb-2 p-2 d-inline-flex align-items-center';
-        badge.innerHTML = `
+    function renderRequiredFilesList() {
+        const list = document.getElementById('required-files-list');
+        const filesTextarea = document.getElementById('files_necessary');
+        const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
+
+        if (files.length === 0) {
+            list.innerHTML = '<span class="text-muted small">No specific file requirements defined.</span>';
+            return;
+        }
+
+        list.innerHTML = '';
+        files.forEach(file => {
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-light text-dark border me-2 mb-2 p-2 d-inline-flex align-items-center';
+            badge.innerHTML = `
             <span class="file-name me-2" onclick="editRequiredFile('${file}')" style="cursor:pointer">${file}</span>
             <button type="button" class="btn-close ms-1" style="font-size: 0.5rem" onclick="removeRequiredFile('${file}')"></button>
         `;
-        list.appendChild(badge);
-    });
-}
-
-function editRequiredFile(oldName) {
-    const newName = prompt('Rename file requirement:', oldName);
-    if (!newName || newName === oldName) return;
-
-    const filesTextarea = document.getElementById('files_necessary');
-    let files = filesTextarea.value.split('\n');
-    const idx = files.indexOf(oldName);
-    if (idx !== -1) {
-        files[idx] = newName;
-        filesTextarea.value = files.join('\n');
-        renderRequiredFilesList();
-        updateAllTargetFileDropdowns();
+            list.appendChild(badge);
+        });
     }
-}
 
-function updateAllTargetFileDropdowns() {
-    document.querySelectorAll('select[id$="-target_file"]').forEach(populateTargetFileDropdown);
-}
+    function editRequiredFile(oldName) {
+        const newName = prompt('Rename file requirement:', oldName);
+        if (!newName || newName === oldName) return;
 
-function populateTargetFileDropdown(select) {
-    const currentValue = select.value;
-    const filesTextarea = document.getElementById('files_necessary');
-    const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
-    
-    select.innerHTML = '<option value="">Select file...</option>';
-    files.forEach(file => {
-        const option = document.createElement('option');
-        option.value = file;
-        option.textContent = file;
-        if (file === currentValue) option.selected = true;
-        select.appendChild(option);
-    });
-}
-
-function initializeDragAndDrop(element) {
-    const handle = element.querySelector('.drag-handle');
-    element.addEventListener('dragstart', handleDragStart);
-    element.addEventListener('dragover', handleDragOver);
-    element.addEventListener('drop', handleDrop);
-    element.addEventListener('dragend', handleDragEnd);
-}
-
-function handleDragStart(e) {
-    this.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', this.id);
-}
-
-function handleDragOver(e) {
-    e.preventDefault();
-    const container = document.getElementById('questions-list');
-    const afterElement = getDragAfterElement(container, e.clientY);
-    const dragging = document.querySelector('.dragging');
-    if (!afterElement) {
-        container.appendChild(dragging);
-    } else {
-        container.insertBefore(dragging, afterElement);
-    }
-}
-
-function handleDrop(e) { e.preventDefault(); }
-
-function handleDragEnd() {
-    this.classList.remove('dragging');
-    updateQuestionNumbers();
-    disableGenerateButton();
-}
-
-function getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
-    return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-        } else {
-            return closest;
+        const filesTextarea = document.getElementById('files_necessary');
+        let files = filesTextarea.value.split('\n');
+        const idx = files.indexOf(oldName);
+        if (idx !== -1) {
+            files[idx] = newName;
+            filesTextarea.value = files.join('\n');
+            renderRequiredFilesList();
+            updateAllTargetFileDropdowns();
         }
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-}
+    }
 
-function formToConfigObject() {
-    const formElement = document.getElementById('autograder-form');
-    const formData = new FormData(formElement);
-    const config = {
-        version: formData.get('version'),
-        language: formData.get('language'),
-        global_time_limit: parseInt(formData.get('global_time_limit')),
-        setup_commands: formData.get('setup_commands').split('\n').filter(c => c.trim()),
-        files_necessary: formData.get('files_necessary').split('\n').filter(f => f.trim()),
-        questions: []
-    };
+    function updateAllTargetFileDropdowns() {
+        document.querySelectorAll('select[id$="-target_file"]').forEach(populateTargetFileDropdown);
+    }
 
-    const questions = document.querySelectorAll('#questions-list > .card');
-    questions.forEach((q, qIdx) => {
-        const prefix = `questions-${qIdx}`;
-        const question = {
-            name: formData.get(`${prefix}-name`),
-            description: formData.get(`${prefix}-description`),
-            marking_items: []
+    function populateTargetFileDropdown(select) {
+        const currentValue = select.value;
+        const filesTextarea = document.getElementById('files_necessary');
+        const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
+
+        select.innerHTML = '<option value="">Select file...</option>';
+        files.forEach(file => {
+            const option = document.createElement('option');
+            option.value = file;
+            option.textContent = file;
+            if (file === currentValue) option.selected = true;
+            select.appendChild(option);
+        });
+    }
+
+    function initializeDragAndDrop(element) {
+        const handle = element.querySelector('.drag-handle');
+        element.addEventListener('dragstart', handleDragStart);
+        element.addEventListener('dragover', handleDragOver);
+        element.addEventListener('drop', handleDrop);
+        element.addEventListener('dragend', handleDragEnd);
+    }
+
+    function handleDragStart(e) {
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.id);
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        const container = document.getElementById('questions-list');
+        const afterElement = getDragAfterElement(container, e.clientY);
+        const dragging = document.querySelector('.dragging');
+        if (!afterElement) {
+            container.appendChild(dragging);
+        } else {
+            container.insertBefore(dragging, afterElement);
+        }
+    }
+
+    function handleDrop(e) { e.preventDefault(); }
+
+    function handleDragEnd() {
+        this.classList.remove('dragging');
+        updateQuestionNumbers();
+        disableGenerateButton();
+    }
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function formToConfigObject() {
+        const formElement = document.getElementById('autograder-form');
+
+        const disabledElements = [];
+        formElement.querySelectorAll('input:disabled, select:disabled, textarea:disabled').forEach(el => {
+            disabledElements.push(el);
+            el.disabled = false;
+        });
+
+        const formData = new FormData(formElement);
+
+        // Restore disabled state
+        disabledElements.forEach(el => {
+            el.disabled = true;
+        });
+
+        const config = {
+            version: formData.get('version'),
+            language: formData.get('language'),
+            global_time_limit: parseInt(formData.get('global_time_limit')),
+            setup_commands: (formData.get('setup_commands') || '').split('\n').filter(c => c.trim()),
+            files_necessary: (formData.get('files_necessary') || '').split('\n').filter(f => f.trim()),
+            questions: []
         };
 
-        const markingItems = q.querySelectorAll('.marking-item');
-        markingItems.forEach((mi, miIdx) => {
-            const miPrefix = `${prefix}-marking_items-${miIdx}`;
-            const type = formData.get(`${miPrefix}-type`);
-            const item = {
-                type: type,
-                name: formData.get(`${miPrefix}-name`),
-                target_file: formData.get(`${miPrefix}-target_file`),
-                total_mark: parseFloat(formData.get(`${miPrefix}-total_mark`)),
-                time_limit: parseInt(formData.get(`${miPrefix}-time_limit`)) || 30,
-                visibility: formData.get(`${miPrefix}-visibility`) || 'visible'
+        const questions = document.querySelectorAll('#questions-list > .card');
+        questions.forEach((q, qIdx) => {
+            const prefix = `questions-${qIdx}`;
+            const question = {
+                name: formData.get(`${prefix}-name`),
+                description: formData.get(`${prefix}-description`),
+                marking_items: []
             };
 
-            if (type === 'output_comparison') {
-                item.expected_input = formData.get(`${miPrefix}-expected_input`);
-                item.expected_output = formData.get(`${miPrefix}-expected_output`);
-            } else if (type === 'signature_check') {
-                item.function_name = formData.get(`${miPrefix}-function_name`);
-                item.expected_parameters = formData.get(`${miPrefix}-expected_parameters`);
-                item.expected_return_type = formData.get(`${miPrefix}-expected_return_type`);
-            } else if (type === 'function_test') {
-                item.function_name = formData.get(`${miPrefix}-function_name`);
-                try {
-                    item.test_cases = jsyaml.load(formData.get(`${miPrefix}-test_cases`));
-                } catch (e) { item.test_cases = []; }
-            }
-            question.marking_items.push(item);
+            const markingItems = q.querySelectorAll('.marking-item');
+            markingItems.forEach((mi, miIdx) => {
+                const miPrefix = `${prefix}-marking_items-${miIdx}`;
+                const type = formData.get(`${miPrefix}-type`);
+                const item = {
+                    type: type,
+                    name: formData.get(`${miPrefix}-name`),
+                    target_file: formData.get(`${miPrefix}-target_file`),
+                    total_mark: parseFloat(formData.get(`${miPrefix}-total_mark`)),
+                    time_limit: parseInt(formData.get(`${miPrefix}-time_limit`)) || 30,
+                    visibility: formData.get(`${miPrefix}-visibility`) || 'visible'
+                };
+
+                if (type === 'output_comparison') {
+                    item.expected_input = formData.get(`${miPrefix}-expected_input`);
+                    item.expected_output = formData.get(`${miPrefix}-expected_output`);
+                } else if (type === 'signature_check') {
+                    item.function_name = formData.get(`${miPrefix}-function_name`);
+                    item.expected_parameters = formData.get(`${miPrefix}-expected_parameters`);
+                    item.expected_return_type = formData.get(`${miPrefix}-expected_return_type`);
+                } else if (type === 'function_test') {
+                    item.function_name = formData.get(`${miPrefix}-function_name`);
+                    try {
+                        item.test_cases = jsyaml.load(formData.get(`${miPrefix}-test_cases`));
+                    } catch (e) { item.test_cases = []; }
+                }
+                question.marking_items.push(item);
+            });
+            config.questions.push(question);
         });
-        config.questions.push(question);
-    });
-    return config;
-}
-
-async function validateConfig(silent = false) {
-    if (!silent) clearAlerts();
-    const config = formToConfigObject();
-    const btn = document.querySelector('button[onclick="validateConfig()"]'); // This button might be removed, but keeping logic for safety
-    const originalText = btn ? btn.innerHTML : '';
-
-    if (!silent && btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Validating...';
+        return config;
     }
-    
-    try {
-        const response = await fetch('/api/validate', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(config)
-        });
-        const data = await response.json();
-        
-        const genBtn = document.getElementById('generate-btn');
-        const exportSection = document.getElementById('export-section');
-        
-        if (data.valid) {
-            if (!silent) {
-                showAlert('Configuration is valid! Form locked for editing.', 'success');
-                exportSection.classList.remove('d-none');
-                toggleFormLock(true);
-            }
-            genBtn.disabled = false;
-        } else {
-            if (!silent) {
-                let msg = '<strong>Validation Error:</strong><ul>' + data.errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
-                showAlert(msg, 'danger');
-            }
-            genBtn.disabled = true;
-            exportSection.classList.add('d-none');
-        }
-        return data.valid;
-    } catch (e) {
-        if (!silent) showAlert('Network error during validation.', 'danger');
-        return false;
-    } finally {
+
+    async function validateConfig(silent = false) {
+        if (!silent) clearAlerts();
+        const config = formToConfigObject();
+        const btn = document.querySelector('button[onclick="validateConfig()"]'); // This button might be removed, but keeping logic for safety
+        const originalText = btn ? btn.innerHTML : '';
+
         if (!silent && btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Validating...';
+        }
+
+        try {
+            const response = await fetch('/api/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(config)
+            });
+            const data = await response.json();
+
+            const genBtn = document.getElementById('generate-btn');
+            const exportSection = document.getElementById('export-section');
+
+            if (data.valid) {
+                if (!silent) {
+                    showAlert('Configuration is valid! Form locked for editing.', 'success');
+                    exportSection.classList.remove('d-none');
+                    toggleFormLock(true);
+                }
+                genBtn.disabled = false;
+            } else {
+                if (!silent) {
+                    let msg = '<strong>Validation Error:</strong><ul>' + data.errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
+                    showAlert(msg, 'danger');
+                }
+                genBtn.disabled = true;
+                exportSection.classList.add('d-none');
+            }
+            return data.valid;
+        } catch (e) {
+            if (!silent) showAlert('Network error during validation.', 'danger');
+            return false;
+        } finally {
+            if (!silent && btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+    }
+
+    async function downloadExport(type) {
+        const config = formToConfigObject();
+        let url = '/api/generate';
+        let filename = 'autograder.zip';
+
+        if (type === 'description') {
+            url = '/api/export/description';
+            filename = 'description.docx';
+        } else if (type === 'correct') {
+            url = '/api/export/correct';
+            filename = 'correct_answer.zip';
+        } else if (type === 'wrong') {
+            url = '/api/export/wrong';
+            filename = 'wrong_answer.zip';
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+
+            if (!response.ok) throw new Error('Export failed');
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (e) {
+            showAlert(e.message, 'danger');
+        }
+    }
+
+    async function submitForGeneration(btnElement) {
+        const config = formToConfigObject();
+        const btn = btnElement || document.getElementById('generate-btn');
+        const originalText = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
+
+        try {
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(config)
+            });
+
+            if (!response.ok) throw new Error('Generation failed');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'autograder.zip';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            document.getElementById('export-section').classList.remove('d-none');
+            showAlert('Success! Autograder assets ready for download below.', 'success');
+        } catch (e) {
+            showAlert(e.message, 'danger');
+        } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
         }
     }
-}
 
-async function downloadExport(type) {
-    const config = formToConfigObject();
-    let url = '/api/generate';
-    let filename = 'autograder.zip';
+    function clearAlerts() { document.getElementById('alert-container').innerHTML = ''; }
 
-    if (type === 'description') {
-        url = '/api/export/description';
-        filename = 'description.docx';
-    } else if (type === 'correct') {
-        url = '/api/export/correct';
-        filename = 'correct_answer.zip';
-    } else if (type === 'wrong') {
-        url = '/api/export/wrong';
-        filename = 'wrong_answer.zip';
+    function showAlert(message, type) {
+        const container = document.getElementById('alert-container');
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show shadow-sm`;
+        alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        container.appendChild(alert);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(config)
-        });
-        
-        if (!response.ok) throw new Error('Export failed');
-        
-        const blob = await response.blob();
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(downloadUrl);
-    } catch (e) {
-        showAlert(e.message, 'danger');
+    function disableGenerateButton() {
+        const btn = document.getElementById('generate-btn');
+        btn.disabled = true;
+        document.getElementById('export-section').classList.add('d-none');
     }
-}
 
-async function submitForGeneration(btnElement) {
-    const config = formToConfigObject();
-    const btn = btnElement || document.getElementById('generate-btn');
-    const originalText = btn.innerHTML;
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
-    
-    try {
-        const response = await fetch('/api/generate', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(config)
+    function downloadYamlConfig() {
+        const config = formToConfigObject();
+        const yamlString = jsyaml.dump(config, {
+            schema: jsyaml.DEFAULT_SCHEMA,
+            noRefs: true,
+            lineWidth: -1, // Disable line wrapping
+            styles: {
+                '!!null': 'empty' // dump null as empty
+            }
         });
-        
-        if (!response.ok) throw new Error('Generation failed');
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
+        const blob = new Blob([yamlString], { type: 'application/x-yaml' });
+        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'autograder.zip';
-        document.body.appendChild(a);
+        a.download = 'autograder_config.yaml';
         a.click();
-        window.URL.revokeObjectURL(url);
-        
-        document.getElementById('export-section').classList.remove('d-none');
-        showAlert('Success! Autograder assets ready for download below.', 'success');
-    } catch (e) {
-        showAlert(e.message, 'danger');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+        URL.revokeObjectURL(url);
     }
-}
 
-function clearAlerts() { document.getElementById('alert-container').innerHTML = ''; }
+    function handleConfigUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
 
-function showAlert(message, type) {
-    const container = document.getElementById('alert-container');
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type} alert-dismissible fade show shadow-sm`;
-    alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-    container.appendChild(alert);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                toggleFormLock(false);
+                let config;
+                if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
+                    config = jsyaml.load(e.target.result);
+                } else {
+                    config = JSON.parse(e.target.result);
+                }
+                populateFormFromConfig(config);
+                showAlert('Config successfully imported.', 'success');
+            } catch (err) {
+                console.error(err);
+                showAlert('Import Error: ' + err.message, 'danger');
+            }
+        };
+        reader.readAsText(file);
+    }
 
-function disableGenerateButton() {
-    const btn = document.getElementById('generate-btn');
-    btn.disabled = true;
-    document.getElementById('export-section').classList.add('d-none');
-}
-
-function downloadYamlConfig() {
-    const config = formToConfigObject();
-    const yamlString = jsyaml.dump(config, {
-        schema: jsyaml.DEFAULT_SCHEMA,
-        noRefs: true,
-        lineWidth: -1, // Disable line wrapping
-        styles: {
-            '!!null': 'empty' // dump null as empty
-        }
-    });
-    const blob = new Blob([yamlString], { type: 'application/x-yaml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'autograder_config.yaml';
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-function handleConfigUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
+    async function loadExampleConfig() {
         try {
-            toggleFormLock(false);
-            let config;
-            if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
-                config = jsyaml.load(e.target.result);
+            const response = await fetch('/api/example/py_simple');
+            const data = await response.json();
+            if (data.success) {
+                toggleFormLock(false);
+                populateFormFromConfig(data.config);
+                showAlert('Example config successfully loaded.', 'success');
+                await validateConfig(false);
             } else {
-                config = JSON.parse(e.target.result);
+                showAlert('Error loading example: ' + data.error, 'danger');
             }
-            populateFormFromConfig(config);
-            showAlert('Config successfully imported.', 'success');
         } catch (err) {
-            console.error(err);
-            showAlert('Import Error: ' + err.message, 'danger');
+            showAlert('Network error loading example config.', 'danger');
         }
-    };
-    reader.readAsText(file);
-}
+    }
 
-function populateFormFromConfig(config) {
-    if (config.language) document.getElementById('language').value = config.language;
-    if (config.version) document.getElementById('version').value = config.version;
-    if (config.global_time_limit) document.getElementById('global_time_limit').value = config.global_time_limit;
-    if (config.setup_commands) document.getElementById('setup_commands').value = (config.setup_commands || []).join('\n');
-    if (config.files_necessary) document.getElementById('files_necessary').value = (config.files_necessary || []).join('\n');
-    
-    renderRequiredFilesList();
-    
-    const questionsList = document.getElementById('questions-list');
-    questionsList.innerHTML = '';
-    questionCount = 0;
+    function populateFormFromConfig(config) {
+        if (config.language) document.getElementById('language').value = config.language;
+        if (config.version) document.getElementById('version').value = config.version;
+        if (config.global_time_limit) document.getElementById('global_time_limit').value = config.global_time_limit;
+        if (config.setup_commands) document.getElementById('setup_commands').value = (config.setup_commands || []).join('\n');
+        if (config.files_necessary) document.getElementById('files_necessary').value = (config.files_necessary || []).join('\n');
 
-    (config.questions || []).forEach((q, qIdx) => {
-        addQuestion();
-        const qCard = questionsList.lastElementChild;
-        qCard.querySelector('.q-name-input').value = q.name || '';
-        if (q.description) qCard.querySelector('.q-description-input').value = q.description;
-        
-        const miList = qCard.querySelector('.marking-items-list');
-        miList.innerHTML = '';
-        
-        (q.marking_items || []).forEach((mi, miIdx) => {
-            const blueprint = document.getElementById('marking-item-blueprint').firstElementChild;
-            const miDiv = blueprint.cloneNode(true);
-            miList.appendChild(miDiv);
-            
-            const typeSelect = miDiv.querySelector('select');
-            typeSelect.value = mi.type;
-            showTypeFields(typeSelect);
-            
-            updateQuestionNumbers();
-            const miPrefix = `questions-${qIdx}-marking_items-${miIdx}`;
-            
-            if (mi.name) {
-                const nameEl = document.getElementById(`${miPrefix}-name`);
-                if (nameEl) nameEl.value = mi.name;
-            }
-            if (mi.target_file) {
-                const tfEl = document.getElementById(`${miPrefix}-target_file`);
-                if (tfEl) tfEl.value = mi.target_file;
-            }
-            if (mi.total_mark) {
-                const tmEl = document.getElementById(`${miPrefix}-total_mark`);
-                if (tmEl) tmEl.value = mi.total_mark;
-            }
-            if (mi.time_limit) {
-                const tlEl = document.getElementById(`${miPrefix}-time_limit`);
-                if (tlEl) tlEl.value = mi.time_limit;
-            }
-            if (mi.visibility) {
-                const vEl = document.getElementById(`${miPrefix}-visibility`);
-                if (vEl) vEl.value = mi.visibility;
-            }
-            
-            if (mi.type === 'output_comparison') {
-                if (mi.expected_input) document.getElementById(`${miPrefix}-expected_input`).value = mi.expected_input;
-                if (mi.expected_output) document.getElementById(`${miPrefix}-expected_output`).value = mi.expected_output;
-            } else if (mi.type === 'signature_check') {
-                if (mi.function_name) document.getElementById(`${miPrefix}-function_name`).value = mi.function_name;
-                if (mi.expected_parameters) document.getElementById(`${miPrefix}-expected_parameters`).value = mi.expected_parameters;
-                if (mi.expected_return_type) document.getElementById(`${miPrefix}-expected_return_type`).value = mi.expected_return_type;
-            } else if (mi.type === 'function_test') {
-                if (mi.function_name) document.getElementById(`${miPrefix}-function_name`).value = mi.function_name;
-                if (mi.test_cases) document.getElementById(`${miPrefix}-test_cases`).value = jsyaml.dump(mi.test_cases);
-            }
+        renderRequiredFilesList();
+
+        const questionsList = document.getElementById('questions-list');
+        questionsList.innerHTML = '';
+        questionCount = 0;
+
+        (config.questions || []).forEach((q, qIdx) => {
+            addQuestion();
+            const qCard = questionsList.lastElementChild;
+            qCard.querySelector('.q-name-input').value = q.name || '';
+            if (q.description) qCard.querySelector('.q-description-input').value = q.description;
+
+            const miList = qCard.querySelector('.marking-items-list');
+            miList.innerHTML = '';
+
+            (q.marking_items || []).forEach((mi, miIdx) => {
+                const blueprint = document.getElementById('marking-item-blueprint').firstElementChild;
+                const miDiv = blueprint.cloneNode(true);
+                miList.appendChild(miDiv);
+
+                const typeSelect = miDiv.querySelector('select');
+                typeSelect.value = mi.type;
+                showTypeFields(typeSelect);
+
+                updateQuestionNumbers();
+                const miPrefix = `questions-${qIdx}-marking_items-${miIdx}`;
+
+                if (mi.name) {
+                    const nameEl = document.getElementById(`${miPrefix}-name`);
+                    if (nameEl) nameEl.value = mi.name;
+                }
+                if (mi.target_file) {
+                    const tfEl = document.getElementById(`${miPrefix}-target_file`);
+                    if (tfEl) tfEl.value = mi.target_file;
+                }
+                if (mi.total_mark) {
+                    const tmEl = document.getElementById(`${miPrefix}-total_mark`);
+                    if (tmEl) tmEl.value = mi.total_mark;
+                }
+                if (mi.time_limit) {
+                    const tlEl = document.getElementById(`${miPrefix}-time_limit`);
+                    if (tlEl) tlEl.value = mi.time_limit;
+                }
+                if (mi.visibility) {
+                    const vEl = document.getElementById(`${miPrefix}-visibility`);
+                    if (vEl) vEl.value = mi.visibility;
+                }
+
+                if (mi.type === 'output_comparison') {
+                    if (mi.expected_input) document.getElementById(`${miPrefix}-expected_input`).value = mi.expected_input;
+                    if (mi.expected_output) document.getElementById(`${miPrefix}-expected_output`).value = mi.expected_output;
+                } else if (mi.type === 'signature_check') {
+                    if (mi.function_name) document.getElementById(`${miPrefix}-function_name`).value = mi.function_name;
+                    if (mi.expected_parameters) document.getElementById(`${miPrefix}-expected_parameters`).value = mi.expected_parameters;
+                    if (mi.expected_return_type) document.getElementById(`${miPrefix}-expected_return_type`).value = mi.expected_return_type;
+                } else if (mi.type === 'function_test') {
+                    if (mi.function_name) document.getElementById(`${miPrefix}-function_name`).value = mi.function_name;
+                    if (mi.test_cases) document.getElementById(`${miPrefix}-test_cases`).value = jsyaml.dump(mi.test_cases);
+                }
+            });
         });
-    });
-    
-    updateQuestionNumbers();
-    disableGenerateButton();
-}
+
+        updateQuestionNumbers();
+        disableGenerateButton();
+    }
 </script>
 {% endblock %}

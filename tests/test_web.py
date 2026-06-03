@@ -24,3 +24,12 @@ def test_api_generate_missing_data(client):
     response = client.post("/api/generate", json={})
     assert response.status_code == 400
     assert b"No config data provided" in response.data
+
+
+def test_api_example_py_simple(client):
+    response = client.get("/api/example/py_simple")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["success"] is True
+    assert "config" in data
+    assert data["config"]["language"] == "python"

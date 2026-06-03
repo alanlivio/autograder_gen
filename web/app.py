@@ -194,5 +194,18 @@ def validate_config():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/example/py_simple", methods=["GET"])
+def get_example_config():
+    """Return the py_simple example YAML configuration."""
+    example_path = Path(__file__).parent.parent / "tests" / "examples" / "py_simple" / "config.yaml"
+    try:
+        with open(example_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            config_data = yaml.safe_load(content)
+        return jsonify({"success": True, "config": config_data})
+    except Exception as e:
+        return jsonify({"error": f"Error loading example: {str(e)}"}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
