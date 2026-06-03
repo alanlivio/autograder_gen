@@ -11,7 +11,7 @@ ifneq (,$(wildcard .env))
     export
 endif
 
-.PHONY: dev_env test_deploy
+.PHONY: dev_env dev_deploy wsgi_links
 
 dev_env:
 ifeq ($(OS),Windows_NT)
@@ -28,18 +28,19 @@ else
 	@echo "  source .venv/bin/activate"
 endif
 
+dev_deploy:
+	$(if $(filter Windows_NT,$(OS)),@echo "Error: only supported on Linux" && exit 1)
+	[ -d /var/www/autograder ] || sudo mkdir -p /var/www/autograder
+	sudo make wsgi_links
+	PYTHONPATH=/var/www/autograder .venv/bin/python $(CURDIR)/web/wsgi/run_dev_wsgi.py
 
+wsgi_links:
+	$(if $(filter Windows_NT,$(OS)),@echo "Error: only supported on Linux" && exit 1)
+	ln -snf $(CURDIR)/requirements.txt /var/www/autograder/requirements.txt
+	ln -snf $(CURDIR)/web/static /var/www/autograder/static
+	ln -snf $(CURDIR)/web/wsgi/autograder.wsgi /var/www/autograder/autograder.wsgi
+	ln -snf $(CURDIR) /var/www/autograder/autograder
 
-test_deploy:
-ifeq ($(OS),Windows_NT)
-	@echo "Error: test_deploy is only supported on Linux."
-	@exit 1
-else
-	@uname | grep -q Linux || (echo "Error: test_deploy is only supported on Linux." && exit 1)
-	[ -d /var/www ] || mkdir -p /var/www
-	ln -snf $(CURDIR) /var/www/autograder
-	PYTHONPATH=/var/www .venv/bin/python -c "import sys, importlib.util; from importlib.machinery import SourceFileLoader; loader=SourceFileLoader('autograder.wsgi', 'autograder.wsgi'); spec=importlib.util.spec_from_loader('autograder.wsgi', loader); mod=importlib.util.module_from_spec(spec); sys.modules['autograder.wsgi']=mod; loader.exec_module(mod); from gunicorn.app.wsgiapp import run; run()" --bind 0.0.0.0:8000 autograder.wsgi:application
-endif
 
 
 
