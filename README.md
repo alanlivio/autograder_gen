@@ -1,6 +1,6 @@
 # autograder-gen
 
-`autograder-gen` is a tool for lecturers to generate automated assessment scripts (autograders compatible with the [GradeScope Platform](https://www.gradescope.com/). It transforms a high-level YAML configuration into a complete autograder environment packaged as a ZIP file.
+`autograder-gen` is a tool for lecturers to generate automated assessment scripts compatible with the [GradeScope Platform](https://guides.gradescope.com/hc/en-us/articles/22066635961357-Grading-a-Programming-Assignment). It transforms a high-level YAML configuration into a complete autograder environment packaged as a ZIP file.
 
 The project validates your configuration, renders test scripts using Jinja2 templates, and packages everything for immediate upload to Gradescope.
 
