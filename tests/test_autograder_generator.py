@@ -56,7 +56,7 @@ def test_autograder_zip_contains_expected_files(temp_output_dir):
             "run_autograder",
             "run_tests.py",
             "requirements.txt",
-            "autograder_config.yaml",
+            "autograder_gen.yaml",
             "README.md",
             "tests/",
         ]
@@ -66,7 +66,7 @@ def test_autograder_zip_contains_expected_files(temp_output_dir):
             ), f"Missing {fname} in zip: {namelist}"
 
         # Verify the original config was saved correctly
-        with z.open("autograder_config.yaml") as f:
+        with z.open("autograder_gen.yaml") as f:
             saved_config = yaml.safe_load(f.read().decode("utf-8"))
             assert (
                 saved_config == SAMPLE_CONFIG_DICT

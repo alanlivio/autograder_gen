@@ -362,7 +362,7 @@ class AutograderGenerator:
 
         # Save the original configuration if provided
         if self.original_config_dict:
-            original_config_file = self.temp_dir / "autograder_config.yaml"
+            original_config_file = self.temp_dir / "autograder_gen.yaml"
             with open(original_config_file, "w", encoding="utf-8") as f:
                 yaml.dump(
                     self.original_config_dict,
@@ -394,7 +394,7 @@ autograder.zip
 │   ├── question_1_test.py
 │   ├── question_2_test.py
 │   └── ...
-├── autograder_config.yaml  # Original configuration file
+├── autograder_gen.yaml     # Original configuration file
 └── README.md              # This file
 ```
 
@@ -515,7 +515,7 @@ Students must submit the following files:
 - All tests run in isolated environments with proper timeout handling
 - Results are automatically formatted for Gradescope integration
 
-For questions about this autograder configuration, refer to the original `autograder_config.yaml` file included in this package.
+For questions about this autograder configuration, refer to the original `autograder_gen.yaml` file included in this package.
 """
 
         readme_file = self.temp_dir / "README.md"
