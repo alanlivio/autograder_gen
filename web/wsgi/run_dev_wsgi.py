@@ -15,5 +15,5 @@ sys.modules[module_name] = mod
 loader.exec_module(mod)
 
 if __name__ == '__main__':
-    sys.argv = [sys.argv[0], '--bind', '0.0.0.0:8000', 'autograder.wsgi:application']
+    sys.argv = [sys.argv[0], '--bind', '127.0.0.1:8000', 'autograder.wsgi:application']
     run()

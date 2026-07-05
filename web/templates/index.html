@@ -205,6 +205,19 @@
             addQuestion();
         }
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const action = urlParams.get('action');
+        if (action === 'upload') {
+            setTimeout(() => {
+                const uploadInput = document.getElementById('config-upload');
+                if (uploadInput) uploadInput.click();
+            }, 100);
+        } else if (action === 'example') {
+            setTimeout(() => {
+                loadExampleConfig();
+            }, 100);
+        }
+
         document.addEventListener('input', (e) => {
             if (e.target.name && e.target.name.includes('total_mark')) {
                 updateQuestionNumbers();

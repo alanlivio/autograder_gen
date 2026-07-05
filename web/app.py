@@ -32,6 +32,11 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/docs", methods=["GET"])
+def documentation():
+    return render_template("docs.html")
+
+
 @app.route("/upload-config", methods=["POST"])
 def upload_config():
     """Handle YAML config file upload and return the parsed configuration."""

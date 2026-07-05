@@ -14,6 +14,12 @@ def test_index_route(client):
     assert response.status_code == 200
 
 
+def test_docs_route(client):
+    response = client.get("/docs")
+    assert response.status_code == 200
+    assert b"Documentation & Guide" in response.data
+
+
 def test_api_validate_missing_data(client):
     response = client.post("/api/validate", json={})
     assert response.status_code == 400

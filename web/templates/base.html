@@ -40,16 +40,18 @@
         <div class="container">
             <a class="navbar-brand" href="/">Autograder Generator</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="#" onclick="createNewConfig(); return false;">
+                <a class="nav-link" href="#" onclick="triggerNew(); return false;">
                     <i class="fas fa-file me-1"></i> New
                 </a>
-                <a class="nav-link" href="#" onclick="document.getElementById('config-upload').click(); return false;">
+                <a class="nav-link" href="#" onclick="triggerUpload(); return false;">
                     <i class="fas fa-upload me-1"></i> New from YAML
                 </a>
-                <a class="nav-link" href="#" onclick="loadExampleConfig(); return false;">
+                <a class="nav-link" href="#" onclick="triggerExample(); return false;">
                     <i class="fas fa-magic me-1"></i> New from YAML Example
                 </a>
-                <a class="nav-link" href="https://github.com/alanlivio/autograder-gen" target="_blank">Documentation</a>
+                <a class="nav-link" href="/docs">
+                    <i class="fas fa-book me-1"></i> Documentation
+                </a>
             </div>
         </div>
     </nav>
@@ -62,6 +64,29 @@
     {{ bootstrap.load_js() }}
     <!-- JS-YAML -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script>
+        function triggerNew() {
+            if (typeof createNewConfig === 'function') {
+                createNewConfig();
+            } else {
+                window.location.href = '/?action=new';
+            }
+        }
+        function triggerUpload() {
+            if (typeof handleConfigUpload === 'function') {
+                document.getElementById('config-upload').click();
+            } else {
+                window.location.href = '/?action=upload';
+            }
+        }
+        function triggerExample() {
+            if (typeof loadExampleConfig === 'function') {
+                loadExampleConfig();
+            } else {
+                window.location.href = '/?action=example';
+            }
+        }
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 

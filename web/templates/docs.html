@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Documentation - Autograder Generator{% endblock %}
+
+{% block content %}
+<style>
+    .docs-header {
+        background: linear-gradient(135deg, #ce0b1e 0%, #800712 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 10px 20px rgba(206, 11, 30, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    .docs-header::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -30%;
+        width: 100%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+        transform: rotate(30deg);
+        pointer-events: none;
+    }
+    .docs-header h1 {
+        font-size: 2.8rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin-bottom: 0.5rem;
+    }
+    .docs-header p {
+        font-size: 1.15rem;
+        opacity: 0.9;
+        max-width: 750px;
+    }
+    
+    .docs-section-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #ce0b1e;
+        border-left: 5px solid #ce0b1e;
+        padding-left: 15px;
+        margin-top: 3rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .workflow-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        border: 1px solid rgba(0,0,0,0.06);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .workflow-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    }
+
+    .step-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .step-card {
+        background: #fdfdfd;
+        border: 1px solid #f0f0f0;
+        border-radius: 10px;
+        padding: 1.8rem;
+        position: relative;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .step-card:hover {
+        border-color: #ce0b1e;
+        box-shadow: 0 8px 24px rgba(206,11,30,0.05);
+    }
+    .step-number {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 3rem;
+        font-weight: 900;
+        color: rgba(206, 11, 30, 0.08);
+        line-height: 1;
+    }
+    .step-card h4 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+        color: #333;
+    }
+    .step-card p {
+        font-size: 0.95rem;
+        color: #555;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .diagram-container {
+        background: #fdfdfd;
+        border-radius: 10px;
+        border: 1px solid #eaeaea;
+        padding: 2rem;
+        margin: 2rem 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .code-example {
+        background: #2d3748;
+        color: #f7fafc;
+        border-radius: 8px;
+        padding: 1.5rem;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        overflow-x: auto;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        margin: 1.5rem 0;
+    }
+</style>
+
+<div class="docs-header">
+    <h1>Documentation & Guide</h1>
+    <p>Understand the complete lifecycle of how Autograder Generator facilitates automated grading workflows on the Gradescope platform.</p>
+</div>
+
+<div class="workflow-card">
+    <h3 class="mb-3" style="font-weight: 700; color: #333;">The Autograder Workflow</h3>
+    <p class="text-muted">The diagram below illustrates how a lecturer configures and exports their assessment rules, packages the autograder, deploys it to Gradescope, and how students' submissions are automatically evaluated in isolation.</p>
+    
+    <div class="diagram-container">
+        <div class="mermaid">
+            graph TD
+                classDef lecturer fill:#e8f0fe,stroke:#1a73e8,stroke-width:2px,color:#1a73e8;
+                classDef tool fill:#fcf8e3,stroke:#f0ad4e,stroke-width:2px,color:#8a6d3b;
+                classDef gradescope fill:#e8f8f5,stroke:#1abc9c,stroke-width:2px,color:#16a085;
+                classDef student fill:#fdf2e9,stroke:#e67e22,stroke-width:2px,color:#d35400;
+
+                A[Lecturer] -->|1. Configures Assessment| B(autograder_gen.yaml)
+                B -->|2. Uploads or Pastes| C[Autograder Generator App]
+                C -->|3. Validates & Generates| D(autograder.zip)
+                D -->|4. Uploads Package| E[Gradescope Assignment]
+                
+                F[Students] -->|5. Submit Code Solutions| E
+                E -->|6. Runs Docker Sandbox & Tests| G(results.json)
+                
+                class A,B lecturer;
+                class C,D tool;
+                class E,G gradescope;
+                class F student;
+        </div>
+    </div>
+</div>
+
+
+<h3 class="docs-section-title">YAML Configuration Example</h3>
+<p class="text-muted">A sample high-level <code>autograder_gen.yaml</code> configuration file containing metadata and custom grading test suites:</p>
+
+<pre class="code-example"><code>version: "0.1"
+language: "python"
+global_time_limit: 5000
+setup_commands:
+  - pip install numpy
+files_necessary:
+  - math_utils.py
+questions:
+  - name: "Question 1: Fibonacci Sequence"
+    marking_items:
+      - name: "Fibonacci function exists"
+        total_mark: 2.0
+        check_type: "file_exists"
+      - name: "Fibonacci standard cases"
+        total_mark: 5.0
+        check_type: "output_comparison"
+        test_cases:
+          - input: "5"
+            output: "5"
+          - input: "10"
+            output: "55"</code></pre>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'neutral',
+        securityLevel: 'loose'
+    });
+</script>
+{% endblock %}
