@@ -16,6 +16,12 @@
         </p>
     </div>
     <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary" id="new-btn" onclick="createNewConfig()">
+            <i class="fas fa-file me-1"></i> New
+        </button>
+        <button type="button" class="btn btn-outline-secondary" id="upload-btn" onclick="document.getElementById('config-upload').click()">
+            <i class="fas fa-upload me-1"></i> New from YAML
+        </button>
         <input type="file" id="config-upload" class="d-none" accept=".yaml,.yml" onchange="handleConfigUpload(this)">
         <button type="button" class="btn btn-primary" id="validate-btn" onclick="validateConfig(false)">
             <i class="fas fa-check-circle me-1"></i> Validate & Export
@@ -207,14 +213,30 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const action = urlParams.get('action');
+        const loadExample = urlParams.get('load_example');
+
         if (action === 'upload') {
             setTimeout(() => {
                 const uploadInput = document.getElementById('config-upload');
                 if (uploadInput) uploadInput.click();
             }, 100);
-        } else if (action === 'example') {
-            setTimeout(() => {
-                loadExampleConfig();
+        } else if (loadExample) {
+            setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/example/${loadExample}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        toggleFormLock(false);
+                        populateFormFromConfig(data.config);
+                        showAlert(`Example config '${loadExample}' successfully loaded.`, 'success');
+                        await validateConfig(false);
+                    } else {
+                        showAlert('Error loading example: ' + data.error, 'danger');
+                    }
+                } catch (err) {
+                    showAlert('Network error loading example config.', 'danger');
+                }
+                window.history.replaceState({}, document.title, window.location.pathname);
             }, 100);
         }
 
@@ -289,6 +311,12 @@
         // Toggle button visibility
         document.getElementById('validate-btn').classList.toggle('d-none', lock);
         document.getElementById('edit-btn').classList.toggle('d-none', !lock);
+
+        // Disable/enable new creation buttons
+        const newBtn = document.getElementById('new-btn');
+        const uploadBtn = document.getElementById('upload-btn');
+        if (newBtn) newBtn.disabled = lock;
+        if (uploadBtn) uploadBtn.disabled = lock;
 
         // Hide export section if unlocking
         if (!lock) {

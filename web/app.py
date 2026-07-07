@@ -29,12 +29,19 @@ CORS(app)
 
 @app.route("/", methods=["GET"])
 def index():
+    return render_template("home.html")
+
+
+@app.route("/generate", methods=["GET"])
+def generate():
     return render_template("index.html")
 
 
 @app.route("/docs", methods=["GET"])
 def documentation():
-    return render_template("docs.html")
+    schema_dict = AutograderConfig.model_json_schema()
+    schema_str = json.dumps(schema_dict, indent=2)
+    return render_template("docs.html", schema=schema_str)
 
 
 @app.route("/upload-config", methods=["POST"])
@@ -199,10 +206,12 @@ def validate_config():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/example/py_simple", methods=["GET"])
-def get_example_config():
-    """Return the py_simple example YAML configuration."""
-    example_path = Path(__file__).parent.parent / "tests" / "examples" / "py_simple" / "config.yaml"
+@app.route("/api/example/<name>", methods=["GET"])
+def get_example_config(name):
+    """Return the specified example YAML configuration."""
+    if name not in ["py_simple", "py_function", "py_complete"]:
+        return jsonify({"error": "Example not found"}), 404
+    example_path = Path(__file__).parent.parent / "tests" / "examples" / name / "config.yaml"
     try:
         with open(example_path, "r", encoding="utf-8") as f:
             content = f.read()

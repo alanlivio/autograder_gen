@@ -12,12 +12,19 @@ def client():
 def test_index_route(client):
     response = client.get("/")
     assert response.status_code == 200
+    assert b"what is Autograder Generator?" in response.data
 
 
 def test_docs_route(client):
     response = client.get("/docs")
     assert response.status_code == 200
-    assert b"Documentation & Guide" in response.data
+    assert b"Configuration Schema Explorer" in response.data
+
+
+def test_generate_route(client):
+    response = client.get("/generate")
+    assert response.status_code == 200
+    assert b"Autograder Generator" in response.data
 
 
 def test_api_validate_missing_data(client):

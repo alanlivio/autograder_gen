@@ -9,7 +9,7 @@
     <style>
         body { background-color: #ECECEC; color: rgb(65, 68, 77); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .main-content { background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 2rem; margin-top: 2rem; }
-        .navbar { background-color: rgb(206, 11, 30); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .navbar { background-color: #1e293b; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .navbar-brand { color: white !important; font-weight: bold; }
         .navbar-nav .nav-link { color: white !important; border: 1px solid rgba(255,255,255,0.5); padding: 5px 15px; border-radius: 4px; transition: 0.3s; margin-left: 10px; }
         .navbar-nav .nav-link:hover { background-color: rgba(255, 255, 255, 0.2); border-color: white; }
@@ -40,14 +40,8 @@
         <div class="container">
             <a class="navbar-brand" href="/">Autograder Generator</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="#" onclick="triggerNew(); return false;">
-                    <i class="fas fa-file me-1"></i> New
-                </a>
-                <a class="nav-link" href="#" onclick="triggerUpload(); return false;">
-                    <i class="fas fa-upload me-1"></i> New from YAML
-                </a>
-                <a class="nav-link" href="#" onclick="triggerExample(); return false;">
-                    <i class="fas fa-magic me-1"></i> New from YAML Example
+                <a class="nav-link" href="/generate">
+                    <i class="fas fa-cog me-1"></i> Generate
                 </a>
                 <a class="nav-link" href="/docs">
                     <i class="fas fa-book me-1"></i> Documentation
@@ -64,29 +58,6 @@
     {{ bootstrap.load_js() }}
     <!-- JS-YAML -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
-    <script>
-        function triggerNew() {
-            if (typeof createNewConfig === 'function') {
-                createNewConfig();
-            } else {
-                window.location.href = '/?action=new';
-            }
-        }
-        function triggerUpload() {
-            if (typeof handleConfigUpload === 'function') {
-                document.getElementById('config-upload').click();
-            } else {
-                window.location.href = '/?action=upload';
-            }
-        }
-        function triggerExample() {
-            if (typeof loadExampleConfig === 'function') {
-                loadExampleConfig();
-            } else {
-                window.location.href = '/?action=example';
-            }
-        }
-    </script>
     {% block scripts %}{% endblock %}
 </body>
 

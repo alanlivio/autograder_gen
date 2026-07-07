@@ -4,115 +4,22 @@
 
 {% block content %}
 <style>
-    .docs-header {
-        background: linear-gradient(135deg, #ce0b1e 0%, #800712 100%);
-        color: white;
-        border-radius: 12px;
-        padding: 3rem 2rem;
-        margin-bottom: 2.5rem;
-        box-shadow: 0 10px 20px rgba(206, 11, 30, 0.15);
-        position: relative;
-        overflow: hidden;
-    }
-    .docs-header::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -30%;
-        width: 100%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
-        transform: rotate(30deg);
-        pointer-events: none;
-    }
-    .docs-header h1 {
-        font-size: 2.8rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        margin-bottom: 0.5rem;
-    }
-    .docs-header p {
-        font-size: 1.15rem;
-        opacity: 0.9;
-        max-width: 750px;
-    }
-    
-    .docs-section-title {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #ce0b1e;
-        border-left: 5px solid #ce0b1e;
-        padding-left: 15px;
-        margin-top: 3rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .workflow-card {
+    .schema-explorer-card {
         background: #ffffff;
         border-radius: 12px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.04);
         border: 1px solid rgba(0,0,0,0.06);
-        padding: 2.5rem;
-        margin-bottom: 2rem;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .workflow-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-    }
-
-    .step-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-top: 2rem;
-    }
-
-    .step-card {
-        background: #fdfdfd;
-        border: 1px solid #f0f0f0;
-        border-radius: 10px;
-        padding: 1.8rem;
-        position: relative;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-    .step-card:hover {
-        border-color: #ce0b1e;
-        box-shadow: 0 8px 24px rgba(206,11,30,0.05);
-    }
-    .step-number {
-        position: absolute;
-        top: 15px;
-        right: 20px;
-        font-size: 3rem;
-        font-weight: 900;
-        color: rgba(206, 11, 30, 0.08);
-        line-height: 1;
-    }
-    .step-card h4 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-bottom: 0.8rem;
-        color: #333;
-    }
-    .step-card p {
-        font-size: 0.95rem;
-        color: #555;
-        line-height: 1.6;
-        margin: 0;
-    }
-
-    .diagram-container {
-        background: #fdfdfd;
-        border-radius: 10px;
-        border: 1px solid #eaeaea;
         padding: 2rem;
-        margin: 2rem 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        margin-bottom: 2rem;
     }
     
+    .schema-title-badge {
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 0.35rem 0.6rem;
+        border-radius: 6px;
+    }
+
     .code-example {
         background: #2d3748;
         color: #f7fafc;
@@ -120,79 +27,241 @@
         padding: 1.5rem;
         font-family: 'Courier New', Courier, monospace;
         font-size: 0.9rem;
-        overflow-x: auto;
+        overflow: auto;
+        max-height: 550px;
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         margin: 1.5rem 0;
     }
+    .code-example code {
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+    
+    .nested-model-link {
+        color: #0d6efd;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .nested-model-link:hover {
+        text-decoration: underline;
+    }
 </style>
 
-<div class="docs-header">
-    <h1>Documentation & Guide</h1>
-    <p>Understand the complete lifecycle of how Autograder Generator facilitates automated grading workflows on the Gradescope platform.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="text-dark font-weight-bold mb-0">Configuration Schema Explorer</h1>
+    <span class="badge bg-secondary schema-title-badge">Pydantic v2 Schema</span>
 </div>
 
-<div class="workflow-card">
-    <h3 class="mb-3" style="font-weight: 700; color: #333;">The Autograder Workflow</h3>
-    <p class="text-muted">The diagram below illustrates how a lecturer configures and exports their assessment rules, packages the autograder, deploys it to Gradescope, and how students' submissions are automatically evaluated in isolation.</p>
-    
-    <div class="diagram-container">
-        <div class="mermaid">
-            graph TD
-                classDef lecturer fill:#e8f0fe,stroke:#1a73e8,stroke-width:2px,color:#1a73e8;
-                classDef tool fill:#fcf8e3,stroke:#f0ad4e,stroke-width:2px,color:#8a6d3b;
-                classDef gradescope fill:#e8f8f5,stroke:#1abc9c,stroke-width:2px,color:#16a085;
-                classDef student fill:#fdf2e9,stroke:#e67e22,stroke-width:2px,color:#d35400;
+<p class="text-muted mb-4">The Autograder Generator validates your <code>autograder_gen.yaml</code> against a strict structure defined by <code>AutograderConfigModel</code>. Use this explorer to understand all properties, nested components, and validation rules.</p>
 
-                A[Lecturer] -->|1. Configures Assessment| B(autograder_gen.yaml)
-                B -->|2. Uploads or Pastes| C[Autograder Generator App]
-                C -->|3. Validates & Generates| D(autograder.zip)
-                D -->|4. Uploads Package| E[Gradescope Assignment]
-                
-                F[Students] -->|5. Submit Code Solutions| E
-                E -->|6. Runs Docker Sandbox & Tests| G(results.json)
-                
-                class A,B lecturer;
-                class C,D tool;
-                class E,G gradescope;
-                class F student;
-        </div>
+<!-- Root model schema -->
+<div class="schema-explorer-card" id="config-model">
+    <h4 class="text-primary font-weight-bold mb-3">
+        <i class="fas fa-cube me-1"></i> Root Configuration <small class="text-muted">(AutograderConfigModel)</small>
+    </h4>
+    <p class="text-muted small">The top-level object containing global setup parameters and the test suite questions list.</p>
+    
+    <div class="table-responsive">
+        <table class="table table-hover border rounded">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" style="width: 25%;">Field</th>
+                    <th scope="col" style="width: 20%;">Type</th>
+                    <th scope="col" style="width: 15%;">Requirement</th>
+                    <th scope="col" style="width: 40%;">Description & Constraints</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong><code>version</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-success">Required</span></td>
+                    <td>Schema version identifier. Example: <code>"1.0"</code>.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>language</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-success">Required</span></td>
+                    <td>Programming language to evaluate. Allowed values: <code>python</code>, <code>java</code>.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>global_time_limit</code></strong></td>
+                    <td><code>integer</code></td>
+                    <td><span class="badge bg-light text-dark">Default: 300</span></td>
+                    <td>Global maximum test execution time limit (in milliseconds). Minimum: 1.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>setup_commands</code></strong></td>
+                    <td><code>array of strings</code></td>
+                    <td><span class="badge bg-light text-dark">Default: []</span></td>
+                    <td>Commands executed inside the sandbox during setup (e.g., installing package dependencies).</td>
+                </tr>
+                <tr>
+                    <td><strong><code>files_necessary</code></strong></td>
+                    <td><code>array of strings</code></td>
+                    <td><span class="badge bg-success">Required</span></td>
+                    <td>List of files required to be submitted by the student. Validated on submission.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>questions</code></strong></td>
+                    <td><a href="#question-model" class="nested-model-link"><code>array of QuestionModel</code></a></td>
+                    <td><span class="badge bg-success">Required</span></td>
+                    <td>List of assignment questions. Minimum items: 1.</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
+<!-- Question model schema -->
+<div class="schema-explorer-card" id="question-model">
+    <h4 class="text-primary font-weight-bold mb-3">
+        <i class="fas fa-folder-open me-1"></i> Question Specification <small class="text-muted">(QuestionModel)</small>
+    </h4>
+    <p class="text-muted small">Defines an individual graded question consisting of a name, description, and list of sub-tests.</p>
+    
+    <div class="table-responsive">
+        <table class="table table-hover border rounded">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" style="width: 25%;">Field</th>
+                    <th scope="col" style="width: 20%;">Type</th>
+                    <th scope="col" style="width: 15%;">Requirement</th>
+                    <th scope="col" style="width: 40%;">Description & Constraints</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong><code>name</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-success">Required</span></td>
+                    <td>Title of the question displayed on GradeScope.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>description</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-light text-dark">Default: ""</span></td>
+                    <td>Question details, instructions, or examples. Supports markdown formatting.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>marking_items</code></strong></td>
+                    <td><a href="#marking-item-model" class="nested-model-link"><code>array of MarkingItemModel</code></a></td>
+                    <td><span class="badge bg-success">Required</span></td>
+                    <td>List of testing check items linked to this question. Minimum items: 1.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
-<h3 class="docs-section-title">YAML Configuration Example</h3>
-<p class="text-muted">A sample high-level <code>autograder_gen.yaml</code> configuration file containing metadata and custom grading test suites:</p>
+<!-- Marking Item model schema -->
+<div class="schema-explorer-card" id="marking-item-model">
+    <h4 class="text-primary font-weight-bold mb-3">
+        <i class="fas fa-check-double me-1"></i> Marking Item Check <small class="text-muted">(MarkingItemModel)</small>
+    </h4>
+    <p class="text-muted small">Specifies a single automated verification check (test case or signature constraint) on student submissions.</p>
+    
+    <div class="table-responsive">
+        <table class="table table-hover border rounded">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" style="width: 25%;">Field</th>
+                    <th scope="col" style="width: 20%;">Type</th>
+                    <th scope="col" style="width: 15%;">Requirement</th>
+                    <th scope="col" style="width: 40%;">Description & Constraints</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong><code>target_file</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-success">Required</span></td>
+                    <td>The file to check. Must be listed under global <code>files_necessary</code>.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>total_mark</code></strong></td>
+                    <td><code>integer</code></td>
+                    <td><span class="badge bg-success">Required</span></td>
+                    <td>The mark/score value awarded if this check passes.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>type</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-success">Required</span></td>
+                    <td>Type of automated check. Enum: <code>file_exists</code>, <code>output_comparison</code>, <code>signature_check</code>, <code>function_test</code>.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>time_limit</code></strong></td>
+                    <td><code>integer</code></td>
+                    <td><span class="badge bg-light text-dark">Default: 30</span></td>
+                    <td>Individual execution timeout limit in seconds.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>visibility</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-light text-dark">Default: "visible"</span></td>
+                    <td>Score visibility control. Enum: <code>visible</code>, <code>hidden</code>, <code>after_due_date</code>, <code>after_published</code>.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>name</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-light text-dark">Default: ""</span></td>
+                    <td>Descriptive check name. If omitted, default type templates are used.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>expected_input</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-light text-dark">Default: ""</span></td>
+                    <td>Required input fed to stdout in <code>output_comparison</code> checks.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>expected_output</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-light text-dark">Default: ""</span></td>
+                    <td>Required stdout generated in <code>output_comparison</code> checks.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>function_name</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-light text-dark">Optional</span></td>
+                    <td>Name of the function to test. Required if type is <code>function_test</code> or <code>signature_check</code>.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>expected_parameters</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-light text-dark">Optional</span></td>
+                    <td>Parameters signature string expected in <code>signature_check</code> (e.g. <code>"a, b"</code>).</td>
+                </tr>
+                <tr>
+                    <td><strong><code>expected_return_type</code></strong></td>
+                    <td><code>string</code></td>
+                    <td><span class="badge bg-light text-dark">Optional</span></td>
+                    <td>Return type expected in <code>signature_check</code> (e.g. <code>"int"</code>).</td>
+                </tr>
+                <tr>
+                    <td><strong><code>test_cases</code></strong></td>
+                    <td><code>array of objects</code></td>
+                    <td><span class="badge bg-light text-dark">Default: []</span></td>
+                    <td>Function arguments and expected values for <code>function_test</code>. Each test case consists of <code>args</code> list and <code>expected</code> output string.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
-<pre class="code-example"><code>version: "0.1"
-language: "python"
-global_time_limit: 5000
-setup_commands:
-  - pip install numpy
-files_necessary:
-  - math_utils.py
-questions:
-  - name: "Question 1: Fibonacci Sequence"
-    marking_items:
-      - name: "Fibonacci function exists"
-        total_mark: 2.0
-        check_type: "file_exists"
-      - name: "Fibonacci standard cases"
-        total_mark: 5.0
-        check_type: "output_comparison"
-        test_cases:
-          - input: "5"
-            output: "5"
-          - input: "10"
-            output: "55"</code></pre>
-{% endblock %}
-
-{% block scripts %}
-<script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({
-        startOnLoad: true,
-        theme: 'neutral',
-        securityLevel: 'loose'
-    });
-</script>
+<!-- Raw Schema Accordion -->
+<div class="accordion mb-5" id="rawSchemaAccordion">
+    <div class="accordion-item border rounded shadow-sm">
+        <h2 class="accordion-header" id="headingRawSchema">
+            <button class="accordion-button collapsed font-weight-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRawSchema" aria-expanded="false" aria-controls="collapseRawSchema">
+                <i class="fas fa-code me-2"></i> View Raw JSON Schema
+            </button>
+        </h2>
+        <div id="collapseRawSchema" class="accordion-collapse collapse" aria-labelledby="headingRawSchema" data-bs-parent="#rawSchemaAccordion">
+            <div class="accordion-body p-0">
+                <pre class="code-example mb-0"><code>{{ schema }}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
