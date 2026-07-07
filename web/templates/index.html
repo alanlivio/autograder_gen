@@ -222,6 +222,9 @@
             if (e.target.name && e.target.name.includes('total_mark')) {
                 updateQuestionNumbers();
             }
+            if (e.target.tagName === 'TEXTAREA') {
+                autoResizeTextarea(e.target);
+            }
 
             // Hide export section on any change until validated again
             disableGenerateButton();
@@ -791,6 +794,14 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function autoResizeTextarea(textarea) {
+        if (!textarea || textarea.classList.contains('d-none') || textarea.style.display === 'none') return;
+        textarea.style.height = 'auto';
+        if (textarea.scrollHeight > 0) {
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+    }
+
     function disableGenerateButton() {
         const btn = document.getElementById('generate-btn');
         btn.disabled = true;
@@ -928,6 +939,11 @@
 
         updateQuestionNumbers();
         disableGenerateButton();
+        setTimeout(() => {
+            document.querySelectorAll('#autograder-form textarea').forEach(textarea => {
+                autoResizeTextarea(textarea);
+            });
+        }, 50);
     }
 </script>
 {% endblock %}
