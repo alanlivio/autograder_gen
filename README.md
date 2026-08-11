@@ -9,7 +9,7 @@ The project validates your configuration, renders test scripts using Jinja2 temp
 Set up the virtual environment and install all dependencies:
 
 ```bash
-make dev_env
+make venv
 ```
 
 ## CLI Usage

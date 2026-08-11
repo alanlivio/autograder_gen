@@ -201,3 +201,4 @@ pyrightconfig.json
 /**/autograder.zip
 /**/description.docx
 package-lock.json
+/**/output/
