@@ -1,0 +1,26 @@
+version: '1.0'
+language: python
+files_necessary:
+- solution.py
+questions:
+- name: Function Signature and Logic
+  description: "This task requires you to implement a robust `multiply` function. You must ensure the function is named exactly `multiply` and accepts two arguments: `a` and `b`. The function should return the mathematical product of these two values. The autograder will verify both the interface (signature) and the implementation (logic). \n\nExample:\nInput: `multiply(2, 3)`\nOutput: `6`"
+  marking_items:
+  - target_file: solution.py
+    total_mark: 5
+    type: signature_check
+    function_name: multiply
+    expected_parameters: a, b
+  - target_file: solution.py
+    total_mark: 5
+    type: function_test
+    function_name: multiply
+    test_cases:
+    - args:
+      - 2
+      - 3
+      expected: '6'
+    - args:
+      - 0
+      - 10
+      expected: '0'

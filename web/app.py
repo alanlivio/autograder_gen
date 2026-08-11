@@ -176,5 +176,21 @@ def lint_config_route():
         return jsonify({"error": str(e)}), 500
 
 
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run the AutograderGen Web Interface")
+    parser.add_argument(
+        "--host", default="127.0.0.1", help="Host address to bind to (default: 127.0.0.1)"
+    )
+    parser.add_argument(
+        "--port", "-p", type=int, default=5000, help="Port to listen on (default: 5000)"
+    )
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    args = parser.parse_args()
+
+    app.run(host=args.host, port=args.port, debug=args.debug)
+
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    main()

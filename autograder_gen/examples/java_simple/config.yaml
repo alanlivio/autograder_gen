@@ -1,0 +1,21 @@
+version: '1.0'
+language: java
+files_necessary:
+- Solution.java
+questions:
+- name: Question 1
+  description: "Implement a function `add(a, b)` in `Solution.java` that returns the sum of two doubles. \n\nExample:\nInput: `add(1.0, 2.0)`\nOutput: `3.0`"
+  marking_items:
+  - target_file: Solution.java
+    total_mark: 10
+    type: function_test
+    function_name: add
+    test_cases:
+    - args:
+      - 1.0
+      - 2.0
+      expected: '3.0'
+    - args:
+      - 5.0
+      - 5.0
+      expected: '10.0'

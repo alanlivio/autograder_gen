@@ -1,0 +1,21 @@
+version: '1.0'
+language: python
+files_necessary:
+- solution.py
+questions:
+- name: Math Test
+  description: "Implement a simple calculator. Specifically, create a function `add(a, b)` that returns the sum of two integers. This exercise evaluates your ability to define basic functions and perform arithmetic operations in Python. \n\nExample:\nInput: `add(1, 2)`\nOutput: `3`"
+  marking_items:
+  - target_file: solution.py
+    total_mark: 10
+    type: function_test
+    function_name: add
+    test_cases:
+    - args:
+      - 1
+      - 2
+      expected: '3'
+    - args:
+      - 5
+      - 5
+      expected: '10'

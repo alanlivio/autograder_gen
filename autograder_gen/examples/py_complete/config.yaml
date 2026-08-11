@@ -1,0 +1,201 @@
+version: '1.0'
+language: python
+global_time_limit: 600
+setup_commands:
+- pip install numpy pandas matplotlib requests
+- pip install scipy scikit-learn
+files_necessary:
+- basic_operations.py
+- math_functions.py
+- data_processing.py
+- advanced_algorithms.py
+questions:
+- name: File Existence Validation
+  description: "Organizational check. Ensure that the project structure is correct by including the required files: `basic_operations.py`, `math_functions.py`, and `data_processing.py`. This verifies that you have correctly partitioned your logic according to the project specifications. \n\nExpected files: `basic_operations.py`, `math_functions.py`, `data_processing.py`."
+  marking_items:
+  - target_file: basic_operations.py
+    total_mark: 1
+    type: file_exists
+    time_limit: 5
+    visibility: visible
+  - target_file: math_functions.py
+    total_mark: 1
+    type: file_exists
+    time_limit: 5
+    visibility: visible
+  - target_file: data_processing.py
+    total_mark: 1
+    type: file_exists
+    time_limit: 5
+    visibility: hidden
+- name: Basic Output Comparison Tests
+  description: "Standard input/output test. Your script `basic_operations.py` must read from standard input and produce a formatted report. This test checks your ability to handle string formatting and basic data ingestion. \n\nExample:\nInput: `42` on stdin\nOutput: `Number: 42` on stdout"
+  marking_items:
+  - target_file: basic_operations.py
+    total_mark: 5
+    type: output_comparison
+    time_limit: 30
+    visibility: visible
+    expected_input: 'Hello World
+
+      42
+
+      3.14'
+    expected_output: 'Hello World
+
+      Number: 42
+
+      Float: 3.14'
+  - target_file: basic_operations.py
+    total_mark: 5
+    type: output_comparison
+    time_limit: 45
+    visibility: after_due_date
+    expected_input: 'Second Test
+
+      100
+
+      -5.5'
+    expected_output: 'Second Test
+
+      Number: 100
+
+      Float: -5.5'
+- name: Basic Function Signature Validation
+  description: "Interface contract check. Implement `add_numbers(a: int, b: int) -> int` and `multiply(x: float, y: float) -> float` in `math_functions.py`. The autograder will inspect these functions to ensure they match the requested type hints and parameter names exactly. \n\nExample:\nSignature: `def add_numbers(a: int, b: int) -> int:`"
+  marking_items:
+  - target_file: math_functions.py
+    function_name: add_numbers
+    total_mark: 3
+    type: signature_check
+    time_limit: 10
+    visibility: visible
+    expected_parameters: 'a: int, b: int'
+    expected_return_type: int
+  - target_file: math_functions.py
+    function_name: multiply
+    total_mark: 3
+    type: signature_check
+    time_limit: 10
+    visibility: visible
+    expected_parameters: 'x: float, y: float'
+    expected_return_type: float
+- name: Advanced Signature Validation with Defaults
+  description: "Complex interface check. This question tests your knowledge of default arguments and keyword parameters. You must implement several utility functions in `data_processing.py` and `advanced_algorithms.py` that support optional configuration parameters."
+  marking_items:
+  - target_file: data_processing.py
+    function_name: process_data
+    total_mark: 5
+    type: signature_check
+    time_limit: 15
+    visibility: visible
+    expected_parameters: 'data: list, threshold: float = 0.5, normalize: bool = True'
+    expected_return_type: dict
+  - target_file: data_processing.py
+    function_name: filter_values
+    total_mark: 4
+    type: signature_check
+    time_limit: 15
+    visibility: after_due_date
+    expected_parameters: values, min_val=0, max_val=100, inclusive=True
+  - target_file: advanced_algorithms.py
+    function_name: complex_calculation
+    total_mark: 5
+    type: signature_check
+    time_limit: 20
+    visibility: hidden
+    expected_parameters: input_data, algorithm='default', precision=2, debug=False
+- name: Simple Function Testing
+  description: "Unit testing basic logic. We will run your `add_numbers` and `multiply` functions from `math_functions.py` against hidden test cases to ensure they return the mathematically correct results. \n\nExample:\nInput: `add_numbers(2, 3)`\nOutput: `5`"
+  marking_items:
+  - target_file: math_functions.py
+    function_name: add_numbers
+    total_mark: 6
+    type: function_test
+    time_limit: 30
+    visibility: visible
+    test_cases:
+    - args:
+      - 2
+      - 3
+      expected: '5'
+  - target_file: math_functions.py
+    function_name: multiply
+    total_mark: 6
+    type: function_test
+    time_limit: 25
+    visibility: visible
+    test_cases:
+    - args:
+      - 3
+      - 4
+      expected: '12'
+- name: Advanced Function Testing with Keywords
+  description: "High-level data processing. Implement `calculate_statistics` and `transform_data` in `data_processing.py`. These functions must handle lists of data and dictionary-based configurations respectively. Accuracy in floating-point calculations is required. \n\nExample:\nInput: `calculate_statistics([1, 2, 3])`\nOutput: `{'mean': 2.0, ...}`"
+  marking_items:
+  - target_file: data_processing.py
+    function_name: calculate_statistics
+    total_mark: 9
+    type: function_test
+    time_limit: 45
+    visibility: after_due_date
+    test_cases:
+    - args:
+      - [1, 2, 3, 4, 5]
+      expected: '{''mean'': 3.0, ''median'': 3.0, ''std'': 1.58}'
+  - target_file: data_processing.py
+    function_name: transform_data
+    total_mark: 8
+    type: function_test
+    time_limit: 60
+    visibility: after_published
+    test_cases:
+    - args:
+      - a: 1
+        b: 2
+      expected: '{''a'': 2, ''b'': 4}'
+- name: Edge Case Testing
+  description: "Robustness check. Your `handle_edge_cases` function in `advanced_algorithms.py` must gracefully handle empty input lists by returning `None`. This evaluates your defensive programming skills. \n\nExample:\nInput: `handle_edge_cases([])`\nOutput: `None`"
+  marking_items:
+  - target_file: advanced_algorithms.py
+    function_name: handle_edge_cases
+    total_mark: 12
+    type: function_test
+    time_limit: 90
+    visibility: hidden
+    test_cases:
+    - args:
+      - []
+      expected: None
+- name: Mixed Testing Scenarios
+  description: "Integration challenge. This final question combines file checks, signature validation, logic testing, and output comparison for the `main_algorithm` in `advanced_algorithms.py`. This represents a complete module implementation. \n\nExample:\nInput: `main_algorithm([1, 2])`\nOutput: `[1, 4]`"
+  marking_items:
+  - target_file: advanced_algorithms.py
+    total_mark: 2
+    type: file_exists
+    time_limit: 5
+    visibility: visible
+  - target_file: advanced_algorithms.py
+    function_name: main_algorithm
+    total_mark: 5
+    type: signature_check
+    time_limit: 20
+    visibility: visible
+    expected_parameters: input_list, config=None, verbose=False
+  - target_file: advanced_algorithms.py
+    function_name: main_algorithm
+    total_mark: 12
+    type: function_test
+    time_limit: 120
+    visibility: after_due_date
+    test_cases:
+    - args:
+      - [1, 2, 3, 4, 5]
+      expected: '[1, 4, 9, 16, 25]'
+  - target_file: advanced_algorithms.py
+    total_mark: 7
+    type: output_comparison
+    time_limit: 60
+    visibility: after_published
+    expected_input: '5'
+    expected_output: ''
