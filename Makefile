@@ -31,7 +31,7 @@ build:
 	python -m build
 
 test:
-	python -m pytest
+	$(PYTHON) -m pytest tests
 
 format:
 	black .

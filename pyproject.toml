@@ -1,2 +1,7 @@
 [tool.black]
 extend-exclude = '.*compiler_error.*'
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["output", "build", "dist", ".venv", ".*"]
+
