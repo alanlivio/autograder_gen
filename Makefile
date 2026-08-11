@@ -1,7 +1,8 @@
 .PHONY: help venv deps build test serve clean format wheel publish-pypi
 
-PYTHON ?= python3
+PYTHON ?= $(shell if [ -f .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
 VENV ?= .venv
+
 
 help:
 	@echo "Available Makefile targets:"

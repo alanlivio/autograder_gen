@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import json
 import yaml
@@ -12,7 +13,7 @@ import autograder_gen as ag
 def run_autograder_scenario(
     example_name: str,
     subdir: str = "correct_answer",
-    expected_score: int = None,
+    expected_score: int | None = None,
     config_file: str = "config.yaml",
 ):
     """
@@ -67,7 +68,7 @@ def run_autograder_scenario(
         results_path = work_dir / "results.json"
 
         process = subprocess.run(
-            [os.sys.executable, str(work_dir / "run_tests.py")],
+            [sys.executable, str(work_dir / "run_tests.py")],
             cwd=work_dir,
             capture_output=True,
             text=True,
