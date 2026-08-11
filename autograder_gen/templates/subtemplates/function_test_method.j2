@@ -7,6 +7,7 @@
         target_file = "{{ item.target_file }}"
         function_name = "{{ item.function_name }}"
         print(f"Starting test for function '{function_name}' in '{target_file}'")
+{% if config.language == 'python' %}
         try:
             function = self.import_function_from_file(target_file, function_name)
         except ImportError as e:
@@ -49,6 +50,33 @@
             self.fail(f"RUNTIME ERROR: Test case {{ loop.index }} for function '{function_name}' failed with exception: {str(e)}")
         {% endfor %}
         {% endif %}
+{% elif config.language == 'java' %}
+        {% if item.test_cases %}
+        # Run Java test cases
+        {% for test_case in item.test_cases %}
+        # Test case {{ loop.index }}
+        {% if test_case.args %}
+        args = {{ test_case.args }}
+        {% else %}
+        args = []
+        {% endif %}
+        try:
+            result = self.call_java_function(target_file, function_name, args, {{ item.time_limit }})
+            expected = "{{ test_case.expected }}"
+            
+            self.assertEqual(
+                str(result), str(expected),
+                f"FAILED: Test case {{ loop.index }} - Expected: {expected}, Got: {result}"
+            )
+        except AssertionError:
+            raise
+        except subprocess.TimeoutExpired:
+            self.fail(f"TIME LIMIT EXCEEDED: Test case {{ loop.index }} for function '{function_name}' timed out after {{ item.time_limit }} seconds")
+        except Exception as e:
+            self.fail(f"RUNTIME ERROR: Test case {{ loop.index }} for function '{function_name}' failed with exception: {str(e)}")
+        {% endfor %}
+        {% endif %}
+{% endif %}
         
         # PASSED: All function tests successful
         print(f"PASSED: All tests passed for function '{function_name}'") 

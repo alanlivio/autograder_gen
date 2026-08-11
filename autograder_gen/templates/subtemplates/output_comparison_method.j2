@@ -23,6 +23,24 @@
                 timeout={{ item.time_limit }},
                 cwd=self.source_dir
             )
+{% elif config.language == 'java' %}
+            class_name = Path(target_file).stem
+            compile_res = subprocess.run(
+                ['javac', target_file],
+                capture_output=True,
+                text=True,
+                cwd=self.source_dir
+            )
+            if compile_res.returncode != 0:
+                self.fail(f"COMPILATION ERROR: Failed to compile '{target_file}': {compile_res.stderr}")
+            result = subprocess.run(
+                ['java', class_name],
+                input=expected_input,
+                capture_output=True,
+                text=True,
+                timeout={{ item.time_limit }},
+                cwd=self.source_dir
+            )
 {% endif %}
             # FAILED: Program exited with error
             if result.returncode != 0:

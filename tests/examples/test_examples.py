@@ -148,3 +148,66 @@ def test_autograder_integration_py_complete(subdir, expected_score, config_file)
     )
 
 
+@pytest.mark.parametrize(
+    "subdir, expected_score",
+    [
+        ("correct_answer", 10),
+        ("wrong_answer", 0),
+        ("compiler_error", 0),
+        ("missing_file", 0),
+    ],
+)
+def test_autograder_integration_java_scenarios(subdir, expected_score):
+    """Test autograder execution for java_simple example across all scenarios."""
+    run_autograder_scenario("java_simple", subdir, expected_score)
+
+
+def test_autograder_integration_java_simple():
+    base_dir = Path(__file__).parent.parent.parent
+    example_dir = base_dir / "tests/examples/java_simple"
+    config_path = example_dir / "config.yaml"
+    parser = ConfigParser(str(config_path))
+    config = parser.parse()
+    assert config.language == "java"
+    with open(config_path, "r", encoding="utf-8") as f:
+        original_config = yaml.safe_load(f)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_dir = Path(tmp_dir)
+        generator = AutograderGenerator(config, original_config)
+        gen_dir = tmp_dir / "generated"
+        output_zip = generator.generate(str(gen_dir))
+        assert Path(output_zip).exists()
+        import zipfile
+
+        with zipfile.ZipFile(output_zip, "r") as z:
+            namelist = z.namelist()
+            expected_files = [
+                "setup.sh",
+                "run_autograder",
+                "run_tests.py",
+                "requirements.txt",
+                "autograder_gen.yaml",
+            ]
+            for fname in expected_files:
+                assert any(f.startswith(fname) for f in namelist)
+            with z.open("setup.sh") as f:
+                setup_content = f.read().decode("utf-8")
+                assert "apt-get install -y default-jdk" in setup_content
+        correct_zip_bytes = generator.generate_correct_answer_zip()
+        with zipfile.ZipFile(correct_zip_bytes, "r") as z:
+            assert "Solution.java" in z.namelist()
+            content = z.read("Solution.java").decode("utf-8")
+            assert "public class Solution {" in content
+            assert "public static Object add(Object... args) {" in content
+            assert 'args[0].toString().equals("1")' in content
+            assert 'args[1].toString().equals("2")' in content
+            assert "return 3;" in content
+            assert 'args[0].toString().equals("5")' in content
+            assert 'args[1].toString().equals("5")' in content
+            assert "return 10;" in content
+        wrong_zip_bytes = generator.generate_wrong_answer_zip()
+        with zipfile.ZipFile(wrong_zip_bytes, "r") as z:
+            assert "Solution.java" in z.namelist()
+            content = z.read("Solution.java").decode("utf-8")
+            assert "public class Solution {" in content
+            assert 'throw new RuntimeException("Not implemented");' in content

@@ -13,6 +13,7 @@
             self.assertTrue(file_path.exists(), 
                 f"FAILED: File '{target_file}' not found")
             
+{% if config.language == 'python' %}
             # Import the function from the file
             function = self.import_function_from_file(target_file, function_name)
             
@@ -24,7 +25,29 @@
             import inspect
             import typing
             sig = inspect.signature(function)
+{% elif config.language == 'java' %}
+            class_name = Path(target_file).stem
+            compile_res = subprocess.run(
+                ['javac', target_file],
+                capture_output=True,
+                text=True,
+                cwd=self.source_dir
+            )
+            if compile_res.returncode != 0:
+                self.fail(f"COMPILATION ERROR: Failed to compile '{target_file}': {compile_res.stderr}")
+            javap_res = subprocess.run(
+                ['javap', '-public', class_name],
+                capture_output=True,
+                text=True,
+                cwd=self.source_dir
+            )
+            if javap_res.returncode != 0:
+                self.fail(f"FAILED: Could not inspect Java class '{class_name}'")
+            if function_name not in javap_res.stdout:
+                self.fail(f"FAILED: Function/method '{function_name}' not found in class '{class_name}'")
+{% endif %}
             
+{% if config.language == 'python' %}
             # Check return type annotation if available
             return_annotation = sig.return_annotation
             if return_annotation != inspect.Signature.empty:
@@ -167,6 +190,7 @@
                     if not any(type_matches):
                         self.fail(f"FAILED: Function '{function_name}' has return type '{actual_return_str}', expected '{expected_return_type}'")
             {% endif %}
+{% endif %}
             
             # PASSED: All signature checks successful
             print(f"PASSED: Function '{function_name}' signature is correct")

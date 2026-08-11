@@ -44,5 +44,16 @@ def test_api_example_py_simple(client):
     assert response.status_code == 200
     data = response.get_json()
     assert data["success"] is True
-    assert "config" in data
     assert data["config"]["language"] == "python"
+    assert "yaml" in data
+
+
+def test_api_example_java_simple(client):
+    response = client.get("/api/example/java_simple")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["success"] is True
+    assert data["config"]["language"] == "java"
+    assert "yaml" in data
+
+

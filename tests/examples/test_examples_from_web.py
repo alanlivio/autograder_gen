@@ -35,7 +35,9 @@ def load_example(example_name, ext):
             return yaml.safe_load(f)
 
 
-@pytest.mark.parametrize("example_name", ["py_complete", "py_function", "py_simple"])
+@pytest.mark.parametrize(
+    "example_name", ["py_complete", "py_function", "py_simple", "java_simple"]
+)
 @pytest.mark.parametrize("ext", ["json", "yaml"])
 def test_web_api_validate_examples(client, example_name, ext):
     config_data = load_example(example_name, ext)
@@ -51,7 +53,9 @@ def test_web_api_validate_examples(client, example_name, ext):
     ), f"Validation failed for {example_name} ({ext}): {data.get('errors')}"
 
 
-@pytest.mark.parametrize("example_name", ["py_complete", "py_function", "py_simple"])
+@pytest.mark.parametrize(
+    "example_name", ["py_complete", "py_function", "py_simple", "java_simple"]
+)
 @pytest.mark.parametrize("ext", ["json", "yaml"])
 def test_web_generate_examples(client, example_name, ext):
     config_data = load_example(example_name, ext)
@@ -61,4 +65,4 @@ def test_web_generate_examples(client, example_name, ext):
     response = client.post("/api/generate", json=config_data)
     assert response.status_code == 200
     assert response.mimetype == "application/zip"
-    assert response.data.startswith(b"PK\x03\x04")  # ZIP file magic number
+    assert response.data.startswith(b"PK\x03\x04")

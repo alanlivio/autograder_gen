@@ -393,6 +393,39 @@ questions:
             </div>
         </div>
     </div>
+
+    <div class="col-12 mb-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title text-primary font-weight-bold mb-0">Java Calculator</h5>
+                    <a href="/generate?load_example=java_simple" class="btn btn-sm btn-primary">Import</a>
+                </div>
+                <p class="card-text text-muted small flex-grow-1">A simple Java setup that evaluates basic static function logic inside class files with GradeScope compatible execution templates.</p>
+                <pre class="code-example mb-3"><code>version: '1.0'
+language: java
+files_necessary:
+- Solution.java
+questions:
+- name: Question 1
+  description: "Implement a function `add(a, b)` in `Solution.java` that returns the sum of two integers."
+  marking_items:
+  - target_file: Solution.java
+    total_mark: 10
+    type: function_test
+    function_name: add
+    test_cases:
+    - args:
+      - 1
+      - 2
+      expected: '3'
+    - args:
+      - 5
+      - 5
+      expected: '10'</code></pre>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 

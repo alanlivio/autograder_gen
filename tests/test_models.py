@@ -55,3 +55,45 @@ def test_autograder_config_schema_full():
     assert result.version == "1.0"
     assert result.language == "python"
     assert len(result.questions) == 1
+
+
+def test_get_example_config_yaml_python():
+    from autograder_gen.config import AutograderConfig
+
+    yaml_str = AutograderConfig.get_example_config_yaml("py_simple")
+    assert "language: python" in yaml_str
+
+
+def test_get_example_config_yaml_java():
+    from autograder_gen.config import AutograderConfig
+
+    yaml_str = AutograderConfig.get_example_config_yaml("java_simple")
+    assert "language: java" in yaml_str
+
+
+def test_validator_and_utility_functions():
+    from autograder_gen.validator import ConfigValidator
+
+    data = {
+        "version": "1.0",
+        "language": "python",
+        "files_necessary": ["solution.py"],
+        "questions": [
+            {
+                "name": "Question 1",
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 10,
+                        "type": "file_exists",
+                        "name": "check_exists",
+                    }
+                ],
+            }
+        ],
+    }
+    validator = ConfigValidator()
+    assert validator.validate_json(data) is True
+
+    lint_res = ConfigValidator.lint_config(data)
+    assert lint_res["valid"] is True

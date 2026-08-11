@@ -50,7 +50,7 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
                 raise TimeoutError(f"Function execution timed out after {timeout_seconds} seconds")
 
 {% endif %}
-{% if needs_imports %}
+{% if needs_imports and config.language == 'python' %}
     def import_function_from_file(self, file_name, function_name):
         """Import a specific function from a student file."""
         try:
@@ -77,6 +77,98 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
             
         except Exception as e:
             raise ImportError(f"Failed to import {function_name} from {file_name}: {str(e)}")
+
+{% endif %}
+{% if config.language == 'java' %}
+    def call_java_function(self, file_name, function_name, args, timeout_seconds):
+        """Compile Java file and execute specified function with args."""
+        file_path = self.source_dir / file_name
+        if not file_path.exists():
+            raise FileNotFoundError(f"File '{file_name}' not found")
+        
+        compile_res = subprocess.run(
+            ['javac', file_name],
+            capture_output=True,
+            text=True,
+            cwd=self.source_dir
+        )
+        if compile_res.returncode != 0:
+            raise RuntimeError(f"Failed to compile '{file_name}': {compile_res.stderr}")
+        
+        runner_path = self.source_dir / "JavaRunner.java"
+        if not runner_path.exists():
+            runner_code = (
+                "import java.lang.reflect.Method;\n\n"
+                "public class JavaRunner {\n"
+                "    public static void main(String[] args) throws Exception {\n"
+                "        if (args.length < 2) {\n"
+                "            System.err.println(\"Usage: JavaRunner <ClassName> <MethodName> [args...]\");\n"
+                "            System.exit(1);\n"
+                "        }\n"
+                "        String className = args[0];\n"
+                "        String methodName = args[1];\n"
+                "        Class<?> clazz = Class.forName(className);\n"
+                "        Method targetMethod = null;\n"
+                "        for (Method m : clazz.getDeclaredMethods()) {\n"
+                "            if (m.getName().equals(methodName)) {\n"
+                "                targetMethod = m;\n"
+                "                break;\n"
+                "            }\n"
+                "        }\n"
+                "        if (targetMethod == null) {\n"
+                "            System.err.println(\"Method \" + methodName + \" not found in \" + className);\n"
+                "            System.exit(1);\n"
+                "        }\n"
+                "        Object[] methodArgs = new Object[args.length - 2];\n"
+                "        for (int i = 2; i < args.length; i++) {\n"
+                "            methodArgs[i - 2] = args[i];\n"
+                "        }\n"
+                "        Object instance = null;\n"
+                "        if (!java.lang.reflect.Modifier.isStatic(targetMethod.getModifiers())) {\n"
+                "            instance = clazz.getDeclaredConstructor().newInstance();\n"
+                "        }\n"
+                "        Object result = null;\n"
+                "        if (targetMethod.getParameterCount() == 1 && targetMethod.getParameterTypes()[0].isArray()) {\n"
+                "            result = targetMethod.invoke(instance, (Object) methodArgs);\n"
+                "        } else if (targetMethod.getParameterCount() == methodArgs.length) {\n"
+                "            Class<?>[] paramTypes = targetMethod.getParameterTypes();\n"
+                "            Object[] convertedArgs = new Object[methodArgs.length];\n"
+                "            for (int i = 0; i < methodArgs.length; i++) {\n"
+                "                convertedArgs[i] = convertArg(methodArgs[i].toString(), paramTypes[i]);\n"
+                "            }\n"
+                "            result = targetMethod.invoke(instance, convertedArgs);\n"
+                "        } else {\n"
+                "            result = targetMethod.invoke(instance, methodArgs);\n"
+                "        }\n"
+                "        if (result != null) {\n"
+                "            System.out.print(result.toString());\n"
+                "        }\n"
+                "    }\n\n"
+                "    private static Object convertArg(String val, Class<?> targetType) {\n"
+                "        if (targetType == int.class || targetType == Integer.class) return Integer.parseInt(val);\n"
+                "        if (targetType == double.class || targetType == Double.class) return Double.parseDouble(val);\n"
+                "        if (targetType == boolean.class || targetType == Boolean.class) return Boolean.parseBoolean(val);\n"
+                "        if (targetType == long.class || targetType == Long.class) return Long.parseLong(val);\n"
+                "        if (targetType == float.class || targetType == Float.class) return Float.parseFloat(val);\n"
+                "        return val;\n"
+                "    }\n"
+                "}\n"
+            )
+            runner_path.write_text(runner_code, encoding="utf-8")
+            subprocess.run(['javac', 'JavaRunner.java'], capture_output=True, text=True, cwd=self.source_dir, check=True)
+            
+        class_name = Path(file_name).stem
+        cmd = ['java', 'JavaRunner', class_name, function_name] + [str(a) for a in args]
+        res = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+            cwd=self.source_dir
+        )
+        if res.returncode != 0:
+            raise RuntimeError(f"Error executing {function_name}: {res.stderr}")
+        return res.stdout
 
 {% endif %}
 
