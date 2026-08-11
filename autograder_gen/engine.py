@@ -18,20 +18,20 @@ import csv
 from docx import Document
 from docx.shared import Pt
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from autograder_gen.config import AutograderConfig
+from autograder_gen.config import Config
 from autograder_gen.utils import print_error, print_success, print_warning
 
 
-class AutograderGenerator:
+class Engine:
     """Generates Gradescope autograder packages from configuration using Jinja templates."""
 
     def __init__(
-        self, config: AutograderConfig, original_config_dict: Optional[dict] = None
+        self, config: Config, original_config_dict: Optional[dict] = None
     ):
         """
         Initialize generator with configuration.
         Args:
-            config: AutograderConfig object
+            config: Config object
             original_config_dict: Optional dictionary of original unparsed YAML configuration
         """
         self.config = config
@@ -873,3 +873,4 @@ For questions about this autograder configuration, refer to the original `autogr
                 if file_path.is_file():
                     arcname = file_path.relative_to(self.temp_dir)
                     zipf.write(file_path, arcname)
+

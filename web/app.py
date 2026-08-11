@@ -8,12 +8,7 @@ from flask import Flask, request, send_file, jsonify, render_template
 import tempfile
 import zipfile
 import yaml
-from autograder_gen.config import (
-    ConfigParser,
-    AutograderConfig,
-)
-from autograder_gen.generator import AutograderGenerator
-from autograder_gen.validator import ConfigValidator
+import autograder_gen as ag
 import json
 from flask_cors import CORS
 from flask_bootstrap import Bootstrap5
@@ -38,7 +33,7 @@ def generate():
 
 @app.route("/docs", methods=["GET"])
 def documentation():
-    schema_dict = AutograderConfig.model_json_schema()
+    schema_dict = ag.Config.model_json_schema()
     schema_str = json.dumps(schema_dict, indent=2)
     return render_template("docs.html", schema=schema_str)
 
@@ -58,7 +53,7 @@ def upload_config():
     try:
         content = file.read().decode("utf-8")
         config_data = yaml.safe_load(content)
-        validator = ConfigValidator()
+        validator = ag.Validator()
         if not validator.validate_json(config_data):
             return (
                 jsonify(
@@ -86,14 +81,9 @@ def export_bundle():
     data = request.get_json()
     if not data:
         return jsonify({"error": "No config data provided"}), 400
-    tmp_path = None
     try:
-        with tempfile.NamedTemporaryFile("w+", delete=False, suffix=".yml") as tmp:
-            yaml.dump(data, tmp)
-            tmp_path = tmp.name
-        config_parser = ConfigParser(tmp_path)
-        config: AutograderConfig = config_parser.parse()
-        generator = AutograderGenerator(config, data)
+        config = ag.Config.model_validate(data)
+        generator = ag.Engine(config, data)
         with tempfile.TemporaryDirectory() as out_dir:
             generator.generate(out_dir)
             out_path = Path(out_dir)
@@ -116,12 +106,6 @@ def export_bundle():
             )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    finally:
-        if tmp_path is not None and os.path.exists(tmp_path):
-            try:
-                os.remove(tmp_path)
-            except OSError:
-                pass
 
 
 @app.route("/api/validate", methods=["POST"])
@@ -130,7 +114,7 @@ def validate_config():
     if not data:
         return jsonify({"error": "No config data provided"}), 400
     try:
-        validator = ConfigValidator()
+        validator = ag.Validator()
         valid = validator.validate_json(data)
         return jsonify(
             {
@@ -146,7 +130,7 @@ def validate_config():
 @app.route("/api/example/<name>", methods=["GET"])
 def get_example_config(name):
     try:
-        yaml_str = AutograderConfig.get_example_config_yaml(name)
+        yaml_str = ag.Config.get_example_config_yaml(name)
         config_data = yaml.safe_load(yaml_str)
         return jsonify({"success": True, "config": config_data, "yaml": yaml_str})
     except Exception as e:
@@ -159,8 +143,8 @@ def diff_configs():
     if not data or "config1" not in data or "config2" not in data:
         return jsonify({"error": "Both config1 and config2 must be provided"}), 400
     try:
-        cfg1 = AutograderConfig.model_validate(data["config1"])
-        cfg2 = AutograderConfig.model_validate(data["config2"])
+        cfg1 = ag.Config.model_validate(data["config1"])
+        cfg2 = ag.Config.model_validate(data["config2"])
         diff_res = compare_configs(cfg1, cfg2)
         return jsonify({"success": True, "diff": diff_res})
     except Exception as e:
@@ -173,7 +157,7 @@ def normalize_config_route():
     if not data:
         return jsonify({"error": "No config data provided"}), 400
     try:
-        normalized = normalize_autograder_config(data)
+        normalized = ag.normalize_autograder_config(data)
         yaml_str = yaml.dump(normalized, sort_keys=False)
         return jsonify({"success": True, "normalized": normalized, "yaml": yaml_str})
     except Exception as e:
@@ -186,7 +170,7 @@ def lint_config_route():
     if not data:
         return jsonify({"error": "No config data provided"}), 400
     try:
-        report = ConfigValidator.lint_autograder_config(data)
+        report = ag.Validator.lint_config(data)
         return jsonify({"success": True, "report": report})
     except Exception as e:
         return jsonify({"error": str(e)}), 500

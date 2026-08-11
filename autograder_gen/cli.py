@@ -10,18 +10,13 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from autograder_gen.config import (
-    AutograderConfig,
-    ConfigParser,
-)
-from autograder_gen.generator import AutograderGenerator
+import autograder_gen as ag
 from autograder_gen.utils import (
     print_error,
     print_success,
     print_warning,
     setup_logging,
 )
-from autograder_gen.validator import ConfigValidator
 
 
 def main():
@@ -48,7 +43,7 @@ def main():
             out_dir = Path(args.output)
             out_dir.mkdir(parents=True, exist_ok=True)
             target_path = out_dir / f"{args.example}.yaml"
-            yaml_str = AutograderConfig.get_example_config_yaml(args.example)
+            yaml_str = ag.Config.get_example_config_yaml(args.example)
             with open(target_path, "w", encoding="utf-8") as f:
                 f.write(yaml_str)
             print_success(
@@ -58,7 +53,7 @@ def main():
         with open(args.config, "r", encoding="utf-8") as f:
             raw_config_data = yaml.safe_load(f)
         # Validate configuration
-        validator = ConfigValidator()
+        validator = ag.Validator()
         is_valid = validator.validate_json(raw_config_data)
         errors = validator.get_errors()
         warnings = validator.get_warnings()
@@ -70,7 +65,7 @@ def main():
                 print_error(f"  - {error}")
             return 1
         print_success("Configuration validation passed")
-        config = AutograderConfig.model_validate(raw_config_data)
+        config = ag.Config.model_validate(raw_config_data)
         original_config_dict = None
         try:
             path = Path(args.config)
@@ -90,7 +85,7 @@ def main():
         print(f"  Total Marks: {summary['total_marks']}")
         print(f"  Necessary Files: {', '.join(summary['files_necessary'])}")
 
-        generator = AutograderGenerator(config, original_config_dict)
+        generator = ag.Engine(config, original_config_dict)
         output_path = generator.generate(args.output)
         print_success(f"Autograder package generated successfully at: {args.output}")
         print_success(

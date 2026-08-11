@@ -1,6 +1,6 @@
 import yaml
 import pytest
-from autograder_gen.config import AutograderConfig
+import autograder_gen as ag
 from web.app import app
 
 

@@ -6,8 +6,7 @@ import shutil
 import tempfile
 import pytest
 from pathlib import Path
-from autograder_gen.generator import AutograderGenerator
-from autograder_gen.config import ConfigParser
+import autograder_gen as ag
 
 
 def run_autograder_scenario(
@@ -32,8 +31,7 @@ def run_autograder_scenario(
         tmp_dir = Path(tmp_dir)
 
         # 1. Generate autograder
-        parser = ConfigParser(str(config_path))
-        config = parser.parse()
+        config = ag.Config.parse(config_path)
 
         # Original config for generator (dict)
         with open(config_path, "r", encoding="utf-8") as f:
@@ -42,7 +40,7 @@ def run_autograder_scenario(
             else:
                 original_config = json.load(f)
 
-        generator = AutograderGenerator(config, original_config)
+        generator = ag.Engine(config, original_config)
         gen_dir = tmp_dir / "generated"
         output_zip = generator.generate(str(gen_dir))
 
@@ -166,14 +164,13 @@ def test_autograder_integration_java_simple():
     base_dir = Path(__file__).parent.parent.parent
     example_dir = base_dir / "tests/examples/java_simple"
     config_path = example_dir / "config.yaml"
-    parser = ConfigParser(str(config_path))
-    config = parser.parse()
+    config = ag.Config.parse(config_path)
     assert config.language == "java"
     with open(config_path, "r", encoding="utf-8") as f:
         original_config = yaml.safe_load(f)
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_dir = Path(tmp_dir)
-        generator = AutograderGenerator(config, original_config)
+        generator = ag.Engine(config, original_config)
         gen_dir = tmp_dir / "generated"
         output_zip = generator.generate(str(gen_dir))
         assert Path(output_zip).exists()

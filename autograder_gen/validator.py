@@ -6,11 +6,11 @@ import zipfile
 from io import BytesIO
 from typing import List, Dict, Any, Union
 from pathlib import Path
-from autograder_gen.config import AutograderConfig, ConfigParser
+from autograder_gen.config import Config
 from pydantic import ValidationError
 
 
-class ConfigValidator:
+class Validator:
     """Validates autograder configuration files using pydantic."""
 
     def __init__(self):
@@ -23,9 +23,7 @@ class ConfigValidator:
         self.warnings.clear()
 
         try:
-            from autograder_gen.config import AutograderConfigModel
-
-            AutograderConfigModel.model_validate(data)
+            Config.model_validate(data)
             self._validate_custom_rules(data)
 
             if not self.errors:
@@ -59,7 +57,7 @@ class ConfigValidator:
             self.errors.append(f"Error reading file: {str(e)}")
             return False
 
-    def _config_to_dict(self, config: AutograderConfig) -> Dict[str, Any]:
+    def _config_to_dict(self, config: Config) -> Dict[str, Any]:
         """Helper to convert config object to dict for validation."""
         if hasattr(config, "model_dump"):
             return config.model_dump()
@@ -186,6 +184,3 @@ class ConfigValidator:
             "issues": issues,
         }
 
-
-lint_config = ConfigValidator.lint_config
-lint_autograder_config = ConfigValidator.lint_config

@@ -5,10 +5,7 @@ import shutil
 import yaml
 import pytest
 
-from autograder_gen.generator import AutograderGenerator
-from autograder_gen.config import ConfigParser
-
-from autograder_gen.config import AutograderConfigModel
+import autograder_gen as ag
 
 SAMPLE_CONFIG_DICT = {
     "version": "1.0",
@@ -39,9 +36,9 @@ def temp_output_dir():
 
 def test_autograder_zip_contains_expected_files(temp_output_dir):
     # Use schema to parse the manual dict
-    config = AutograderConfigModel.model_validate(SAMPLE_CONFIG_DICT)
+    config = ag.Config.model_validate(SAMPLE_CONFIG_DICT)
 
-    generator = AutograderGenerator(config, SAMPLE_CONFIG_DICT)
+    generator = ag.Engine(config, SAMPLE_CONFIG_DICT)
     zip_path = generator.generate(temp_output_dir)
 
     # Check that the zip file exists
@@ -101,8 +98,8 @@ def test_skeleton_generation():
             }
         ],
     }
-    config = AutograderConfigModel.model_validate(config_dict)
-    generator = AutograderGenerator(config, config_dict)
+    config = ag.Config.model_validate(config_dict)
+    generator = ag.Engine(config, config_dict)
     zip_bytes = generator.generate_correct_answer_zip()
     with zipfile.ZipFile(zip_bytes, "r") as z:
         assert "solution.py" in z.namelist()
@@ -137,8 +134,8 @@ def test_skeleton_generation_java():
             }
         ],
     }
-    config = AutograderConfigModel.model_validate(config_dict)
-    generator = AutograderGenerator(config, config_dict)
+    config = ag.Config.model_validate(config_dict)
+    generator = ag.Engine(config, config_dict)
     zip_bytes = generator.generate_correct_answer_zip()
     with zipfile.ZipFile(zip_bytes, "r") as z:
         assert "Solution.java" in z.namelist()
@@ -149,8 +146,8 @@ def test_skeleton_generation_java():
 
 
 def test_generator_essential_exports():
-    config = AutograderConfigModel.model_validate(SAMPLE_CONFIG_DICT)
-    generator = AutograderGenerator(config)
+    config = ag.Config.model_validate(SAMPLE_CONFIG_DICT)
+    generator = ag.Engine(config)
 
     docx_buf = generator.generate_description_docx()
     assert len(docx_buf.getvalue()) > 0

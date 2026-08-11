@@ -26,13 +26,12 @@ def load_example(example_name, ext):
     dir_path = get_examples_dir() / example_name
     file_path = dir_path / f"config.{ext}"
     if not file_path.exists():
-        return None
+        file_path = dir_path / "config.yaml"
+        if not file_path.exists():
+            return None
 
     with open(file_path, "r", encoding="utf-8") as f:
-        if ext == "json":
-            return json.load(f)
-        else:
-            return yaml.safe_load(f)
+        return yaml.safe_load(f)
 
 
 @pytest.mark.parametrize(

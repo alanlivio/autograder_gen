@@ -4,7 +4,7 @@ from typing import Dict, List, Any
 from pydantic import BaseModel, Field, field_validator, model_validator, ValidationError
 
 
-class MarkingItemModel(BaseModel):
+class MarkingItem(BaseModel):
     """Represents a single marking item within a question."""
 
     target_file: str
@@ -46,21 +46,21 @@ class MarkingItemModel(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def validate_type_fields(self) -> "MarkingItemModel":
+    def validate_type_fields(self) -> "MarkingItem":
         if self.type == "function_test" and not self.function_name:
             raise ValueError("function_name is required for function_test")
         return self
 
 
-class QuestionModel(BaseModel):
+class Question(BaseModel):
     """Represents a question with multiple marking items."""
 
     name: str
     description: str = ""
-    marking_items: List[MarkingItemModel] = Field(min_length=1)
+    marking_items: List[MarkingItem] = Field(min_length=1)
 
 
-class AutograderConfigModel(BaseModel):
+class Config(BaseModel):
     """Complete autograder configuration."""
 
     version: str
@@ -68,7 +68,7 @@ class AutograderConfigModel(BaseModel):
     global_time_limit: int = 300
     setup_commands: List[str] = Field(default_factory=list)
     files_necessary: List[str] = Field(default_factory=list)
-    questions: List[QuestionModel] = Field(min_length=1)
+    questions: List[Question] = Field(min_length=1)
 
     @field_validator("language")
     @classmethod
@@ -79,7 +79,7 @@ class AutograderConfigModel(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def validate_target_files(self) -> "AutograderConfigModel":
+    def validate_target_files(self) -> "Config":
         for i, q in enumerate(self.questions):
             for j, item in enumerate(q.marking_items):
                 target = item.target_file
@@ -130,30 +130,20 @@ class AutograderConfigModel(BaseModel):
 
         raise FileNotFoundError(f"Example configuration file not found: {example_path}")
 
-
-AutograderConfig = AutograderConfigModel
-Question = QuestionModel
-MarkingItem = MarkingItemModel
-
-
-class ConfigParser:
-    """Parses YAML configuration files for autograder generation."""
-
-    def __init__(self, config_path: str):
-        self.config_path = Path(config_path)
-        if not self.config_path.exists():
-            raise FileNotFoundError(f"Configuration file not found: {config_path}")
-
-    def parse(self) -> AutograderConfig:
+    @staticmethod
+    def parse(config_path: Any) -> "Config":
         """Parse the configuration file (YAML only)."""
-        if self.config_path.suffix.lower() not in [".yaml", ".yml"]:
+        path = Path(config_path)
+        if not path.exists():
+            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+        if path.suffix.lower() not in [".yaml", ".yml"]:
             raise ValueError("Only YAML format (.yml, .yaml) is supported.")
 
         try:
-            with open(self.config_path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
 
-            return AutograderConfig.model_validate(data)
+            return Config.model_validate(data)
 
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid format in YAML configuration file: {e}")
@@ -163,13 +153,17 @@ class ConfigParser:
         except Exception as e:
             raise ValueError(f"Error parsing configuration: {e}")
 
-    def parse_and_validate(self) -> AutograderConfig:
+    @staticmethod
+    def parse_and_validate(config_path: Any) -> "Config":
         """Parse and validate the configuration file."""
-        return self.parse()
+        return Config.parse(config_path)
+
+
+
 
 
 def normalize_autograder_config(config_data: Dict[str, Any]) -> Dict[str, Any]:
-    model = AutograderConfigModel.model_validate(config_data)
+    model = Config.model_validate(config_data)
     dump = model.model_dump()
     dump["setup_commands"] = [
         cmd.strip() for cmd in dump.get("setup_commands", []) if cmd and cmd.strip()
@@ -183,4 +177,4 @@ def normalize_autograder_config(config_data: Dict[str, Any]) -> Dict[str, Any]:
 if __name__ == "__main__":
     import json
 
-    print(json.dumps(MarkingItemModel.model_json_schema(), indent=2))
+    print(json.dumps(MarkingItem.model_json_schema(), indent=2))

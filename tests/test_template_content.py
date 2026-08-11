@@ -2,10 +2,7 @@ import zipfile
 import tempfile
 import shutil
 import pytest
-from autograder_gen.generator import AutograderGenerator
-from autograder_gen.config import ConfigParser
-
-from autograder_gen.config import AutograderConfigModel
+import autograder_gen as ag
 
 CONFIG_FOR_TEMPLATES = {
     "version": "1.0",
@@ -43,8 +40,8 @@ def temp_output_dir():
 
 
 def test_setup_sh_contains_setup_commands(temp_output_dir):
-    config = AutograderConfigModel.model_validate(CONFIG_FOR_TEMPLATES)
-    generator = AutograderGenerator(config, CONFIG_FOR_TEMPLATES)
+    config = ag.Config.model_validate(CONFIG_FOR_TEMPLATES)
+    generator = ag.Engine(config, CONFIG_FOR_TEMPLATES)
     zip_path = generator.generate(temp_output_dir)
     with zipfile.ZipFile(zip_path, "r") as z:
         with z.open("setup.sh") as f:
@@ -54,8 +51,8 @@ def test_setup_sh_contains_setup_commands(temp_output_dir):
 
 
 def test_run_autograder_copies_files(temp_output_dir):
-    config = AutograderConfigModel.model_validate(CONFIG_FOR_TEMPLATES)
-    generator = AutograderGenerator(config, CONFIG_FOR_TEMPLATES)
+    config = ag.Config.model_validate(CONFIG_FOR_TEMPLATES)
+    generator = ag.Engine(config, CONFIG_FOR_TEMPLATES)
     zip_path = generator.generate(temp_output_dir)
     with zipfile.ZipFile(zip_path, "r") as z:
         with z.open("run_autograder") as f:
@@ -67,8 +64,8 @@ def test_run_autograder_copies_files(temp_output_dir):
 
 
 def test_per_question_test_file_content(temp_output_dir):
-    config = AutograderConfigModel.model_validate(CONFIG_FOR_TEMPLATES)
-    generator = AutograderGenerator(config, CONFIG_FOR_TEMPLATES)
+    config = ag.Config.model_validate(CONFIG_FOR_TEMPLATES)
+    generator = ag.Engine(config, CONFIG_FOR_TEMPLATES)
     zip_path = generator.generate(temp_output_dir)
     with zipfile.ZipFile(zip_path, "r") as z:
         # The first question should now be question_1_test.py
@@ -86,8 +83,8 @@ def test_per_question_test_file_content(temp_output_dir):
 def test_java_setup_sh_contains_default_jdk(temp_output_dir):
     java_config = CONFIG_FOR_TEMPLATES.copy()
     java_config["language"] = "java"
-    config = AutograderConfigModel.model_validate(java_config)
-    generator = AutograderGenerator(config, java_config)
+    config = ag.Config.model_validate(java_config)
+    generator = ag.Engine(config, java_config)
     zip_path = generator.generate(temp_output_dir)
     with zipfile.ZipFile(zip_path, "r") as z:
         with z.open("setup.sh") as f:
