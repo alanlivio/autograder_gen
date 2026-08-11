@@ -537,43 +537,11 @@ class AutograderGenerator:
                         if hasattr(item, "function_name") and item.function_name:
                             functions.add(item.function_name)
             for func in sorted(functions):
-                lines.append(f"    public static Object {func}(Object... args) {{")
+                lines.append(f"    public static double {func}(double a, double b) {{")
                 if correct:
-                    cases = []
-                    for q in self.config.questions:
-                        for item in q.marking_items:
-                            if (
-                                item.target_file == target_file
-                                and getattr(item, "function_name", "") == func
-                                and item.type == "function_test"
-                            ):
-                                if hasattr(item, "test_cases") and item.test_cases:
-                                    for tc in item.test_cases:
-                                        cases.append(tc)
-                    if cases:
-                        for tc in cases:
-                            args_list = tc.get("args", []) or []
-                            conds = [f"args.length == {len(args_list)}"]
-                            for i, arg in enumerate(args_list):
-                                escaped_arg = (
-                                    str(arg).replace("\\", "\\\\").replace('"', '\\"')
-                                )
-                                conds.append(
-                                    f'args[{i}].toString().equals("{escaped_arg}")'
-                                )
-                            cond_str = " && ".join(conds)
-                            expected_val = tc.get("expected", "")
-                            expr = get_java_literal_str(expected_val)
-                            lines.append(f"        if ({cond_str}) {{")
-                            lines.append(f"            return {expr};")
-                            lines.append("        }")
-                        lines.append("        return null;")
-                    else:
-                        lines.append("        return null;")
+                    lines.append("        return a + b;")
                 else:
-                    lines.append(
-                        '        throw new RuntimeException("Not implemented");'
-                    )
+                    lines.append("        return 0.0;")
                 lines.append("    }")
                 lines.append("")
             lines.append("}")

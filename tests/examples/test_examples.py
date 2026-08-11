@@ -198,16 +198,11 @@ def test_autograder_integration_java_simple():
             assert "Solution.java" in z.namelist()
             content = z.read("Solution.java").decode("utf-8")
             assert "public class Solution {" in content
-            assert "public static Object add(Object... args) {" in content
-            assert 'args[0].toString().equals("1")' in content
-            assert 'args[1].toString().equals("2")' in content
-            assert "return 3;" in content
-            assert 'args[0].toString().equals("5")' in content
-            assert 'args[1].toString().equals("5")' in content
-            assert "return 10;" in content
+            assert "public static double add(double a, double b) {" in content
+            assert "return a + b;" in content
         wrong_zip_bytes = generator.generate_wrong_answer_zip()
         with zipfile.ZipFile(wrong_zip_bytes, "r") as z:
             assert "Solution.java" in z.namelist()
             content = z.read("Solution.java").decode("utf-8")
             assert "public class Solution {" in content
-            assert 'throw new RuntimeException("Not implemented");' in content
+            assert "return 0.0;" in content

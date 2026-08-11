@@ -144,10 +144,8 @@ def test_skeleton_generation_java():
         assert "Solution.java" in z.namelist()
         content = z.read("Solution.java").decode("utf-8")
         assert "public class Solution {" in content
-        assert "public static Object add(Object... args) {" in content
-        assert 'args[0].toString().equals("1")' in content
-        assert 'args[1].toString().equals("2")' in content
-        assert "return 3;" in content
+        assert "public static double add(double a, double b) {" in content
+        assert "return a + b;" in content
 
 
 def test_generator_essential_exports():
