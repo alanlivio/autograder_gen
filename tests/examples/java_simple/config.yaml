@@ -1,0 +1,21 @@
+version: '1.0'
+language: java
+files_necessary:
+- Solution.java
+questions:
+- name: Question 1
+  description: "Implement a function `add(a, b)` in `Solution.java` that returns the sum of two integers. \n\nExample:\nInput: `add(1, 2)`\nOutput: `3`"
+  marking_items:
+  - target_file: Solution.java
+    total_mark: 10
+    type: function_test
+    function_name: add
+    test_cases:
+    - args:
+      - 1
+      - 2
+      expected: '3'
+    - args:
+      - 5
+      - 5
+      expected: '10'

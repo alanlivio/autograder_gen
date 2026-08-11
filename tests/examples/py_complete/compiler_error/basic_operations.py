@@ -2,6 +2,7 @@
 
 import sys
 
+
 def main():
     # Syntax error: missing closing parenthesis
     for line in sys.stdin:
@@ -13,7 +14,7 @@ def main():
                 print(f"Number: {int(num)}")
             else:
                 print(f"Float: {num}")
-    
+
 
 if __name__ == "__main__":
     main()

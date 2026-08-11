@@ -2,6 +2,7 @@
 
 import sys
 
+
 def main():
     for line in sys.stdin:
         if "Hello" in line or "Test" in line:
@@ -13,6 +14,7 @@ def main():
             else:
                 print(f"FLOAT: {num}")  # Wrong: should be "Float:"
     print("DONE!")  # Wrong: should be "Done!"
+
 
 if __name__ == "__main__":
     main()
