@@ -24,14 +24,11 @@ python autograder_gen/cli.py --config <path/to/config.yaml> [options]
 
 - `--config`, `-c` (required): Path to your configuration file (YAML).
 - `--output`, `-o`: Output directory for the generated files (default: `./output`).
-- `--with-description`, `-d`: Generate assessment documentation as `description.docx` alongside the ZIP.
-- `--with-skeletons`, `-s`: Generate `correct_answer.zip` and `wrong_answer.zip` implementation skeletons.
-- `--verbose`, `-v`: Enable verbose logging.
 
 ### Example:
 
 ```bash
-python autograder_gen/cli.py --config tests/examples/py_simple/config.yaml --with-description --with-skeletons
+python autograder_gen/cli.py --config tests/examples/py_simple/config.yaml
 ```
 
 ## Web Interface

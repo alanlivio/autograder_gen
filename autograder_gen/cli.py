@@ -1,100 +1,76 @@
-#!/usr/bin/env python3
 """
-TIF Autograder CLI Tool
-Main entry point for the command-line interface.
-
-This tool validates YAML configuration files using pydantic
-and generates Gradescope autograder scripts based on the configuration.
+Command Line Interface for AutograderGen.
+Provides CLI commands for validating configurations and generating Gradescope autograders.
 """
 
 import argparse
+import json
 import sys
-import yaml
 from pathlib import Path
+import yaml
 
-# Add the project root to Python path so we can import autograder_core
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from autograder_gen.config import ConfigParser
-from autograder_gen.generator import AutograderGenerator
-from autograder_gen.validator import ConfigValidator
-from autograder_gen.utils import (
-    setup_logging,
-    print_success,
-    print_error,
-    print_warning,
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from autograder_gen.config import (
+    AutograderConfig,
+    ConfigParser,
 )
+from autograder_gen.generator import AutograderGenerator
+from autograder_gen.utils import (
+    print_error,
+    print_success,
+    print_warning,
+    setup_logging,
+)
+from autograder_gen.validator import ConfigValidator
 
 
 def main():
     parser = argparse.ArgumentParser(
         description="Generate Gradescope autograder scripts from YAML configuration"
     )
-    parser.add_argument(
-        "--config", "-c", required=True, help="Path to YAML configuration file"
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--config", "-c", help="Path to YAML configuration file")
+    group.add_argument(
+        "--example",
+        "-e",
+        help="Generate an example autograder YAML configuration file (py_simple, py_function, py_complete, java_simple)",
     )
     parser.add_argument(
         "--output",
         "-o",
         default="./output",
-        help="Output directory for generated autograder.zip",
+        help="Output directory for generated assessment files (autograder.zip, description.docx, description.md, rubric.csv, answers.zip)",
     )
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose logging"
-    )
-    parser.add_argument(
-        "--validate-only",
-        action="store_true",
-        help="Only validate configuration without generating autograder",
-    )
-    parser.add_argument(
-        "--with-description",
-        "-d",
-        action="store_true",
-        help="Generate description.docx assessment documentation",
-    )
-    parser.add_argument(
-        "--with-skeletons",
-        "-s",
-        action="store_true",
-        help="Generate correct_answer.zip and wrong_answer.zip skeletons",
-    )
-
     args = parser.parse_args()
-
-    # Setup logging
-    setup_logging(args.verbose)
-
+    setup_logging()
     try:
-        # Validate configuration first using JSON schema
+        if args.example:
+            out_dir = Path(args.output)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            target_path = out_dir / f"{args.example}.yaml"
+            yaml_str = AutograderConfig.get_example_config_yaml(args.example)
+            with open(target_path, "w", encoding="utf-8") as f:
+                f.write(yaml_str)
+            print_success(
+                f"Example '{args.example}' configuration generated at: {target_path}"
+            )
+            return 0
+        with open(args.config, "r", encoding="utf-8") as f:
+            raw_config_data = yaml.safe_load(f)
+        # Validate configuration
         validator = ConfigValidator()
-        is_valid = validator.validate_from_file(args.config)
-
-        # Display validation results
+        is_valid = validator.validate_json(raw_config_data)
         errors = validator.get_errors()
         warnings = validator.get_warnings()
-
         for warning in warnings:
             print_warning(warning)
-
         if not is_valid:
             print_error("Configuration validation failed:")
             for error in errors:
                 print_error(f"  - {error}")
             return 1
-
         print_success("Configuration validation passed")
-
-        # If validate-only flag is set, stop here
-        if args.validate_only:
-            return 0
-
-        # Parse configuration after validation
-        config_parser = ConfigParser(args.config)
-        config = config_parser.parse()
-
-        # Load original config for preservation in zip
+        config = AutograderConfig.model_validate(raw_config_data)
         original_config_dict = None
         try:
             path = Path(args.config)
@@ -104,38 +80,23 @@ def main():
                 original_config_dict = yaml.safe_load(f)
         except Exception:
             pass  # If we can't load original config, proceed without it
+        # Print assessment summary before generation process
+        summary = config.get_config_summary()
+        print_success(f"Assessment Summary (Config: {args.config}):")
+        print(f"  Language: {summary['language']}")
+        print(f"  Global Time Limit: {summary['global_time_limit']}s")
+        print(f"  Total Questions: {summary['total_questions']}")
+        print(f"  Total Marking Items: {summary['total_marking_items']}")
+        print(f"  Total Marks: {summary['total_marks']}")
+        print(f"  Necessary Files: {', '.join(summary['files_necessary'])}")
 
-        # Generate autograder
         generator = AutograderGenerator(config, original_config_dict)
         output_path = generator.generate(args.output)
-        print_success(f"Autograder generated successfully: {output_path}")
-
-        # Generate description if requested
-        if args.with_description:
-            docx_buffer = generator.generate_description_docx()
-            docx_path = Path(args.output) / "description.docx"
-            with open(docx_path, "wb") as f:
-                f.write(docx_buffer.getbuffer())
-            print_success(f"Assessment description generated: {docx_path}")
-
-        # Generate answer samples if requested
-        if args.with_skeletons:
-            # Correct answer
-            correct_buffer = generator.generate_correct_answer_zip()
-            correct_path = Path(args.output) / "correct_answer.zip"
-            with open(correct_path, "wb") as f:
-                f.write(correct_buffer.getbuffer())
-            print_success(f"Correct answer sample generated: {correct_path}")
-
-            # Wrong answer
-            wrong_buffer = generator.generate_wrong_answer_zip()
-            wrong_path = Path(args.output) / "wrong_answer.zip"
-            with open(wrong_path, "wb") as f:
-                f.write(wrong_buffer.getbuffer())
-            print_success(f"Wrong answer sample generated: {wrong_path}")
-
+        print_success(f"Autograder package generated successfully at: {args.output}")
+        print_success(
+            f"Generated assets: autograder.zip, description.docx, description.md, rubric.csv, correct_answer.zip, wrong_answer.zip"
+        )
         return 0
-
     except Exception as e:
         print_error(f"Error: {e}")
         return 1

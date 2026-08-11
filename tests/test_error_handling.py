@@ -41,7 +41,7 @@ def temp_config_file():
 def test_cli_invalid_config(temp_config_file):
     config_path = temp_config_file(INVALID_CONFIG)
     result = subprocess.run(
-        [sys.executable, MAIN_PATH, "--config", config_path, "--validate-only"],
+        [sys.executable, MAIN_PATH, "--config", config_path],
         capture_output=True,
         text=True,
     )
@@ -52,7 +52,7 @@ def test_cli_invalid_config(temp_config_file):
 def test_cli_unsupported_language(temp_config_file):
     config_path = temp_config_file(UNSUPPORTED_LANG_CONFIG)
     result = subprocess.run(
-        [sys.executable, MAIN_PATH, "--config", config_path, "--validate-only"],
+        [sys.executable, MAIN_PATH, "--config", config_path],
         capture_output=True,
         text=True,
     )

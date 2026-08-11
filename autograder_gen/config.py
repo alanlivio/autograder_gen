@@ -89,6 +89,47 @@ class AutograderConfigModel(BaseModel):
                     )
         return self
 
+    def get_config_summary(self) -> Dict[str, Any]:
+        total_items = 0
+        total_marks = 0
+        visibility_counts: Dict[str, int] = {}
+        for q in self.questions:
+            for item in q.marking_items:
+                total_items += 1
+                total_marks += item.total_mark
+                vis = item.visibility
+                visibility_counts[vis] = visibility_counts.get(vis, 0) + 1
+
+        return {
+            "version": self.version,
+            "language": self.language,
+            "global_time_limit": self.global_time_limit,
+            "total_questions": len(self.questions),
+            "total_marking_items": total_items,
+            "total_marks": total_marks,
+            "files_necessary": self.files_necessary,
+            "visibility_counts": visibility_counts,
+        }
+
+    @staticmethod
+    def get_example_config_yaml(name: str = "py_simple") -> str:
+        """Return example YAML configuration content by example name."""
+        key_map = {
+            "py_simple": "py_simple",
+            "py_function": "py_function",
+            "py_complete": "py_complete",
+            "java_simple": "java_simple",
+        }
+        example_key = key_map.get(name.lower(), "py_simple")
+
+        pkg_dir = Path(__file__).parent.parent
+        example_path = pkg_dir / "tests" / "examples" / example_key / "config.yaml"
+        if example_path.exists():
+            with open(example_path, "r", encoding="utf-8") as f:
+                return f.read()
+
+        raise FileNotFoundError(f"Example configuration file not found: {example_path}")
+
 
 AutograderConfig = AutograderConfigModel
 Question = QuestionModel
@@ -125,6 +166,18 @@ class ConfigParser:
     def parse_and_validate(self) -> AutograderConfig:
         """Parse and validate the configuration file."""
         return self.parse()
+
+
+def normalize_autograder_config(config_data: Dict[str, Any]) -> Dict[str, Any]:
+    model = AutograderConfigModel.model_validate(config_data)
+    dump = model.model_dump()
+    dump["setup_commands"] = [
+        cmd.strip() for cmd in dump.get("setup_commands", []) if cmd and cmd.strip()
+    ]
+    dump["files_necessary"] = [
+        f.strip() for f in dump.get("files_necessary", []) if f and f.strip()
+    ]
+    return dump
 
 
 if __name__ == "__main__":
