@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 # Add project root to sys.path to allow running this script directly from the root
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent))
 from flask import Flask, request, send_file, jsonify, render_template
 import tempfile
 import zipfile

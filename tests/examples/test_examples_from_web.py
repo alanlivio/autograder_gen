@@ -5,7 +5,7 @@ import yaml
 from inspect import getsourcefile
 from pathlib import Path
 
-from web.app import app
+from autograder_gen.web.app import app
 
 
 def get_examples_dir():

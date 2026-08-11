@@ -34,7 +34,7 @@ python autograder_gen/cli.py --config tests/examples/py_simple/config.yaml
 The web interface provides a graphical form to define your autograder structure or upload existing configurations. Start the Web Server:
 
 ```bash
-python web/app.py
+python autograder_gen/web/app.py
 ```
 
 ## Testing

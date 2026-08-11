@@ -1,7 +1,7 @@
 import yaml
 import pytest
 import autograder_gen as ag
-from web.app import app
+from autograder_gen.web.app import app
 
 
 @pytest.fixture

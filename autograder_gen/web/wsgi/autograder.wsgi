@@ -5,6 +5,7 @@
 import sys
 import logging
 
-sys.path.append('/var/www/autograder/autograder')
-from autograder.web.app import app as application
+sys.path.append("/var/www/autograder/autograder")
+from autograder_gen.web.app import app as application
+
 logging.basicConfig(stream=sys.stderr)

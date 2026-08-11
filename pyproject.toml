@@ -37,14 +37,14 @@ Repository = "https://github.com/alanlivio/autograder_gen"
 
 [project.scripts]
 autograder_gen = "autograder_gen.cli:main"
-autograder_gen_web = "web.app:main"
+autograder_gen_web = "autograder_gen.web.app:main"
 
 [tool.setuptools]
-packages = ["autograder_gen", "web"]
+packages = ["autograder_gen", "autograder_gen.web"]
 
 [tool.setuptools.package-data]
 autograder_gen = ["templates/*", "templates/**/*", "examples/*", "examples/**/*"]
-web = ["templates/*", "templates/**/*", "static/*", "static/**/*"]
+"autograder_gen.web" = ["templates/*", "templates/**/*", "static/*", "static/**/*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "autograder_gen.version.__version__" }

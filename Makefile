@@ -38,7 +38,7 @@ format:
 	black .
 
 serve:
-	python web/app.py
+	python autograder_gen/web/app.py
 
 clean:
 	rm -rf dist build ./*.egg-info .pytest_cache
