@@ -159,25 +159,22 @@ class Config(BaseModel):
         except Exception as e:
             raise ValueError(f"Error parsing configuration: {e}")
 
-    @staticmethod
-    def parse_and_validate(config_path: Any) -> "Config":
-        """Parse and validate the configuration file."""
-        return Config.parse(config_path)
-
-
-
+    @classmethod
+    def normalize(cls, config_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize configuration data dictionary."""
+        model = cls.model_validate(config_data)
+        dump = model.model_dump()
+        dump["setup_commands"] = [
+            cmd.strip() for cmd in dump.get("setup_commands", []) if cmd and cmd.strip()
+        ]
+        dump["files_necessary"] = [
+            f.strip() for f in dump.get("files_necessary", []) if f and f.strip()
+        ]
+        return dump
 
 
 def normalize_autograder_config(config_data: Dict[str, Any]) -> Dict[str, Any]:
-    model = Config.model_validate(config_data)
-    dump = model.model_dump()
-    dump["setup_commands"] = [
-        cmd.strip() for cmd in dump.get("setup_commands", []) if cmd and cmd.strip()
-    ]
-    dump["files_necessary"] = [
-        f.strip() for f in dump.get("files_necessary", []) if f and f.strip()
-    ]
-    return dump
+    return Config.normalize(config_data)
 
 
 if __name__ == "__main__":

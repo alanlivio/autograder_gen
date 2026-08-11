@@ -46,9 +46,7 @@ def upload_config():
     file = request.files["config_file"]
     if file.filename == "":
         return jsonify({"error": "No file selected"}), 400
-    if not file.filename or not (
-        file.filename.endswith(".yaml") or file.filename.endswith(".yml")
-    ):
+    if not file.filename or not (file.filename.endswith(".yaml") or file.filename.endswith(".yml")):
         return jsonify({"error": "File must be a YAML file (.yml or .yaml)"}), 400
     try:
         content = file.read().decode("utf-8")
@@ -137,27 +135,13 @@ def get_example_config(name):
         return jsonify({"error": f"Error loading example: {str(e)}"}), 500
 
 
-@app.route("/api/diff", methods=["POST"])
-def diff_configs():
-    data = request.get_json()
-    if not data or "config1" not in data or "config2" not in data:
-        return jsonify({"error": "Both config1 and config2 must be provided"}), 400
-    try:
-        cfg1 = ag.Config.model_validate(data["config1"])
-        cfg2 = ag.Config.model_validate(data["config2"])
-        diff_res = compare_configs(cfg1, cfg2)
-        return jsonify({"success": True, "diff": diff_res})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route("/api/normalize", methods=["POST"])
 def normalize_config_route():
     data = request.get_json()
     if not data:
         return jsonify({"error": "No config data provided"}), 400
     try:
-        normalized = ag.normalize_autograder_config(data)
+        normalized = ag.Config.normalize(data)
         yaml_str = yaml.dump(normalized, sort_keys=False)
         return jsonify({"success": True, "normalized": normalized, "yaml": yaml_str})
     except Exception as e:
