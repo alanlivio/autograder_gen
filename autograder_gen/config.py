@@ -122,13 +122,19 @@ class Config(BaseModel):
         }
         example_key = key_map.get(name.lower(), "py_simple")
 
-        pkg_dir = Path(__file__).parent.parent
-        example_path = pkg_dir / "tests" / "examples" / example_key / "config.yaml"
-        if example_path.exists():
-            with open(example_path, "r", encoding="utf-8") as f:
+        # 1. Search inside autograder_gen/examples package directory
+        pkg_example_path = Path(__file__).parent / "examples" / example_key / "config.yaml"
+        if pkg_example_path.exists():
+            with open(pkg_example_path, "r", encoding="utf-8") as f:
                 return f.read()
 
-        raise FileNotFoundError(f"Example configuration file not found: {example_path}")
+        # 2. Search inside repository tests/examples directory (fallback)
+        repo_example_path = Path(__file__).parent.parent / "tests" / "examples" / example_key / "config.yaml"
+        if repo_example_path.exists():
+            with open(repo_example_path, "r", encoding="utf-8") as f:
+                return f.read()
+
+        raise FileNotFoundError(f"Example configuration file not found for example '{name}'")
 
     @staticmethod
     def parse(config_path: Any) -> "Config":

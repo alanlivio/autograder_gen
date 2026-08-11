@@ -1,4 +1,4 @@
-.PHONY: help venv deps build test serve clean format
+.PHONY: help venv deps build test serve clean format wheel publish-pypi
 
 PYTHON ?= python3
 VENV ?= .venv
@@ -8,6 +8,7 @@ help:
 	@echo "  venv    - Create virtual environment (.venv) and install dependencies"
 	@echo "  deps    - Install dependencies"
 	@echo "  build   - Build package distribution"
+	@echo "  wheel   - Build wheel distribution and check with twine"
 	@echo "  test    - Run pytest test suite"
 	@echo "  format  - Format Python code using black"
 	@echo "  serve   - Start Flask web server"
@@ -40,5 +41,13 @@ serve:
 	python web/app.py
 
 clean:
-	rm -rf build/ dist/ *.egg-info .pytest_cache/ __pycache__/ autograder_gen/__pycache__/ tests/__pycache__/ output/
-	find . -type d -name "__pycache__" -exec rm -rf {} +
+	rm -rf dist build ./*.egg-info .pytest_cache
+
+wheel:
+	$(VENV)/bin/pip install build setuptools twine
+	rm -rf dist build ./*.egg-info
+	$(VENV)/bin/python -m build . --wheel
+	$(VENV)/bin/twine check dist/*
+
+publish-pypi: wheel
+	twine upload dist/*
