@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Autograder Generator{% endblock %}</title>
+    <title>{% block title %}AutograderGen{% endblock %}</title>
     {{ bootstrap.load_css() }}
     <style>
         body { background-color: #ECECEC; color: rgb(65, 68, 77); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -38,8 +38,11 @@
 <body>
     <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" href="/">Autograder Generator</a>
+            <span class="navbar-brand">AutograderGen</span>
             <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-play me-1"></i> Start
+                </a>
                 <a class="nav-link" href="/generate">
                     <i class="fas fa-cog me-1"></i> Generate
                 </a>

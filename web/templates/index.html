@@ -1,25 +1,16 @@
 {% extends 'base.html' %}
-
-{% block title %}Autograder-gen{% endblock %}
-
-
+{% block title %}Generate - AutograderGen{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="mb-1">Autograder Generator</h1>
-        <p class="text-muted mb-0" style="max-width: 650px; font-size: 0.95rem;">
-            A tool for lecturers to automatically generate assessment scripts for <a
-                href="https://guides.gradescope.com/hc/en-us/articles/22066635961357-Grading-a-Programming-Assignment"
-                target="_blank">Grading a Programming Assignment</a> on Gradescope. It supports filling out this
-            interactive web form or uploading a YAML configuration, which then generates a packaged ZIP file ready to be
-            uploaded to Gradescope.
-        </p>
+        <h1 class="mb-1">Generate</h1>
     </div>
     <div class="d-flex gap-2">
         <button type="button" class="btn btn-outline-secondary" id="new-btn" onclick="createNewConfig()">
             <i class="fas fa-file me-1"></i> New
         </button>
-        <button type="button" class="btn btn-outline-secondary" id="upload-btn" onclick="document.getElementById('config-upload').click()">
+        <button type="button" class="btn btn-outline-secondary" id="upload-btn"
+            onclick="document.getElementById('config-upload').click()">
             <i class="fas fa-upload me-1"></i> New from YAML
         </button>
         <input type="file" id="config-upload" class="d-none" accept=".yaml,.yml" onchange="handleConfigUpload(this)">
@@ -29,116 +20,187 @@
         <button type="button" class="btn btn-warning d-none" id="edit-btn" onclick="toggleFormLock(false)">
             <i class="fas fa-edit me-1"></i> Edit Configuration
         </button>
-        <button type="button" class="btn btn-outline-primary d-none" id="generate-btn" onclick="submitForGeneration()">
-            <i class="fas fa-file-archive me-1"></i> Generate All ZIPs
+    </div>
+</div>
+<div id="alert-container"></div>
+<div id="export-section" class="card border-primary mb-4 d-none">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Validate & Export</h5>
+        <span class="badge bg-light text-primary font-monospace">Ready</span>
+    </div>
+    <div class="card-body">
+        <div class="mb-4">
+            <h6 class="font-weight-bold text-secondary mb-2"><i class="fas fa-terminal me-2"></i>Validation & Execution Logs</h6>
+            <pre id="validation-log" class="bg-dark text-light p-3 rounded font-monospace small mb-0" style="max-height: 200px; overflow-y: auto; line-height: 1.6;"></pre>
+        </div>
+        <div class="d-flex flex-column align-items-center justify-content-center py-4 border rounded bg-light">
+            <button type="button" class="btn btn-primary btn-lg px-5 py-3 shadow" onclick="downloadExport('bundle_zip')">
+                <i class="fas fa-box-archive me-2"></i> Export All Assets (ZIP)
+            </button>
+        </div>
+    </div>
+</div>
+<div id="editor-mode-toggle-container" class="d-flex justify-content-between align-items-center mb-4">
+    <div class="btn-group shadow-sm" role="group" aria-label="Editor Mode">
+        <button type="button" class="btn btn-primary mode-toggle-btn px-4" id="mode-text-btn" onclick="setMode('text')">
+            <i class="fas fa-code me-2"></i>Text Mode (YAML)
+        </button>
+        <button type="button" class="btn btn-outline-primary mode-toggle-btn px-4" id="mode-form-btn"
+            onclick="setMode('form')">
+            <i class="fas fa-list me-2"></i>Form Mode
         </button>
     </div>
 </div>
+<style>
+    /* Premium text mode styles */
+    .editor-container {
+        border-radius: 12px;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.05);
+        background-color: #1e1e24;
+        padding: 15px;
+        border: 1px solid #2d2d34;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
 
-<div id="alert-container"></div>
+    .editor-container:focus-within {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
 
-<div id="export-section" class="card border-primary mb-4 d-none">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">Export Assets</h5>
+    .yaml-textarea {
+        background-color: transparent !important;
+        border: none !important;
+        color: #e4e4e7 !important;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        resize: vertical;
+        outline: none;
+        box-shadow: none !important;
+    }
+
+    .stats-bar {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        border: 1px solid #475569;
+        border-radius: 12px;
+        color: #f8fafc;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .mode-toggle-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 500;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+<div id="text-mode-container" class="fade-in mb-4">
+    <div class="stats-bar py-3 px-4 mb-3 d-flex gap-4 align-items-center">
+        <div><i class="fas fa-question-circle me-2 text-info"></i><strong>Questions:</strong> <span
+                id="text-questions-count">0</span></div>
+        <div><i class="fas fa-star me-2 text-warning"></i><strong>Total Points:</strong> <span
+                id="text-total-score">0</span> pts</div>
+        <div class="ms-auto"><span class="badge bg-success py-2 px-3" id="yaml-status-badge">Valid YAML</span></div>
     </div>
-    <div class="card-body">
-        <div class="d-flex flex-wrap gap-3 align-items-center">
-            <button type="button" class="btn btn-outline-secondary" onclick="downloadYamlConfig()">
-                <i class="fas fa-download me-1"></i> Export YAML
-            </button>
-            <button type="button" class="btn btn-info text-white" onclick="downloadExport('description')">
-                <i class="fas fa-file-word me-1"></i> description.docx
-            </button>
-            <button type="button" class="btn btn-success" onclick="submitForGeneration(this)">
-                <i class="fas fa-file-zipper me-1"></i> autograder.zip
-            </button>
-            <button type="button" class="btn btn-outline-success" onclick="downloadExport('correct')">
-                <i class="fas fa-file-zipper me-1"></i> correct_answer.zip
-            </button>
-            <button type="button" class="btn btn-outline-danger" onclick="downloadExport('wrong')">
-                <i class="fas fa-file-zipper me-1"></i> wrong_answer.zip
-            </button>
-        </div>
+    <div class="editor-container">
+        <textarea id="yaml-textarea" class="form-control yaml-textarea" rows="22"
+            placeholder="Write or paste your YAML configuration here..."></textarea>
     </div>
 </div>
-
-<form id="autograder-form">
-
-    <div class="row mb-4" id="global-config-section">
-        <div class="col-12">
-            <h3 class="border-bottom pb-2 mb-3 d-flex justify-content-between align-items-center"
-                data-bs-toggle="collapse" data-bs-target="#global-config-collapse" style="cursor: pointer;">
-                Global Configuration
-                <i class="fas fa-chevron-down small text-muted"></i>
-            </h3>
-        </div>
-        <div id="global-config-collapse" class="collapse show w-100">
-            <div class="row px-3">
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <label for="language" class="form-label font-weight-bold">Language</label>
-                        <select class="form-select" id="language" name="language">
-                            <option value="python" selected>Python</option>
-                            <option value="java">Java</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <label for="version" class="form-label font-weight-bold">Version</label>
-                        <input type="text" class="form-control" id="version" name="version" value="0.1">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <label for="global_time_limit" class="form-label font-weight-bold">Global Time Limit
-                            (ms)</label>
-                        <input type="number" class="form-control" id="global_time_limit" name="global_time_limit"
-                            value="300" min="1">
-                    </div>
-                </div>
-                <div class="col-12">
-                    <div class="mb-3">
-                        <label for="setup_commands" class="form-label font-weight-bold">Setup Commands (one per
-                            line)</label>
-                        <textarea class="form-control" id="setup_commands" name="setup_commands" rows="3"></textarea>
-                    </div>
-                </div>
-                <div class="col-12">
-                    <label class="form-label font-weight-bold">Required Files</label>
-                    <div id="required-files-container">
-                        <div class="input-group mb-2">
-                            <input type="text" class="form-control" id="new-file-input" placeholder="e.g., solution.py">
-                            <button type="button" class="btn btn-primary" onclick="addRequiredFile()">Add File</button>
-                        </div>
-                        <div id="required-files-list" class="border rounded p-3 bg-white" style="min-height: 80px;">
-                            <span class="text-muted small">No specific file requirements defined.</span>
+<div id="form-mode-container" class="d-none fade-in">
+    <form id="autograder-form">
+        <div class="row mb-4" id="global-config-section">
+            <div class="col-12">
+                <h3 class="border-bottom pb-2 mb-3 d-flex justify-content-between align-items-center"
+                    data-bs-toggle="collapse" data-bs-target="#global-config-collapse" style="cursor: pointer;">
+                    Global Configuration
+                    <i class="fas fa-chevron-down small text-muted"></i>
+                </h3>
+            </div>
+            <div id="global-config-collapse" class="collapse show w-100">
+                <div class="row px-3">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="language" class="form-label font-weight-bold">Language</label>
+                            <select class="form-select" id="language" name="language">
+                                <option value="python" selected>Python</option>
+                                <option value="java">Java</option>
+                            </select>
                         </div>
                     </div>
-                    <textarea id="files_necessary" name="files_necessary" class="d-none"></textarea>
-                    <div class="form-text">Files that students MUST submit.</div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="version" class="form-label font-weight-bold">Version</label>
+                            <input type="text" class="form-control" id="version" name="version" value="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="global_time_limit" class="form-label font-weight-bold">Global Time Limit
+                                (ms)</label>
+                            <input type="number" class="form-control" id="global_time_limit" name="global_time_limit"
+                                value="300" min="1">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label for="setup_commands" class="form-label font-weight-bold">Setup Commands (one per
+                                line)</label>
+                            <textarea class="form-control" id="setup_commands" name="setup_commands"
+                                rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label font-weight-bold">Required Files</label>
+                        <div id="required-files-container">
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="new-file-input"
+                                    placeholder="e.g., solution.py">
+                                <button type="button" class="btn btn-primary" onclick="addRequiredFile()">Add
+                                    File</button>
+                            </div>
+                            <div id="required-files-list" class="border rounded p-3 bg-white" style="min-height: 80px;">
+                                <span class="text-muted small">No specific file requirements defined.</span>
+                            </div>
+                        </div>
+                        <textarea id="files_necessary" name="files_necessary" class="d-none"></textarea>
+                        <div class="form-text">Files that students MUST submit.</div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="mt-4" id="questions-section">
-        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4" data-bs-toggle="collapse"
-            data-bs-target="#questions-collapse" style="cursor: pointer;">
-            <h3 class="mb-0">Questions</h3>
-            <div class="d-flex align-items-center gap-3">
-                <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addQuestion()">
-                    <i class="fas fa-plus me-1"></i> Add Question
-                </button>
-                <i class="fas fa-chevron-down small text-muted"></i>
+        <div class="mt-4" id="questions-section">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4"
+                data-bs-toggle="collapse" data-bs-target="#questions-collapse" style="cursor: pointer;">
+                <h3 class="mb-0">Questions</h3>
+                <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="btn btn-primary btn-sm"
+                        onclick="event.stopPropagation(); addQuestion()">
+                        <i class="fas fa-plus me-1"></i> Add Question
+                    </button>
+                    <i class="fas fa-chevron-down small text-muted"></i>
+                </div>
+            </div>
+            <div id="questions-collapse" class="collapse show">
+                <div id="questions-list"></div>
             </div>
         </div>
-        <div id="questions-collapse" class="collapse show">
-            <div id="questions-list"></div>
-        </div>
-    </div>
-</form>
-
+    </form>
+</div>
 <!-- Blueprints for dynamic elements -->
 <div id="blueprints" class="d-none">
     <!-- Question Blueprint -->
@@ -178,7 +240,6 @@
             </div>
         </div>
     </div>
-
     <!-- Marking Item Blueprint -->
     <div id="marking-item-blueprint">
         <div class="marking-item card card-body mb-3 border-start">
@@ -200,36 +261,38 @@
     </div>
 </div>
 {% endblock %}
-
 {% block scripts %}
 <script>
     let questionCount = 0;
     let validationTimeout;
+    let currentMode = 'text';
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function initPage() {
         if (document.querySelectorAll('#questions-list > .card').length === 0) {
             addQuestion();
         }
-
         const urlParams = new URLSearchParams(window.location.search);
         const action = urlParams.get('action');
         const loadExample = urlParams.get('load_example');
-
         if (action === 'upload') {
             setTimeout(() => {
                 const uploadInput = document.getElementById('config-upload');
                 if (uploadInput) uploadInput.click();
             }, 100);
         } else if (loadExample) {
-            setTimeout(async () => {
+            const yamlTextarea = document.getElementById('yaml-textarea');
+            if (yamlTextarea) {
+                yamlTextarea.value = `# Loading example '${loadExample}' configuration...`;
+            }
+            (async () => {
                 try {
                     const response = await fetch(`/api/example/${loadExample}`);
                     const data = await response.json();
                     if (data.success) {
                         toggleFormLock(false);
-                        populateFormFromConfig(data.config);
+                        populateFormFromConfig(data.config, data.yaml);
+                        switchEditorMode(currentMode);
                         showAlert(`Example config '${loadExample}' successfully loaded.`, 'success');
-                        await validateConfig(false);
                     } else {
                         showAlert('Error loading example: ' + data.error, 'danger');
                     }
@@ -237,9 +300,8 @@
                     showAlert('Network error loading example config.', 'danger');
                 }
                 window.history.replaceState({}, document.title, window.location.pathname);
-            }, 100);
+            })();
         }
-
         document.addEventListener('input', (e) => {
             if (e.target.name && e.target.name.includes('total_mark')) {
                 updateQuestionNumbers();
@@ -247,157 +309,159 @@
             if (e.target.tagName === 'TEXTAREA') {
                 autoResizeTextarea(e.target);
             }
-
             // Hide export section on any change until validated again
             disableGenerateButton();
-
             // Debounced validation
             clearTimeout(validationTimeout);
             validationTimeout = setTimeout(() => {
                 validateConfig(true); // silent validation
             }, 1000);
         });
-    });
-
-    function createNewConfig() {
-        if (confirm('Create new configuration? All unsaved changes will be lost.')) {
-            toggleFormLock(false);
-            document.getElementById('autograder-form').reset();
-            document.getElementById('questions-list').innerHTML = '';
-            document.getElementById('required-files-list').innerHTML = '';
-            document.getElementById('files_necessary').value = '';
-            document.getElementById('setup_commands').value = '';
-            questionCount = 0;
-            addQuestion();
-            updateQuestionNumbers();
-            disableGenerateButton();
-            clearAlerts();
+        // Initialize YAML editor from form state and set up text area event listeners
+        if (!loadExample && !action) {
+            updateYamlFromForm();
+        }
+        const yamlTextarea = document.getElementById('yaml-textarea');
+        if (yamlTextarea) {
+            yamlTextarea.addEventListener('input', () => {
+                updateYamlStats();
+            });
         }
     }
 
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPage);
+    } else {
+        initPage();
+    }
+    function createNewConfig() {
+        toggleFormLock(false);
+        document.getElementById('autograder-form').reset();
+        document.getElementById('questions-list').innerHTML = '';
+        document.getElementById('required-files-list').innerHTML = '';
+        document.getElementById('files_necessary').value = '';
+        document.getElementById('setup_commands').value = '';
+        questionCount = 0;
+        addQuestion();
+        updateQuestionNumbers();
+        disableGenerateButton();
+        clearAlerts();
+        updateYamlFromForm();
+        switchEditorMode(currentMode);
+    }
     function addQuestion() {
         const blueprint = document.getElementById('question-blueprint').firstElementChild;
         const qDiv = blueprint.cloneNode(true);
         const qId = questionCount++;
         qDiv.id = `question-${qId}`;
-
         document.getElementById('questions-list').appendChild(qDiv);
         addMarkingItem(qDiv.querySelector('button[onclick="addMarkingItem(this)"]'));
-
         initializeDragAndDrop(qDiv);
         updateQuestionNumbers();
     }
-
     function toggleFormLock(lock) {
         const form = document.getElementById('autograder-form');
         const elements = form.querySelectorAll('input, select, textarea, button:not(.btn-close)');
         elements.forEach(el => {
-            // Don't disable the hidden file input
             if (el.id === 'config-upload') return;
             el.disabled = lock;
         });
+        const yamlTextarea = document.getElementById('yaml-textarea');
+        if (yamlTextarea) yamlTextarea.disabled = lock;
+        const modeTextBtn = document.getElementById('mode-text-btn');
+        const modeFormBtn = document.getElementById('mode-form-btn');
+        if (modeTextBtn) modeTextBtn.disabled = lock;
+        if (modeFormBtn) modeFormBtn.disabled = lock;
 
-        // Also disable/enable the "Add Question" button in the header
-        const addQBtn = document.querySelector('button[onclick*="addQuestion"]');
-        if (addQBtn) addQBtn.disabled = lock;
+        const modeToggleContainer = document.getElementById('editor-mode-toggle-container');
+        const textModeContainer = document.getElementById('text-mode-container');
+        const formModeContainer = document.getElementById('form-mode-container');
+        const exportSection = document.getElementById('export-section');
 
-        // And remove buttons on questions
-        document.querySelectorAll('.btn-close').forEach(btn => btn.classList.toggle('d-none', lock));
+        if (lock) {
+            if (modeToggleContainer) modeToggleContainer.classList.add('d-none');
+            if (textModeContainer) textModeContainer.classList.add('d-none');
+            if (formModeContainer) formModeContainer.classList.add('d-none');
+            if (exportSection) exportSection.classList.remove('d-none');
+        } else {
+            if (exportSection) exportSection.classList.add('d-none');
+            if (modeToggleContainer) modeToggleContainer.classList.remove('d-none');
+            switchEditorMode(currentMode);
+        }
 
-        // Gray out sections (including headings)
-        document.getElementById('global-config-section').classList.toggle('locked-section', lock);
-        document.getElementById('questions-section').classList.toggle('locked-section', lock);
-
-        // Toggle button visibility
         document.getElementById('validate-btn').classList.toggle('d-none', lock);
         document.getElementById('edit-btn').classList.toggle('d-none', !lock);
 
-        // Disable/enable new creation buttons
         const newBtn = document.getElementById('new-btn');
         const uploadBtn = document.getElementById('upload-btn');
         if (newBtn) newBtn.disabled = lock;
         if (uploadBtn) uploadBtn.disabled = lock;
-
-        // Hide export section if unlocking
-        if (!lock) {
-            document.getElementById('export-section').classList.add('d-none');
-        }
     }
-
     function removeQuestionWithConfirm(btn) {
         if (confirm('Delete this question and all its tests?')) {
             btn.closest('.card').remove();
             updateQuestionNumbers();
         }
     }
-
     function updateQuestionNumbers() {
         const questions = document.querySelectorAll('#questions-list > .card');
         questions.forEach((question, qIdx) => {
             question.querySelector('.q-num').textContent = qIdx + 1;
             const prefix = `questions-${qIdx}`;
-
             const nameInput = question.querySelector('.q-name-input');
             if (nameInput) {
                 nameInput.name = `${prefix}-name`;
                 nameInput.id = `${prefix}-name`;
             }
-
             const descInput = question.querySelector('.q-description-input');
             if (descInput) {
                 descInput.name = `${prefix}-description`;
                 descInput.id = `${prefix}-description`;
             }
-
             const qTotalPointsSpan = question.querySelector('.q-total-points');
             let questionTotal = 0;
-
             const markingItems = question.querySelectorAll('.marking-item');
             markingItems.forEach((item, miIdx) => {
                 const miPrefix = `${prefix}-marking_items-${miIdx}`;
-
                 item.querySelectorAll('input, select, textarea').forEach(field => {
-                    let suffix = '';
-                    if (field.classList.contains('mi-type-select')) {
-                        suffix = 'type';
-                    } else {
-                        const parts = field.id.split('-');
-                        suffix = parts[parts.length - 1];
+                    let suffix = field.dataset.suffix;
+                    if (!suffix) {
+                        if (field.classList.contains('mi-type-select')) {
+                            suffix = 'type';
+                        } else if (field.id) {
+                            suffix = field.id.replace(/^.*questions-\d+-marking_items-\d+-/, '');
+                        } else if (field.name) {
+                            suffix = field.name.replace(/^.*questions-\d+-marking_items-\d+-/, '');
+                        }
                     }
-
                     if (suffix) {
                         field.name = `${miPrefix}-${suffix}`;
                         field.id = `${miPrefix}-${suffix}`;
+                        field.dataset.suffix = suffix;
                     }
                 });
-
                 const pointsField = item.querySelector('input[name$="-total_mark"]');
                 if (pointsField) {
                     questionTotal += Number(pointsField.value) || 0;
                 }
             });
-
             if (qTotalPointsSpan) qTotalPointsSpan.textContent = `${questionTotal} pts`;
         });
     }
-
     function addMarkingItem(btn) {
         const miList = btn.closest('.card-body').querySelector('.marking-items-list');
         const blueprint = document.getElementById('marking-item-blueprint').firstElementChild;
         const miDiv = blueprint.cloneNode(true);
-
         miList.appendChild(miDiv);
         showTypeFields(miDiv.querySelector('select'));
         updateQuestionNumbers();
         disableGenerateButton();
     }
-
     function removeMarkingItem(btn) {
         btn.closest('.marking-item').remove();
         updateQuestionNumbers();
         disableGenerateButton();
     }
-
     function showTypeFields(select) {
         const type = select.value;
         const mi = select.closest('.marking-item');
@@ -405,34 +469,32 @@
         const qIdx = Array.from(document.querySelectorAll('#questions-list > .card')).indexOf(qCard);
         const miIdx = Array.from(mi.parentElement.children).indexOf(mi);
         const prefix = `questions-${qIdx}-marking_items-${miIdx}`;
-
         mi.className = 'marking-item card card-body mb-3 border-start ' + type.replace(/_/g, '-') + '-border';
-
         let html = `
         <div class="row mb-2">
             <div class="col-md-9">
                 <label class="form-label small mb-1">Display Name (optional)</label>
-                <input type="text" class="form-control form-control-sm" name="${prefix}-name" id="${prefix}-name">
+                <input type="text" class="form-control form-control-sm" data-suffix="name" name="${prefix}-name" id="${prefix}-name">
             </div>
             <div class="col-md-3">
                 <label class="form-label small mb-1">Points *</label>
-                <input type="number" class="form-control form-control-sm" id="${prefix}-total_mark" name="${prefix}-total_mark" required oninput="updateQuestionNumbers()">
+                <input type="number" class="form-control form-control-sm" data-suffix="total_mark" id="${prefix}-total_mark" name="${prefix}-total_mark" required oninput="updateQuestionNumbers()">
             </div>
         </div>
         <div class="row mb-2">
             <div class="col-md-6">
                 <label class="form-label small mb-1">Target File *</label>
-                <select class="form-select form-select-sm" id="${prefix}-target_file" name="${prefix}-target_file" required>
+                <select class="form-select form-select-sm" data-suffix="target_file" id="${prefix}-target_file" name="${prefix}-target_file" required>
                     <option value="">Select file...</option>
                 </select>
             </div>
             <div class="col-md-3">
                 <label class="form-label small mb-1">Time Limit (s)</label>
-                <input type="number" class="form-control form-control-sm" id="${prefix}-time_limit" name="${prefix}-time_limit" value="30">
+                <input type="number" class="form-control form-control-sm" data-suffix="time_limit" id="${prefix}-time_limit" name="${prefix}-time_limit" value="30">
             </div>
             <div class="col-md-3">
                 <label class="form-label small mb-1">Visibility</label>
-                <select class="form-select form-select-sm" id="${prefix}-visibility" name="${prefix}-visibility">
+                <select class="form-select form-select-sm" data-suffix="visibility" id="${prefix}-visibility" name="${prefix}-visibility">
                     <option value="visible">Visible</option>
                     <option value="hidden">Hidden</option>
                     <option value="after_due_date">After Due Date</option>
@@ -440,32 +502,31 @@
             </div>
         </div>
     `;
-
         if (type === 'output_comparison') {
             html += `
             <div class="mb-2">
                 <label class="form-label small mb-1">Standard Input</label>
-                <textarea class="form-control form-control-sm font-monospace" id="${prefix}-expected_input" name="${prefix}-expected_input" rows="3"></textarea>
+                <textarea class="form-control form-control-sm font-monospace" data-suffix="expected_input" id="${prefix}-expected_input" name="${prefix}-expected_input" rows="3"></textarea>
             </div>
             <div class="mb-2">
                 <label class="form-label small mb-1">Expected Output *</label>
-                <textarea class="form-control form-control-sm font-monospace" id="${prefix}-expected_output" name="${prefix}-expected_output" rows="5" required></textarea>
+                <textarea class="form-control form-control-sm font-monospace" data-suffix="expected_output" id="${prefix}-expected_output" name="${prefix}-expected_output" rows="5" required></textarea>
             </div>
         `;
         } else if (type === 'signature_check') {
             html += `
             <div class="mb-2">
                 <label class="form-label small mb-1">Function Name *</label>
-                <input type="text" class="form-control form-control-sm font-monospace" id="${prefix}-function_name" name="${prefix}-function_name" required>
+                <input type="text" class="form-control form-control-sm font-monospace" data-suffix="function_name" id="${prefix}-function_name" name="${prefix}-function_name" required>
             </div>
             <div class="row">
                 <div class="col-md-6">
                     <label class="form-label small mb-1">Expected Params</label>
-                    <input type="text" class="form-control form-control-sm" id="${prefix}-expected_parameters" name="${prefix}-expected_parameters">
+                    <input type="text" class="form-control form-control-sm" data-suffix="expected_parameters" id="${prefix}-expected_parameters" name="${prefix}-expected_parameters">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label small mb-1">Return Type</label>
-                    <input type="text" class="form-control form-control-sm" id="${prefix}-expected_return_type" name="${prefix}-expected_return_type">
+                    <input type="text" class="form-control form-control-sm" data-suffix="expected_return_type" id="${prefix}-expected_return_type" name="${prefix}-expected_return_type">
                 </div>
             </div>
         `;
@@ -473,27 +534,23 @@
             html += `
             <div class="mb-2">
                 <label class="form-label small mb-1">Function Name *</label>
-                <input type="text" class="form-control form-control-sm font-monospace" id="${prefix}-function_name" name="${prefix}-function_name" required>
+                <input type="text" class="form-control form-control-sm font-monospace" data-suffix="function_name" id="${prefix}-function_name" name="${prefix}-function_name" required>
             </div>
             <div class="mb-2">
                 <label class="form-label small mb-1">Test Cases (YAML) *</label>
-                <textarea class="form-control form-control-sm font-monospace" id="${prefix}-test_cases" name="${prefix}-test_cases" rows="3" required></textarea>
+                <textarea class="form-control form-control-sm font-monospace" data-suffix="test_cases" id="${prefix}-test_cases" name="${prefix}-test_cases" rows="3" required></textarea>
             </div>
         `;
         }
-
         mi.querySelector('.type-fields').innerHTML = html;
         populateTargetFileDropdown(mi.querySelector('select[id$="-target_file"]'));
     }
-
     function addRequiredFile() {
         const input = document.getElementById('new-file-input');
         const filename = input.value.trim();
         if (!filename) return;
-
         const filesTextarea = document.getElementById('files_necessary');
         const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
-
         if (!files.includes(filename)) {
             files.push(filename);
             filesTextarea.value = files.join('\n');
@@ -503,7 +560,6 @@
         input.value = '';
         disableGenerateButton();
     }
-
     function removeRequiredFile(filename) {
         const filesTextarea = document.getElementById('files_necessary');
         let files = filesTextarea.value.split('\n');
@@ -513,17 +569,14 @@
         updateAllTargetFileDropdowns();
         disableGenerateButton();
     }
-
     function renderRequiredFilesList() {
         const list = document.getElementById('required-files-list');
         const filesTextarea = document.getElementById('files_necessary');
         const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
-
         if (files.length === 0) {
             list.innerHTML = '<span class="text-muted small">No specific file requirements defined.</span>';
             return;
         }
-
         list.innerHTML = '';
         files.forEach(file => {
             const badge = document.createElement('span');
@@ -535,11 +588,9 @@
             list.appendChild(badge);
         });
     }
-
     function editRequiredFile(oldName) {
         const newName = prompt('Rename file requirement:', oldName);
         if (!newName || newName === oldName) return;
-
         const filesTextarea = document.getElementById('files_necessary');
         let files = filesTextarea.value.split('\n');
         const idx = files.indexOf(oldName);
@@ -550,16 +601,13 @@
             updateAllTargetFileDropdowns();
         }
     }
-
     function updateAllTargetFileDropdowns() {
         document.querySelectorAll('select[id$="-target_file"]').forEach(populateTargetFileDropdown);
     }
-
     function populateTargetFileDropdown(select) {
         const currentValue = select.value;
         const filesTextarea = document.getElementById('files_necessary');
         const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
-
         select.innerHTML = '<option value="">Select file...</option>';
         files.forEach(file => {
             const option = document.createElement('option');
@@ -569,7 +617,6 @@
             select.appendChild(option);
         });
     }
-
     function initializeDragAndDrop(element) {
         const handle = element.querySelector('.drag-handle');
         element.addEventListener('dragstart', handleDragStart);
@@ -577,13 +624,11 @@
         element.addEventListener('drop', handleDrop);
         element.addEventListener('dragend', handleDragEnd);
     }
-
     function handleDragStart(e) {
         this.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', this.id);
     }
-
     function handleDragOver(e) {
         e.preventDefault();
         const container = document.getElementById('questions-list');
@@ -595,15 +640,12 @@
             container.insertBefore(dragging, afterElement);
         }
     }
-
     function handleDrop(e) { e.preventDefault(); }
-
     function handleDragEnd() {
         this.classList.remove('dragging');
         updateQuestionNumbers();
         disableGenerateButton();
     }
-
     function getDragAfterElement(container, y) {
         const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
         return draggableElements.reduce((closest, child) => {
@@ -616,23 +658,30 @@
             }
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
-
     function formToConfigObject() {
+        if (currentMode === 'text') {
+            const yamlText = document.getElementById('yaml-textarea').value;
+            try {
+                return jsyaml.load(yamlText) || {};
+            } catch (e) {
+                console.error(e);
+                return null;
+            }
+        }
+        return serializeFormToConfigObject();
+    }
+    function serializeFormToConfigObject() {
         const formElement = document.getElementById('autograder-form');
-
         const disabledElements = [];
         formElement.querySelectorAll('input:disabled, select:disabled, textarea:disabled').forEach(el => {
             disabledElements.push(el);
             el.disabled = false;
         });
-
         const formData = new FormData(formElement);
-
         // Restore disabled state
         disabledElements.forEach(el => {
             el.disabled = true;
         });
-
         const config = {
             version: formData.get('version'),
             language: formData.get('language'),
@@ -641,7 +690,6 @@
             files_necessary: (formData.get('files_necessary') || '').split('\n').filter(f => f.trim()),
             questions: []
         };
-
         const questions = document.querySelectorAll('#questions-list > .card');
         questions.forEach((q, qIdx) => {
             const prefix = `questions-${qIdx}`;
@@ -650,7 +698,6 @@
                 description: formData.get(`${prefix}-description`),
                 marking_items: []
             };
-
             const markingItems = q.querySelectorAll('.marking-item');
             markingItems.forEach((mi, miIdx) => {
                 const miPrefix = `${prefix}-marking_items-${miIdx}`;
@@ -663,7 +710,6 @@
                     time_limit: parseInt(formData.get(`${miPrefix}-time_limit`)) || 30,
                     visibility: formData.get(`${miPrefix}-visibility`) || 'visible'
                 };
-
                 if (type === 'output_comparison') {
                     item.expected_input = formData.get(`${miPrefix}-expected_input`);
                     item.expected_output = formData.get(`${miPrefix}-expected_output`);
@@ -683,18 +729,22 @@
         });
         return config;
     }
-
     async function validateConfig(silent = false) {
         if (!silent) clearAlerts();
         const config = formToConfigObject();
-        const btn = document.querySelector('button[onclick="validateConfig()"]'); // This button might be removed, but keeping logic for safety
+        if (config === null) {
+            if (!silent) {
+                showAlert('<strong>YAML Syntax Error:</strong> Please ensure the YAML is well-formatted before validation.', 'danger');
+            }
+            disableGenerateButton();
+            return false;
+        }
+        const btn = document.getElementById('validate-btn');
         const originalText = btn ? btn.innerHTML : '';
-
         if (!silent && btn) {
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Validating...';
         }
-
         try {
             const response = await fetch('/api/validate', {
                 method: 'POST',
@@ -704,24 +754,32 @@
                 body: JSON.stringify(config)
             });
             const data = await response.json();
-
             const genBtn = document.getElementById('generate-btn');
             const exportSection = document.getElementById('export-section');
-
             if (data.valid) {
                 if (!silent) {
-                    showAlert('Configuration is valid! Form locked for editing.', 'success');
-                    exportSection.classList.remove('d-none');
+                    const logEl = document.getElementById('validation-log');
+                    if (logEl) {
+                        const now = new Date();
+                        const ts = now.toTimeString().split(' ')[0];
+                        const qCount = config.questions ? config.questions.length : 0;
+                        logEl.textContent = `[${ts}] [INFO] Starting configuration validation...\n` +
+                                            `[${ts}] [INFO] Target Language: ${config.language || 'python'} (Version: ${config.version || '1.0'})\n` +
+                                            `[${ts}] [INFO] Validating ${qCount} question(s) and marking items...\n` +
+                                            `[${ts}] [SUCCESS] Validation succeeded! 0 errors found.\n` +
+                                            `[${ts}] [INFO] Export bundle ready for download.`;
+                    }
+                    showAlert('Configuration validated successfully!', 'success');
                     toggleFormLock(true);
                 }
-                genBtn.disabled = false;
+                if (genBtn) genBtn.disabled = false;
             } else {
                 if (!silent) {
                     let msg = '<strong>Validation Error:</strong><ul>' + data.errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
                     showAlert(msg, 'danger');
                 }
-                genBtn.disabled = true;
-                exportSection.classList.add('d-none');
+                if (genBtn) genBtn.disabled = true;
+                if (exportSection) exportSection.classList.add('d-none');
             }
             return data.valid;
         } catch (e) {
@@ -734,22 +792,14 @@
             }
         }
     }
-
     async function downloadExport(type) {
         const config = formToConfigObject();
-        let url = '/api/generate';
-        let filename = 'autograder.zip';
-
-        if (type === 'description') {
-            url = '/api/export/description';
-            filename = 'description.docx';
-        } else if (type === 'correct') {
-            url = '/api/export/correct';
-            filename = 'correct_answer.zip';
-        } else if (type === 'wrong') {
-            url = '/api/export/wrong';
-            filename = 'wrong_answer.zip';
+        if (config === null) {
+            showAlert('<strong>YAML Syntax Error:</strong> Cannot export. Please fix the YAML syntax first.', 'danger');
+            return;
         }
+        const url = '/api/export/bundle';
+        const filename = 'all_assets.zip';
 
         try {
             const response = await fetch(url, {
@@ -757,9 +807,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
             });
-
             if (!response.ok) throw new Error('Export failed');
-
             const blob = await response.blob();
             const downloadUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -767,211 +815,284 @@
             a.download = filename;
             document.body.appendChild(a);
             a.click();
+            a.remove();
             window.URL.revokeObjectURL(downloadUrl);
         } catch (e) {
             showAlert(e.message, 'danger');
         }
     }
-
-    async function submitForGeneration(btnElement) {
-        const config = formToConfigObject();
-        const btn = btnElement || document.getElementById('generate-btn');
-        const originalText = btn.innerHTML;
-
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
-
-        try {
-            const response = await fetch('/api/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(config)
+        function clearAlerts() { document.getElementById('alert-container').innerHTML = ''; }
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show shadow-sm`;
+            alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            container.appendChild(alert);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function autoResizeTextarea(textarea) {
+            if (!textarea || textarea.classList.contains('d-none') || textarea.style.display === 'none' || textarea.id === 'yaml-textarea') return;
+            textarea.style.height = 'auto';
+            if (textarea.scrollHeight > 0) {
+                textarea.style.height = textarea.scrollHeight + 'px';
+            }
+        }
+        function disableGenerateButton() {
+            const btn = document.getElementById('generate-btn') || document.getElementById('validate-btn');
+            if (btn) btn.disabled = false;
+            const exportSection = document.getElementById('export-section');
+            if (exportSection) exportSection.classList.add('d-none');
+        }
+        function downloadYamlConfig() {
+            const config = formToConfigObject();
+            if (config === null) {
+                showAlert('<strong>YAML Syntax Error:</strong> Cannot download YAML. Please fix the YAML syntax first.', 'danger');
+                return;
+            }
+            const yamlString = jsyaml.dump(config, {
+                schema: jsyaml.DEFAULT_SCHEMA,
+                noRefs: true,
+                lineWidth: -1, // Disable line wrapping
+                styles: {
+                    '!!null': 'empty' // dump null as empty
+                }
             });
-
-            if (!response.ok) throw new Error('Generation failed');
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+            const blob = new Blob([yamlString], { type: 'application/x-yaml' });
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'autograder.zip';
-            document.body.appendChild(a);
+            a.download = 'autograder_gen.yaml';
             a.click();
-            window.URL.revokeObjectURL(url);
-
-            document.getElementById('export-section').classList.remove('d-none');
-            showAlert('Success! Autograder assets ready for download below.', 'success');
-        } catch (e) {
-            showAlert(e.message, 'danger');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
+            URL.revokeObjectURL(url);
         }
-    }
-
-    function clearAlerts() { document.getElementById('alert-container').innerHTML = ''; }
-
-    function showAlert(message, type) {
-        const container = document.getElementById('alert-container');
-        const alert = document.createElement('div');
-        alert.className = `alert alert-${type} alert-dismissible fade show shadow-sm`;
-        alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-        container.appendChild(alert);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function autoResizeTextarea(textarea) {
-        if (!textarea || textarea.classList.contains('d-none') || textarea.style.display === 'none') return;
-        textarea.style.height = 'auto';
-        if (textarea.scrollHeight > 0) {
-            textarea.style.height = textarea.scrollHeight + 'px';
-        }
-    }
-
-    function disableGenerateButton() {
-        const btn = document.getElementById('generate-btn');
-        btn.disabled = true;
-        document.getElementById('export-section').classList.add('d-none');
-    }
-
-    function downloadYamlConfig() {
-        const config = formToConfigObject();
-        const yamlString = jsyaml.dump(config, {
-            schema: jsyaml.DEFAULT_SCHEMA,
-            noRefs: true,
-            lineWidth: -1, // Disable line wrapping
-            styles: {
-                '!!null': 'empty' // dump null as empty
-            }
-        });
-        const blob = new Blob([yamlString], { type: 'application/x-yaml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'autograder_gen.yaml';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-
-    function handleConfigUpload(input) {
-        const file = input.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                toggleFormLock(false);
-                let config;
-                if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
-                    config = jsyaml.load(e.target.result);
-                } else {
-                    config = JSON.parse(e.target.result);
-                }
-                populateFormFromConfig(config);
-                showAlert('Config successfully imported.', 'success');
-            } catch (err) {
-                console.error(err);
-                showAlert('Import Error: ' + err.message, 'danger');
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    async function loadExampleConfig() {
-        try {
-            const response = await fetch('/api/example/py_simple');
-            const data = await response.json();
-            if (data.success) {
-                toggleFormLock(false);
-                populateFormFromConfig(data.config);
-                showAlert('Example config successfully loaded.', 'success');
-                await validateConfig(false);
+        function switchEditorMode(mode) {
+            currentMode = mode;
+            if (mode === 'form') {
+                document.getElementById('text-mode-container').classList.add('d-none');
+                document.getElementById('form-mode-container').classList.remove('d-none');
+                document.getElementById('mode-text-btn').className = 'btn btn-outline-primary mode-toggle-btn px-4';
+                document.getElementById('mode-form-btn').className = 'btn btn-primary mode-toggle-btn px-4';
             } else {
-                showAlert('Error loading example: ' + data.error, 'danger');
+                document.getElementById('form-mode-container').classList.add('d-none');
+                document.getElementById('text-mode-container').classList.remove('d-none');
+                document.getElementById('mode-text-btn').className = 'btn btn-primary mode-toggle-btn px-4';
+                document.getElementById('mode-form-btn').className = 'btn btn-outline-primary mode-toggle-btn px-4';
             }
-        } catch (err) {
-            showAlert('Network error loading example config.', 'danger');
         }
-    }
+        function setMode(mode) {
+            if (mode === currentMode) {
+                switchEditorMode(mode);
+                return;
+            }
+            if (mode === 'form') {
+                const yamlText = document.getElementById('yaml-textarea').value;
+                if (yamlText && yamlText.trim()) {
+                    try {
+                        const config = jsyaml.load(yamlText);
+                        if (config && typeof config === 'object') {
+                            populateFormFromConfig(config, yamlText);
+                        }
+                    } catch (e) {
+                        alert('Cannot switch to Form Mode. Invalid YAML: ' + e.message);
+                        return;
+                    }
+                }
+            } else {
+                updateYamlFromForm();
+            }
+            switchEditorMode(mode);
+        }
+        function updateYamlFromForm() {
+            const config = serializeFormToConfigObject();
+            const yamlString = jsyaml.dump(config, {
+                schema: jsyaml.DEFAULT_SCHEMA,
+                noRefs: true,
+                lineWidth: -1,
+                styles: {
+                    '!!null': 'empty'
+                }
+            });
+            document.getElementById('yaml-textarea').value = yamlString;
+            updateYamlStats();
+        }
+        function updateYamlStats() {
+            const yamlText = document.getElementById('yaml-textarea').value;
+            const questionsCountSpan = document.getElementById('text-questions-count');
+            const totalScoreSpan = document.getElementById('text-total-score');
+            const statusBadge = document.getElementById('yaml-status-badge');
+            try {
+                const config = jsyaml.load(yamlText);
+                if (config && typeof config === 'object') {
+                    statusBadge.textContent = 'Valid YAML';
+                    statusBadge.className = 'badge bg-success py-2 px-3';
+                    const questions = config.questions || [];
+                    questionsCountSpan.textContent = questions.length;
+                    let totalScore = 0;
+                    questions.forEach(q => {
+                        const markingItems = q.marking_items || [];
+                        markingItems.forEach(item => {
+                            const mark = Number(item.total_mark);
+                            if (!isNaN(mark)) {
+                                totalScore += mark;
+                            }
+                        });
+                    });
+                    totalScoreSpan.textContent = totalScore;
+                } else {
+                    statusBadge.textContent = 'Empty / Invalid';
+                    statusBadge.className = 'badge bg-warning text-dark py-2 px-3';
+                }
+            } catch (e) {
+                statusBadge.textContent = 'Invalid YAML';
+                statusBadge.className = 'badge bg-danger py-2 px-3';
+            }
+        }
+        function handleConfigUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    toggleFormLock(false);
+                    const rawYaml = e.target.result;
+                    let config;
+                    if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
+                        config = jsyaml.load(rawYaml);
+                    } else {
+                        config = JSON.parse(rawYaml);
+                    }
+                    populateFormFromConfig(config, rawYaml);
+                    switchEditorMode(currentMode);
+                    showAlert('Config successfully imported.', 'success');
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Import Error: ' + err.message, 'danger');
+                }
+            };
+            reader.readAsText(file);
+        }
+        async function loadExampleConfig() {
+            try {
+                const response = await fetch('/api/example/py_simple');
+                const data = await response.json();
+                if (data.success) {
+                    toggleFormLock(false);
+                    populateFormFromConfig(data.config, data.yaml);
+                    switchEditorMode(currentMode);
+                    showAlert('Example config successfully loaded.', 'success');
+                } else {
+                    showAlert('Error loading example: ' + data.error, 'danger');
+                }
+            } catch (err) {
+                showAlert('Network error loading example config.', 'danger');
+            }
+        }
+        function populateFormFromConfig(config, rawYamlText) {
+            try {
+                if (!config || typeof config !== 'object') return;
+                const setElVal = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el && val !== undefined && val !== null) el.value = val;
+                };
 
-    function populateFormFromConfig(config) {
-        if (config.language) document.getElementById('language').value = config.language;
-        if (config.version) document.getElementById('version').value = config.version;
-        if (config.global_time_limit) document.getElementById('global_time_limit').value = config.global_time_limit;
-        if (config.setup_commands) document.getElementById('setup_commands').value = (config.setup_commands || []).join('\n');
-        if (config.files_necessary) document.getElementById('files_necessary').value = (config.files_necessary || []).join('\n');
+                if (config.language) setElVal('language', config.language);
+                if (config.version) setElVal('version', config.version);
+                if (config.global_time_limit) setElVal('global_time_limit', config.global_time_limit);
+                if (config.setup_commands) setElVal('setup_commands', (config.setup_commands || []).join('\n'));
+                if (config.files_necessary) setElVal('files_necessary', (config.files_necessary || []).join('\n'));
+                renderRequiredFilesList();
 
-        renderRequiredFilesList();
+                const questionsList = document.getElementById('questions-list');
+                if (questionsList) questionsList.innerHTML = '';
+                questionCount = 0;
 
-        const questionsList = document.getElementById('questions-list');
-        questionsList.innerHTML = '';
-        questionCount = 0;
+                (config.questions || []).forEach((q, qIdx) => {
+                    addQuestion();
+                    const qCard = questionsList ? questionsList.lastElementChild : null;
+                    if (qCard) {
+                        const nameInput = qCard.querySelector('.q-name-input');
+                        if (nameInput) nameInput.value = q.name || '';
+                        const descInput = qCard.querySelector('.q-description-input');
+                        if (descInput && q.description) descInput.value = q.description;
 
-        (config.questions || []).forEach((q, qIdx) => {
-            addQuestion();
-            const qCard = questionsList.lastElementChild;
-            qCard.querySelector('.q-name-input').value = q.name || '';
-            if (q.description) qCard.querySelector('.q-description-input').value = q.description;
+                        const miList = qCard.querySelector('.marking-items-list');
+                        if (miList) miList.innerHTML = '';
 
-            const miList = qCard.querySelector('.marking-items-list');
-            miList.innerHTML = '';
+                        (q.marking_items || []).forEach((mi, miIdx) => {
+                            const blueprint = document.getElementById('marking-item-blueprint').firstElementChild;
+                            if (blueprint && miList) {
+                                const miDiv = blueprint.cloneNode(true);
+                                miList.appendChild(miDiv);
+                                const typeSelect = miDiv.querySelector('select');
+                                if (typeSelect) {
+                                    typeSelect.value = mi.type || 'file_exists';
+                                    showTypeFields(typeSelect);
+                                }
+                                updateQuestionNumbers();
+                                const miPrefix = `questions-${qIdx}-marking_items-${miIdx}`;
+                                if (mi.name) setElVal(`${miPrefix}-name`, mi.name);
+                                if (mi.total_mark !== undefined) setElVal(`${miPrefix}-total_mark`, mi.total_mark);
+                                if (mi.time_limit !== undefined) setElVal(`${miPrefix}-time_limit`, mi.time_limit);
+                                if (mi.visibility) setElVal(`${miPrefix}-visibility`, mi.visibility);
 
-            (q.marking_items || []).forEach((mi, miIdx) => {
-                const blueprint = document.getElementById('marking-item-blueprint').firstElementChild;
-                const miDiv = blueprint.cloneNode(true);
-                miList.appendChild(miDiv);
-
-                const typeSelect = miDiv.querySelector('select');
-                typeSelect.value = mi.type;
-                showTypeFields(typeSelect);
+                                if (mi.type === 'output_comparison') {
+                                    if (mi.expected_input !== undefined) setElVal(`${miPrefix}-expected_input`, mi.expected_input);
+                                    if (mi.expected_output !== undefined) setElVal(`${miPrefix}-expected_output`, mi.expected_output);
+                                } else if (mi.type === 'signature_check') {
+                                    if (mi.function_name) setElVal(`${miPrefix}-function_name`, mi.function_name);
+                                    if (mi.expected_parameters !== undefined) setElVal(`${miPrefix}-expected_parameters`, mi.expected_parameters);
+                                    if (mi.expected_return_type !== undefined) setElVal(`${miPrefix}-expected_return_type`, mi.expected_return_type);
+                                } else if (mi.type === 'function_test') {
+                                    if (mi.function_name) setElVal(`${miPrefix}-function_name`, mi.function_name);
+                                    if (mi.test_cases !== undefined) {
+                                        const testCasesVal = typeof mi.test_cases === 'string' ? mi.test_cases : jsyaml.dump(mi.test_cases);
+                                        setElVal(`${miPrefix}-test_cases`, testCasesVal);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
 
                 updateQuestionNumbers();
-                const miPrefix = `questions-${qIdx}-marking_items-${miIdx}`;
+                updateAllTargetFileDropdowns();
 
-                if (mi.name) {
-                    const nameEl = document.getElementById(`${miPrefix}-name`);
-                    if (nameEl) nameEl.value = mi.name;
-                }
-                if (mi.target_file) {
-                    const tfEl = document.getElementById(`${miPrefix}-target_file`);
-                    if (tfEl) tfEl.value = mi.target_file;
-                }
-                if (mi.total_mark) {
-                    const tmEl = document.getElementById(`${miPrefix}-total_mark`);
-                    if (tmEl) tmEl.value = mi.total_mark;
-                }
-                if (mi.time_limit) {
-                    const tlEl = document.getElementById(`${miPrefix}-time_limit`);
-                    if (tlEl) tlEl.value = mi.time_limit;
-                }
-                if (mi.visibility) {
-                    const vEl = document.getElementById(`${miPrefix}-visibility`);
-                    if (vEl) vEl.value = mi.visibility;
-                }
+                (config.questions || []).forEach((q, qIdx) => {
+                    (q.marking_items || []).forEach((mi, miIdx) => {
+                        const miPrefix = `questions-${qIdx}-marking_items-${miIdx}`;
+                        if (mi.target_file) {
+                            setElVal(`${miPrefix}-target_file`, mi.target_file);
+                        }
+                    });
+                });
 
-                if (mi.type === 'output_comparison') {
-                    if (mi.expected_input) document.getElementById(`${miPrefix}-expected_input`).value = mi.expected_input;
-                    if (mi.expected_output) document.getElementById(`${miPrefix}-expected_output`).value = mi.expected_output;
-                } else if (mi.type === 'signature_check') {
-                    if (mi.function_name) document.getElementById(`${miPrefix}-function_name`).value = mi.function_name;
-                    if (mi.expected_parameters) document.getElementById(`${miPrefix}-expected_parameters`).value = mi.expected_parameters;
-                    if (mi.expected_return_type) document.getElementById(`${miPrefix}-expected_return_type`).value = mi.expected_return_type;
-                } else if (mi.type === 'function_test') {
-                    if (mi.function_name) document.getElementById(`${miPrefix}-function_name`).value = mi.function_name;
-                    if (mi.test_cases) document.getElementById(`${miPrefix}-test_cases`).value = jsyaml.dump(mi.test_cases);
-                }
-            });
-        });
+                disableGenerateButton();
 
-        updateQuestionNumbers();
-        disableGenerateButton();
-        setTimeout(() => {
-            document.querySelectorAll('#autograder-form textarea').forEach(textarea => {
-                autoResizeTextarea(textarea);
-            });
-        }, 50);
-    }
+                // Update YAML textarea and stats
+                const yamlTextarea = document.getElementById('yaml-textarea');
+                if (yamlTextarea) {
+                    if (rawYamlText) {
+                        yamlTextarea.value = rawYamlText;
+                    } else {
+                        yamlTextarea.value = jsyaml.dump(config, {
+                            schema: jsyaml.DEFAULT_SCHEMA,
+                            noRefs: true,
+                            lineWidth: -1,
+                            styles: {
+                                '!!null': 'empty'
+                            }
+                        });
+                    }
+                }
+                updateYamlStats();
+                setTimeout(() => {
+                    document.querySelectorAll('#autograder-form textarea').forEach(textarea => {
+                        autoResizeTextarea(textarea);
+                    });
+                }, 50);
+            } catch (err) {
+                console.error("Error in populateFormFromConfig:", err);
+            }
+        }
 </script>
 {% endblock %}

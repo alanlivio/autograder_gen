@@ -57,12 +57,12 @@ def test_web_api_validate_examples(client, example_name, ext):
     "example_name", ["py_complete", "py_function", "py_simple", "java_simple"]
 )
 @pytest.mark.parametrize("ext", ["json", "yaml"])
-def test_web_generate_examples(client, example_name, ext):
+def test_web_export_bundle_examples(client, example_name, ext):
     config_data = load_example(example_name, ext)
     if not config_data:
         pytest.skip(f"No {ext} config for {example_name}")
 
-    response = client.post("/api/generate", json=config_data)
+    response = client.post("/api/export/bundle", json=config_data)
     assert response.status_code == 200
     assert response.mimetype == "application/zip"
     assert response.data.startswith(b"PK\x03\x04")
