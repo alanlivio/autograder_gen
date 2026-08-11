@@ -1,4 +1,4 @@
-.PHONY: help venv deps build test serve clean
+.PHONY: help venv deps build test serve clean format
 
 PYTHON ?= python3
 VENV ?= .venv
@@ -9,6 +9,7 @@ help:
 	@echo "  deps    - Install dependencies"
 	@echo "  build   - Build package distribution"
 	@echo "  test    - Run pytest test suite"
+	@echo "  format  - Format Python code using black"
 	@echo "  serve   - Start Flask web server"
 	@echo "  clean   - Clean build and temporary files"
 
@@ -31,6 +32,9 @@ build:
 
 test:
 	python -m pytest
+
+format:
+	black .
 
 serve:
 	python web/app.py
