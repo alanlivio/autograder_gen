@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "autograder-gen"
+name = "autograder_gen"
 authors = [{ name = "Alan Guedes", email = "a.guedes@reading.ac.uk" }]
 description = "A tool for lecturers to automatically generate assessment scripts for Gradescope"
 readme = "README.md"
@@ -32,8 +32,8 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://pypi.org/project/autograder-gen/"
-Repository = "https://github.com/alanlivio/autograder-gen"
+Homepage = "https://pypi.org/project/autograder_gen/"
+Repository = "https://github.com/alanlivio/autograder_gen"
 
 [project.scripts]
 autograder_gen = "autograder_gen.cli:main"
