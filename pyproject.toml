@@ -57,6 +57,7 @@ line-length = 100
 pythonpath = ["."]
 testpaths = ["tests"]
 norecursedirs = ["output", "build", "dist", ".venv", ".*"]
+addopts = "-ra"
 
 [tool.pyright]
 venvPath = "."

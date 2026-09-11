@@ -147,6 +147,7 @@ def test_autograder_integration_py_complete(subdir, expected_score, config_file)
     )
 
 
+@pytest.mark.skipif(shutil.which("javac") is None, reason="javac is not installed")
 @pytest.mark.parametrize(
     "subdir, expected_score",
     [
