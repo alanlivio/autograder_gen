@@ -569,12 +569,11 @@ class Engine:
         template = self.jinja_env.get_template("run_autograder.j2")
         content = template.render(config=self.config)
 
-        run_autograder_file = self.temp_dir / "run_autograder"
-        with open(run_autograder_file, "w", encoding="utf-8") as f:
-            f.write(content)
-
-        # Make run_autograder executable
-        os.chmod(run_autograder_file, 0o755)
+        for filename in ("run_autograder", "run_autograder.sh"):
+            filepath = self.temp_dir / filename
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(content)
+            os.chmod(filepath, 0o755)
 
     def _generate_run_tests(self, tests_dir: Path):
         """Generate modular test files: main run_tests.py and individual question test files."""
