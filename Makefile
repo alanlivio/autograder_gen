@@ -5,15 +5,16 @@ VENV ?= .venv
 
 
 help:
-	@echo "Available Makefile targets:"
-	@echo "  venv    - Create virtual environment (.venv) and install dependencies"
-	@echo "  deps    - Install dependencies"
-	@echo "  build   - Build package distribution"
-	@echo "  wheel   - Build wheel distribution and check with twine"
-	@echo "  test    - Run pytest test suite"
-	@echo "  format  - Format Python code using black"
-	@echo "  serve   - Start Flask web server"
-	@echo "  clean   - Clean build and temporary files"
+	@printf "%s\n" \
+		"Available Makefile targets:" \
+		"  venv    - Create virtual environment (.venv) and install dependencies" \
+		"  deps    - Install dependencies" \
+		"  build   - Build package distribution" \
+		"  wheel   - Build wheel distribution and check with twine" \
+		"  test    - Run pytest test suite" \
+		"  format  - Format Python code using black" \
+		"  serve   - Start Flask web server" \
+		"  clean   - Clean build and temporary files"
 
 venv:
 	$(PYTHON) -m venv $(VENV)
