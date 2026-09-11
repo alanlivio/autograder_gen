@@ -1,4 +1,4 @@
-.PHONY: help venv deps build test serve clean format wheel publish-pypi
+.PHONY: help venv deps build test run-examples test-examples serve clean format wheel publish-pypi
 
 PYTHON ?= $(shell if [ -f .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
 VENV ?= .venv
@@ -7,23 +7,25 @@ VENV ?= .venv
 help:
 	@printf "%s\n" \
 		"Available Makefile targets:" \
-		"  venv    - Create virtual environment (.venv) and install dependencies" \
-		"  deps    - Install dependencies" \
-		"  build   - Build package distribution" \
-		"  wheel   - Build wheel distribution and check with twine" \
-		"  test    - Run pytest test suite" \
-		"  format  - Format Python code using black" \
-		"  serve   - Start Flask web server" \
-		"  clean   - Clean build and temporary files"
+		"  venv          - Create virtual environment (.venv) and install dependencies" \
+		"  deps          - Install dependencies" \
+		"  build         - Build package distribution" \
+		"  wheel         - Build wheel distribution and check with twine" \
+		"  test          - Run pytest test suite" \
+		"  run-examples  - Run examples autograders and log student view results" \
+		"  format        - Format Python code using black" \
+		"  serve         - Start Flask web server" \
+		"  clean         - Clean build and temporary files"
 
 venv:
 	$(PYTHON) -m venv $(VENV)
 	$(VENV)/bin/pip install --upgrade pip
 	$(VENV)/bin/pip install -r requirements.txt -r requirements-dev.txt
-	@echo ""
-	@echo "Virtual environment created in $(VENV)."
-	@echo "To activate in your terminal shell, run:"
-	@echo "  source $(VENV)/bin/activate"
+	@printf "%s\n" \
+		"" \
+		"Virtual environment created in $(VENV)." \
+		"To activate in your terminal shell, run:" \
+		"  source $(VENV)/bin/activate"
 
 deps:
 	pip install --upgrade pip
@@ -35,6 +37,9 @@ build:
 
 test:
 	$(PYTHON) -m pytest tests
+
+run-examples:
+	PYTHONPATH=. $(PYTHON) tests/examples/run_examples.py
 
 format:
 	black .
