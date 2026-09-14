@@ -1,4 +1,4 @@
-.PHONY: help venv deps build test run-examples test-examples serve clean format wheel publish-pypi
+.PHONY: help venv deps build test run-examples serve clean format wheel publish-pypi
 
 PYTHON ?= $(shell if [ -f .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
 VENV ?= .venv
@@ -39,7 +39,7 @@ test:
 	$(PYTHON) -m pytest tests
 
 run-examples:
-	PYTHONPATH=. $(PYTHON) tests/examples/run_examples.py
+	PYTHONPATH=. $(PYTHON) scripts/run_autograder_examples.py
 
 format:
 	black .
