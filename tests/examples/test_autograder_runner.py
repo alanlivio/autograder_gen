@@ -31,7 +31,9 @@ def run_autograder_sh_scenario(
     results = runner.run_autograder_for_submission(student_dir)
     assert "tests" in results
     total_score = sum(t.get("score", 0) for t in results["tests"])
-    print(f"[{example_name}] ({subdir}): expected score={expected_score}, actual score={total_score}")
+    print(
+        f"[{example_name}] ({subdir}): expected score={expected_score}, actual score={total_score}"
+    )
     assert total_score == expected_score
 
 
@@ -60,3 +62,31 @@ def test_examples_run_autograder_sh(example_name, subdir, expected_score):
     if example_name == "java_simple" and shutil.which("javac") is None:
         pytest.skip("javac is not installed")
     run_autograder_sh_scenario(example_name, subdir, expected_score)
+
+
+def test_autograder_runner_config_obj(tmp_path):
+    cfg_data = {
+        "version": "1.0",
+        "language": "python",
+        "files_necessary": ["solution.py"],
+        "questions": [
+            {
+                "name": "Q1",
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 10,
+                        "type": "function_test",
+                        "function_name": "add",
+                        "test_cases": [{"args": [1, 2], "expected": "3"}],
+                    }
+                ],
+            }
+        ],
+    }
+    no_ext_file = tmp_path / "custom_config_file"
+    no_ext_file.write_text(yaml.dump(cfg_data), encoding="utf-8")
+
+    runner = ag.AutograderRunner(no_ext_file)
+    assert runner.config_obj is not None
+    assert runner.config_obj.total_score == 10
