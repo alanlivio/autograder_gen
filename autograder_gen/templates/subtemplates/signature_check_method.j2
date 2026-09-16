@@ -3,6 +3,7 @@
     @visibility('{{ item.visibility }}')
     def test_{{ test_name }}(self):
         """{{ item.name if item.name else (question.name + " - Item " + loop.index|string) }}"""
+        print(f"# {{ question_number }}.{{ loop.index }}) {{ item.name if item.name else question.name }}")
         try:
             # Function signature check
             target_file = "{{ item.target_file }}"

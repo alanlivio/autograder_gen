@@ -3,10 +3,9 @@
     @visibility('{{ item.visibility }}')
     def test_{{ test_name }}(self):
         """{{ item.name if item.name else (question.name + " - Item " + loop.index|string) }}"""
-        # Function import and testing
+        print(f"# {{ question_number }}.{{ loop.index }}) {{ item.name if item.name else question.name }}")
         target_file = "{{ item.target_file }}"
         function_name = "{{ item.function_name }}"
-        print(f"Starting test for function '{function_name}' in '{target_file}'")
 {% if config.language == 'python' %}
         try:
             function = self.import_function_from_file(target_file, function_name)

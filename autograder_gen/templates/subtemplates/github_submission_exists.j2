@@ -3,6 +3,7 @@
     @visibility('{{ item.visibility }}')
     def test_{{ test_name }}(self):
         """{{ item.name if item.name else (question.name + " - Item " + loop.index|string) }}"""
+        print(f"# {{ question_number }}.{{ loop.index }}) {{ item.name if item.name else question.name }}")
         autograder_root = Path(os.environ.get('AUTOGRADER_ROOT', '/autograder'))
         metadata_paths = [
             autograder_root / "submission_metadata.json",

@@ -3,9 +3,9 @@
     @visibility('{{ item.visibility }}')
     def test_{{ test_name }}(self):
         """{{ item.name if item.name else (question.name + " - Item " + loop.index|string) }}"""
+        print(f"# {{ question_number }}.{{ loop.index }}) {{ item.name if item.name else question.name }}")
         # File existence check
         target_file = "{{ item.target_file }}"
-        print(f"Starting test for '{target_file}'")
         # FAILED: File not in submission
         self.assertIn(target_file, self.submission_files, 
             f"FAILED: Required file '{target_file}' not found in submission")

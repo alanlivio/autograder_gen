@@ -3,7 +3,7 @@
     @visibility('{{ item.visibility }}')
     def test_{{ test_name }}(self):
         """{{ item.name if item.name else (question.name + " - Item " + loop.index|string) }}"""
-        # Output comparison test
+        print(f"# {{ question_number }}.{{ loop.index }}) {{ item.name if item.name else question.name }}")
         target_file = "{{ item.target_file }}"
         expected_input = """{{ item.expected_input }}"""
         expected_output = """{{ item.expected_output }}"""

@@ -91,6 +91,8 @@ def test_config_with_gitlab_submission_exists_yaml(tmp_path):
     assert config.questions[0].marking_items[0].type == "gitlab_submission_exists"
     assert config.questions[0].marking_items[1].type == "github_submission_exists"
 
+    assert config.total_score == 20
+
     validator = ag.Validator()
     assert validator.validate_from_file(str(yaml_path)) is True
 
@@ -136,11 +138,13 @@ def test_template_generation_contains_new_formatting_and_gitlab(tmp_path):
         assert 'WRONG_ANSWER = "[WRONG ANSWER]"' in test_content
 
         assert "def test_verify_git_submission(self):" in test_content
+        assert 'print(f"# 1.1) verify_git_submission")' in test_content
         assert "submission_metadata.json" in test_content
         assert "A GitLab repository was not used in the submission." in test_content
         assert "GitLab" in test_content
 
         assert "def test_output_test(self):" in test_content
+        assert 'print(f"# 1.2) output_test")' in test_content
         assert "{COMPILER_ERROR}" in test_content
         assert "{TIME_LIMIT_EXCEEDED}" in test_content
         assert "{RUNTIME_ERROR}" in test_content
@@ -198,6 +202,7 @@ def test_function_test_template_expected_actual_output(tmp_path):
 
     with zipfile.ZipFile(zip_path, "r") as z:
         test_content = z.read("tests/question_1_test.py").decode("utf-8")
+        assert 'print(f"# 1.1) Math Test")' in test_content
         assert 'expected_out = normalize("3")' in test_content
         assert "actual_out = normalize(str(result))" in test_content
         assert 'print(f"Expected output:\\n{expected_out}")' in test_content
