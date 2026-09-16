@@ -39,7 +39,7 @@ test:
 	$(PYTHON) -m pytest tests
 
 run-examples:
-	PYTHONPATH=. $(PYTHON) scripts/run_autograder_examples.py
+	PYTHONPATH=. $(PYTHON) scripts/run_examples_autograders.py
 
 format:
 	black .
