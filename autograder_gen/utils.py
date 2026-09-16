@@ -113,3 +113,11 @@ def print_warning(message: str):
 def print_info(message: str):
     """Print info message with ASCII [INFO]."""
     print(f"[INFO] {message}")
+
+
+def normalize(s: str) -> str:
+    if s is None:
+        return ""
+    s = s.replace("\r\n", "\n")
+    return "\n".join(line.rstrip() for line in s.splitlines() if line.strip())
+

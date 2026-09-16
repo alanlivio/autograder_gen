@@ -22,6 +22,12 @@ import concurrent.futures
 from pathlib import Path
 from gradescope_utils.autograder_utils.decorators import weight, visibility, number
 
+def normalize(s: str) -> str:
+    if s is None:
+        return ""
+    s = s.replace("\r\n", "\n")
+    return "\n".join(line.rstrip() for line in s.splitlines() if line.strip())
+
 class TestQuestion{{ question_number }}(unittest.TestCase):
     """Test class for Question {{ question_number }}: {{ question.name }}."""
 
@@ -188,6 +194,10 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
     {% include 'subtemplates/signature_check_method.j2' %}
 {% elif item.type == "function_test" %}
     {% include 'subtemplates/function_test_method.j2' %}
+{% elif item.type == "gitlab_submission_exists" %}
+    {% include 'subtemplates/gitlab_submission_exists.j2' %}
+{% elif item.type == "github_submission_exists" %}
+    {% include 'subtemplates/github_submission_exists.j2' %}
 {% endif %}
 
 {% endfor %}

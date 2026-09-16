@@ -251,6 +251,8 @@
                         <option value="output_comparison">Compare Output</option>
                         <option value="signature_check">Validate Signature</option>
                         <option value="function_test">Unit Test Function</option>
+                        <option value="gitlab_submission_exists">Check GitLab Submission</option>
+                        <option value="github_submission_exists">Check GitHub Submission</option>
                     </select>
                 </div>
                 <button type="button" class="btn-close align-self-start" aria-label="Remove"
@@ -483,8 +485,8 @@
         </div>
         <div class="row mb-2">
             <div class="col-md-6">
-                <label class="form-label small mb-1">Target File *</label>
-                <select class="form-select form-select-sm" data-suffix="target_file" id="${prefix}-target_file" name="${prefix}-target_file" required>
+                <label class="form-label small mb-1">${(type === 'gitlab_submission_exists' || type === 'github_submission_exists') ? 'Target File (optional)' : 'Target File *'}</label>
+                <select class="form-select form-select-sm" data-suffix="target_file" id="${prefix}-target_file" name="${prefix}-target_file" ${(type === 'gitlab_submission_exists' || type === 'github_submission_exists') ? '' : 'required'}>
                     <option value="">Select file...</option>
                 </select>
             </div>

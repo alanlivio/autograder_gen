@@ -204,6 +204,14 @@ class Engine:
                     doc.add_paragraph(
                         f"Requirement: Function '{item.function_name}' in '{item.target_file}' must pass unit tests."
                     )
+                elif item.type == "gitlab_submission_exists":
+                    doc.add_paragraph(
+                        "Requirement: Submission must be made via a GitLab repository."
+                    )
+                elif item.type == "github_submission_exists":
+                    doc.add_paragraph(
+                        "Requirement: Submission must be made via a GitHub repository."
+                    )
                 visible_item_idx += 1
         buffer = BytesIO()
         doc.save(buffer)
@@ -260,6 +268,14 @@ class Engine:
                 elif item.type == "function_test":
                     lines.append(
                         f"- **Requirement:** Function `{item.function_name}` in `{item.target_file}` must pass unit tests."
+                    )
+                elif item.type == "gitlab_submission_exists":
+                    lines.append(
+                        "- **Requirement:** Submission must be made via a GitLab repository."
+                    )
+                elif item.type == "github_submission_exists":
+                    lines.append(
+                        "- **Requirement:** Submission must be made via a GitHub repository."
                     )
                 lines.append("")
                 visible_item_idx += 1
@@ -349,6 +365,14 @@ class Engine:
                 elif item.type == "function_test":
                     html_lines.append(
                         f"      <p><strong>Requirement:</strong> Function <code>{item.function_name}</code> in <code>{item.target_file}</code> must pass unit tests.</p>"
+                    )
+                elif item.type == "gitlab_submission_exists":
+                    html_lines.append(
+                        "      <p><strong>Requirement:</strong> Submission must be made via a GitLab repository.</p>"
+                    )
+                elif item.type == "github_submission_exists":
+                    html_lines.append(
+                        "      <p><strong>Requirement:</strong> Submission must be made via a GitHub repository.</p>"
                     )
                 html_lines.append("    </div>")
                 visible_item_idx += 1
@@ -808,6 +832,11 @@ autograder.zip
                         readme_content += (
                             f"- **Expected Output Lines**: {output_lines}\n"
                         )
+
+                elif item.type == "gitlab_submission_exists":
+                    readme_content += "- **Requirement**: Submission must be made via a GitLab repository\n"
+                elif item.type == "github_submission_exists":
+                    readme_content += "- **Requirement**: Submission must be made via a GitHub repository\n"
 
                 readme_content += "\n"
 

@@ -32,6 +32,8 @@ class MarkingItem(BaseModel):
             "output_comparison",
             "signature_check",
             "function_test",
+            "gitlab_submission_exists",
+            "github_submission_exists",
         }
         if v not in allowed:
             raise ValueError(f"type must be one of: {allowed}")
@@ -49,6 +51,11 @@ class MarkingItem(BaseModel):
     def validate_type_fields(self) -> "MarkingItem":
         if self.type == "function_test" and not self.function_name:
             raise ValueError("function_name is required for function_test")
+        if (
+            self.type not in ("gitlab_submission_exists", "github_submission_exists")
+            and not self.target_file
+        ):
+            raise ValueError(f"target_file is required for type '{self.type}'")
         return self
 
 

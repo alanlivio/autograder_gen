@@ -1,0 +1,35 @@
+    @weight({{ item.total_mark }})
+    @number({{ question_number }}.{{ loop.index }})
+    @visibility('{{ item.visibility }}')
+    def test_{{ test_name }}(self):
+        """{{ item.name if item.name else (question.name + " - Item " + loop.index|string) }}"""
+        autograder_root = Path(os.environ.get('AUTOGRADER_ROOT', '/autograder'))
+        metadata_paths = [
+            autograder_root / "submission_metadata.json",
+            self.source_dir.parent / "submission_metadata.json",
+            self.source_dir / "submission_metadata.json",
+            Path("submission_metadata.json"),
+        ]
+        metadata_path = None
+        for p in metadata_paths:
+            if p.exists():
+                metadata_path = p
+                break
+        
+        if metadata_path is None:
+            self.fail("A GitLab repository was not used in the submission.")
+        
+        try:
+            import json
+            with metadata_path.open(encoding="utf-8") as f:
+                metadata = json.load(f)
+            method = metadata.get("submission_method")
+            if method and method == "GitLab":
+                print(f"Test Passed: {CORRECT_ANSWER} GitLab repository submission method verified.")
+                return
+            else:
+                self.fail("A GitLab repository was not used in the submission.")
+        except AssertionError:
+            raise
+        except Exception as e:
+            self.fail(f"{RUNTIME_ERROR} Error reading submission metadata: {str(e)}")
