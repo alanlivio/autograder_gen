@@ -96,6 +96,10 @@ class Config(BaseModel):
                     )
         return self
 
+    @property
+    def total_score(self) -> int:
+        return sum(item.total_mark for q in self.questions for item in q.marking_items)
+
     def get_config_summary(self) -> Dict[str, Any]:
         total_items = 0
         total_marks = 0
