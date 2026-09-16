@@ -36,11 +36,10 @@ class Engine:
         """
         self.config = config
         self.original_config_dict = (
-            original_config_dict  # Store the original JSON config
+            original_config_dict
         )
         self.temp_dir: Optional[Path] = None
         self.templates_dir = Path(__file__).parent / "templates"
-        # Set up Jinja environment
         self.jinja_env = Environment(
             loader=FileSystemLoader(str(self.templates_dir)),
             autoescape=select_autoescape(["html", "xml"]),
@@ -52,12 +51,10 @@ class Engine:
         """Generate the autograder.zip file using Jinja templates."""
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        # Create temporary directory for autograder files
         self.temp_dir = output_path / "temp_autograder"
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
         self.temp_dir.mkdir()
-        # Create source directory within temp
         tests_dir = self.temp_dir / "tests"
         tests_dir.mkdir()
         try:
@@ -66,14 +63,9 @@ class Engine:
             self._generate_run_tests(tests_dir)
             self._generate_requirements_txt()
             self._generate_metadata_files()
-            # Create the zip file
             zip_path = output_path / "autograder.zip"
             self._create_zip(zip_path)
-            # Automatically verify generated autograder.zip archive
             verification = self.verify_autograder_zip(zip_path)
-            print_success(
-                f"Verification for {zip_path.name}: valid={verification['valid']}, entries={verification['total_files']}"
-            )
             for err in verification.get("errors", []):
                 print_error(f"  [ERROR] {err}")
             for warn in verification.get("warnings", []):
@@ -95,7 +87,6 @@ class Engine:
                 f.write(wrong_buffer.getbuffer())
             return str(zip_path)
         finally:
-            # Clean up temporary directory
             if self.temp_dir and self.temp_dir.exists():
                 shutil.rmtree(self.temp_dir)
 
@@ -163,7 +154,6 @@ class Engine:
             doc.add_heading(f"Question {i}: {question.name}", level=1)
             if hasattr(question, "description") and question.description:
                 doc.add_paragraph(question.description)
-            # Calculate question total points (excluding hidden file checks)
             question_points = sum(
                 item.total_mark
                 for item in question.marking_items
@@ -584,7 +574,6 @@ class Engine:
         with open(setup_file, "w", encoding="utf-8") as f:
             f.write(content)
 
-        # Make setup.sh executable
         os.chmod(setup_file, 0o755)
 
     def _generate_run_autograder(self):
@@ -601,7 +590,6 @@ class Engine:
 
     def _generate_run_tests(self, tests_dir: Path):
         """Generate modular test files: main run_tests.py and individual question test files."""
-        # Generate main test runner
         assert self.temp_dir is not None, "temp_dir must be set before generating files"
         template = self.jinja_env.get_template("run_tests.py.j2")
         content = template.render(config=self.config)
@@ -610,35 +598,35 @@ class Engine:
         with open(run_tests_file, "w", encoding="utf-8") as f:
             f.write(content)
 
-        # Generate individual question test files
+        student_message_src = Path(__file__).parent / "student_message.py"
+        if student_message_src.exists():
+            shutil.copy2(student_message_src, self.temp_dir / "student_message.py")
+            shutil.copy2(student_message_src, tests_dir / "student_message.py")
+
         self._generate_question_test_files(tests_dir)
+
 
     def _generate_question_test_files(self, tests_dir: Path):
         """Generate individual test files for each question."""
         question_template = self.jinja_env.get_template("test_question.py.j2")
 
         for idx, question in enumerate(self.config.questions, 1):
-            # Use question number for filename
             question_filename = f"question_{idx}"
 
-            # Preprocess marking items to ensure output comparison tests have proper newlines
             processed_question = self._preprocess_question_for_output_comparison(
                 question
             )
 
-            # Generate content for this question
             content = question_template.render(
                 config=self.config, question=processed_question, question_number=idx
             )
 
-            # Write the question test file
             test_file = tests_dir / f"{question_filename}_test.py"
             with open(test_file, "w", encoding="utf-8") as f:
                 f.write(content)
 
     def _preprocess_question_for_output_comparison(self, question):
         """Preprocess question to add newlines to expected output for output comparison tests."""
-        # Create a copy of the question with processed marking items
 
         processed_question = SimpleNamespace()
         processed_question.name = question.name
@@ -646,13 +634,10 @@ class Engine:
 
         for item in question.marking_items:
             processed_item = SimpleNamespace()
-            # Copy all attributes from the original item
             for attr in dir(item):
                 if not attr.startswith("_") and not attr.startswith("model_"):
                     setattr(processed_item, attr, getattr(item, attr))
 
-            # For Python output comparison tests, ensure expected_output has a newline if it doesn't end with one
-            # This matches Python's print() behavior which automatically adds newlines
             if (
                 self.config.language == "python"
                 and hasattr(processed_item, "type")
@@ -669,7 +654,6 @@ class Engine:
 
     def _sanitize_filename(self, name: str) -> str:
         """Convert question name to a safe Python module filename."""
-        # Convert to lowercase and replace problematic characters
         safe_name = name.lower()
         safe_name = safe_name.replace(" ", "_")
         safe_name = safe_name.replace("-", "_")
@@ -698,13 +682,10 @@ class Engine:
         safe_name = safe_name.replace("<", "_")
         safe_name = safe_name.replace(">", "_")
 
-        # Remove multiple consecutive underscores
         safe_name = re.sub(r"_+", "_", safe_name)
 
-        # Remove leading/trailing underscores
         safe_name = safe_name.strip("_")
 
-        # Ensure it's a valid Python identifier
         if not safe_name or safe_name[0].isdigit():
             safe_name = "question_" + safe_name
 
@@ -725,7 +706,6 @@ class Engine:
         """Generate metadata and configuration files."""
         assert self.temp_dir is not None, "temp_dir must be set before generating files"
 
-        # Save the original configuration if provided
         if self.original_config_dict:
             original_config_file = self.temp_dir / "autograder_gen.yaml"
             with open(original_config_file, "w", encoding="utf-8") as f:
@@ -736,7 +716,6 @@ class Engine:
                     sort_keys=False,
                 )
 
-        # Create a README for the autograder
         readme_content = f"""# Autograder Package
 
 Generated by TIF Autograder Tool
@@ -778,7 +757,6 @@ autograder.zip
         for i, question in enumerate(self.config.questions, 1):
             readme_content += f"\n\n### Question {i}: {question.name}\n"
 
-            # Calculate question total points
             question_points = sum(item.total_mark for item in question.marking_items)
             readme_content += f"**Total Points**: {question_points}\n\n"
 
@@ -789,11 +767,9 @@ autograder.zip
                 readme_content += f"- **Target File**: {item.target_file}\n"
                 readme_content += f"- **Points**: {item.total_mark}\n"
 
-                # Add time limit if specified
                 if hasattr(item, "time_limit") and item.time_limit:
                     readme_content += f"- **Time Limit**: {item.time_limit} seconds\n"
 
-                # Add visibility setting
                 if hasattr(item, "visibility") and item.visibility:
                     visibility_map = {
                         "hidden": "Hidden from students",
@@ -803,7 +779,6 @@ autograder.zip
                     }
                     readme_content += f"- **Visibility**: {visibility_map.get(item.visibility, item.visibility)}\n"
 
-                # Add type-specific details
                 if item.type == "function_test":
                     if hasattr(item, "function_name") and item.function_name:
                         readme_content += f"- **Function**: `{item.function_name}()`\n"
@@ -840,7 +815,6 @@ autograder.zip
 
                 readme_content += "\n"
 
-        # Add execution information
         readme_content += f"""
 ## Execution Details
 
@@ -865,7 +839,6 @@ Students must submit the following files:
 ### Points Distribution
 """
 
-        # Create points breakdown by question
         for i, question in enumerate(self.config.questions, 1):
             question_points = sum(item.total_mark for item in question.marking_items)
             readme_content += f"- **Question {i}**: {question_points} points\n"

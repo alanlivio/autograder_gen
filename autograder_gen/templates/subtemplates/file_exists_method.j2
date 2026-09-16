@@ -4,21 +4,11 @@
     def test_{{ test_name }}(self):
         """{{ item.name if item.name else (question.name + " - Item " + loop.index|string) }}"""
         print(f"# {{ question_number }}.{{ loop.index }}) {{ item.name if item.name else question.name }}")
-        # File existence check
         target_file = "{{ item.target_file }}"
-        # FAILED: File not in submission
-        self.assertIn(target_file, self.submission_files, 
-            f"FAILED: Required file '{target_file}' not found in submission")
-        
         file_path = self.source_dir / target_file
         
-        # FAILED: File doesn't exist in source directory
-        self.assertTrue(file_path.exists(), 
-            f"FAILED: File '{target_file}' does not exist")
+        if not file_path.exists() or not file_path.is_file():
+            print(StudentMessage.ERROR_FILE_NOT_EXISTS.format(file_name=target_file))
+            self.fail(StudentMessage.COMPILER_ERROR)
         
-        # FAILED: Path exists but is not a file
-        self.assertTrue(file_path.is_file(), 
-            f"FAILED: '{target_file}' exists but is not a file")
-        
-        # PASSED: File exists and is valid
-        print(f"PASSED: File '{target_file}' exists and is valid") 
+        print(f"## Test Passed: {StudentMessage.CORRECT_FILE_EXISTS.format(file_name=target_file)}") 

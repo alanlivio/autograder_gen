@@ -7,6 +7,7 @@ from autograder_gen.config import Config, Question, MarkingItem
 from autograder_gen.engine import Engine
 from autograder_gen.validator import Validator
 from autograder_gen.autograder_runner import AutograderRunner
+from autograder_gen.student_message import StudentMessage
 
 __all__ = [
     "__version__",
@@ -16,5 +17,5 @@ __all__ = [
     "Engine",
     "Validator",
     "AutograderRunner",
+    "StudentMessage",
 ]
-

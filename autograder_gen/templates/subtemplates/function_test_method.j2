@@ -9,19 +9,28 @@
 {% if config.language == 'python' %}
         try:
             function = self.import_function_from_file(target_file, function_name)
+        except SyntaxError as e:
+            print(StudentMessage.COMPILING)
+            print(f"Error: {str(e)}")
+            self.fail(StudentMessage.COMPILER_ERROR)
         except ImportError as e:
-            self.fail(f"RUNTIME ERROR: Failed to import function '{function_name}' from '{target_file}'. Check for syntax errors or missing function definition. Error: {str(e)}")
+            print(StudentMessage.RUNNING)
+            print(f"Error: {str(e)}")
+            self.fail(StudentMessage.RUNTIME_ERROR)
         except Exception as e:
-            self.fail(f"RUNTIME ERROR: Error accessing function '{function_name}' in '{target_file}'. Error: {str(e)}")
+            print(StudentMessage.RUNNING)
+            print(f"Error: {str(e)}")
+            self.fail(StudentMessage.RUNTIME_ERROR)
         
-        # FAILED: Function not callable
-        self.assertTrue(callable(function), 
-            f"FAILED: Function '{function_name}' is not callable")
+        if not callable(function):
+            print(StudentMessage.RUNNING)
+            print(StudentMessage.ERROR_FUNCTION_NOT_CALLABLE.format(function_name=function_name))
+            self.fail(StudentMessage.RUNTIME_ERROR)
         
+        expected_output = None
+        actual_output = None
         {% if item.test_cases %}
-        # Run test cases
         {% for test_case in item.test_cases %}
-        # Test case {{ loop.index }}
         {% if test_case.args %}
         args = {{ test_case.args }}
         {% else %}
@@ -34,26 +43,31 @@
         {% endif %}
         try:
             result = self.call_function_with_timeout(function, args, kwargs, {{ item.time_limit }})
-            expected = "{{ test_case.expected }}"
-            
-            # FAILED: Function output mismatch
-            self.assertEqual(
-                str(result), str(expected),
-                f"FAILED: Test case {{ loop.index }} - Expected: {expected}, Got: {result}"
-            )
+            expected_out = normalize("{{ test_case.expected }}")
+            actual_out = normalize(str(result))
+            if expected_output is None:
+                expected_output = expected_out
+                actual_output = actual_out
+            if actual_out != expected_out:
+                print(StudentMessage.COMPARING_OUTPUT)
+                print(f"{StudentMessage.EXPECTED_OUTPUT}\n{expected_out}")
+                print(f"{StudentMessage.ACTUAL_OUTPUT}\n{actual_out}")
+                self.fail(StudentMessage.WRONG_ANSWER_FUNCTION.format(function_name=function_name))
         except AssertionError:
             raise
         except TimeoutError:
-            self.fail(f"TIME LIMIT EXCEEDED: Test case {{ loop.index }} for function '{function_name}' timed out after {{ item.time_limit }} seconds")
+            self.fail(StudentMessage.TIME_LIMIT_EXCEEDED_FUNCTION.format(seconds={{ item.time_limit }}, function_name=function_name))
         except Exception as e:
-            self.fail(f"RUNTIME ERROR: Test case {{ loop.index }} for function '{function_name}' failed with exception: {str(e)}")
+            print(StudentMessage.RUNNING)
+            print(f"Error: {str(e)}")
+            self.fail(StudentMessage.RUNTIME_ERROR)
         {% endfor %}
         {% endif %}
 {% elif config.language == 'java' %}
+        expected_output = None
+        actual_output = None
         {% if item.test_cases %}
-        # Run Java test cases
         {% for test_case in item.test_cases %}
-        # Test case {{ loop.index }}
         {% if test_case.args %}
         args = {{ test_case.args }}
         {% else %}
@@ -61,21 +75,30 @@
         {% endif %}
         try:
             result = self.call_java_function(target_file, function_name, args, {{ item.time_limit }})
-            expected = "{{ test_case.expected }}"
-            
-            self.assertEqual(
-                str(result), str(expected),
-                f"FAILED: Test case {{ loop.index }} - Expected: {expected}, Got: {result}"
-            )
+            expected_out = normalize("{{ test_case.expected }}")
+            actual_out = normalize(str(result))
+            if expected_output is None:
+                expected_output = expected_out
+                actual_output = actual_out
+            if actual_out != expected_out:
+                print(StudentMessage.COMPARING_OUTPUT)
+                print(f"{StudentMessage.EXPECTED_OUTPUT}\n{expected_out}")
+                print(f"{StudentMessage.ACTUAL_OUTPUT}\n{actual_out}")
+                self.fail(StudentMessage.WRONG_ANSWER_FUNCTION.format(function_name=function_name))
         except AssertionError:
             raise
         except subprocess.TimeoutExpired:
-            self.fail(f"TIME LIMIT EXCEEDED: Test case {{ loop.index }} for function '{function_name}' timed out after {{ item.time_limit }} seconds")
+            self.fail(StudentMessage.TIME_LIMIT_EXCEEDED_FUNCTION.format(seconds={{ item.time_limit }}, function_name=function_name))
         except Exception as e:
-            self.fail(f"RUNTIME ERROR: Test case {{ loop.index }} for function '{function_name}' failed with exception: {str(e)}")
+            print(StudentMessage.RUNNING)
+            print(f"Error: {str(e)}")
+            self.fail(StudentMessage.RUNTIME_ERROR)
         {% endfor %}
         {% endif %}
 {% endif %}
         
-        # PASSED: All function tests successful
-        print(f"PASSED: All tests passed for function '{function_name}'") 
+        if expected_output is not None:
+            print(StudentMessage.COMPARING_OUTPUT)
+            print(f"{StudentMessage.EXPECTED_OUTPUT}\n{expected_output}")
+            print(f"{StudentMessage.ACTUAL_OUTPUT}\n{actual_output}")
+        print(f"## Test Passed: {StudentMessage.CORRECT_ANSWER_FUNCTION.format(function_name=function_name)}") 

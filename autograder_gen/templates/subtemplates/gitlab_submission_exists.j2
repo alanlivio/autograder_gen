@@ -18,7 +18,7 @@
                 break
         
         if metadata_path is None:
-            self.fail("A GitLab repository was not used in the submission.")
+            self.fail(StudentMessage.WRONG_GITLAB_NOT_USED)
         
         try:
             import json
@@ -26,11 +26,11 @@
                 metadata = json.load(f)
             method = metadata.get("submission_method")
             if method and method == "GitLab":
-                print(f"Test Passed: {CORRECT_ANSWER} GitLab repository submission method verified.")
+                print(f"## Test Passed: {StudentMessage.CORRECT_GITLAB_SUBMISSION}")
                 return
             else:
-                self.fail("A GitLab repository was not used in the submission.")
+                self.fail(StudentMessage.WRONG_GITLAB_NOT_USED)
         except AssertionError:
             raise
         except Exception as e:
-            self.fail(f"{RUNTIME_ERROR} Error reading submission metadata: {str(e)}")
+            self.fail(f"{StudentMessage.RUNTIME_ERROR} Error reading submission metadata: {str(e)}")

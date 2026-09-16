@@ -10,17 +10,18 @@
             function_name = "{{ item.function_name }}"
             file_path = self.source_dir / target_file
             
-            # FAILED: File not found
-            self.assertTrue(file_path.exists(), 
-                f"FAILED: File '{target_file}' not found")
+            if not file_path.exists():
+                print(StudentMessage.ERROR_FILE_NOT_EXISTS.format(file_name=target_file))
+                self.fail(StudentMessage.COMPILER_ERROR)
             
 {% if config.language == 'python' %}
             # Import the function from the file
             function = self.import_function_from_file(target_file, function_name)
             
-            # FAILED: Function not callable
-            self.assertTrue(callable(function), 
-                f"FAILED: Function '{function_name}' is not callable")
+            if not callable(function):
+                print(StudentMessage.RUNNING)
+                print(StudentMessage.ERROR_FUNCTION_NOT_CALLABLE.format(function_name=function_name))
+                self.fail(StudentMessage.RUNTIME_ERROR)
                 
             # Verify function signature
             import inspect
@@ -35,7 +36,11 @@
                 cwd=self.source_dir
             )
             if compile_res.returncode != 0:
-                self.fail(f"COMPILATION ERROR: Failed to compile '{target_file}': {compile_res.stderr}")
+                err = compile_res.stderr or compile_res.stdout
+                if err:
+                    print(StudentMessage.COMPILING)
+                    print(err.strip())
+                self.fail(StudentMessage.COMPILER_ERROR)
             javap_res = subprocess.run(
                 ['javap', '-public', class_name],
                 capture_output=True,
@@ -193,12 +198,19 @@
             {% endif %}
 {% endif %}
             
-            # PASSED: All signature checks successful
-            print(f"PASSED: Function '{function_name}' signature is correct")
+            print(f"## Test Passed: {StudentMessage.CORRECT_SIGNATURE.format(function_name=function_name)}")
             
         except AssertionError:
-            # Re-raise assertion errors (FAILED cases) without modification
             raise
+        except SyntaxError as e:
+            print(StudentMessage.COMPILING)
+            print(f"Error: {str(e)}")
+            self.fail(StudentMessage.COMPILER_ERROR)
+        except ImportError as e:
+            print(StudentMessage.RUNNING)
+            print(f"Error: {str(e)}")
+            self.fail(StudentMessage.RUNTIME_ERROR)
         except Exception as e:
-            # Catch any other runtime errors not already handled
-            self.fail(f"RUNTIME ERROR: Unexpected error during signature check: {str(e)}") 
+            print(StudentMessage.RUNNING)
+            print(f"Error: {str(e)}")
+            self.fail(StudentMessage.RUNTIME_ERROR) 

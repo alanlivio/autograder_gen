@@ -8,6 +8,7 @@ from pydantic import ValidationError
 
 import autograder_gen as ag
 from autograder_gen.utils import normalize
+from autograder_gen.student_message import StudentMessage
 
 
 def test_normalize_function():
@@ -53,6 +54,7 @@ def test_marking_item_target_file_required_for_other_types():
 
 def test_config_with_gitlab_submission_exists_yaml(tmp_path):
     import yaml
+
     config_dict = {
         "version": "1.0",
         "language": "python",
@@ -128,35 +130,30 @@ def test_template_generation_contains_new_formatting_and_gitlab(tmp_path):
     zip_path = generator.generate(str(output_dir))
 
     with zipfile.ZipFile(zip_path, "r") as z:
+        assert "student_message.py" in z.namelist()
         test_content = z.read("tests/question_1_test.py").decode("utf-8")
-
-        assert "def normalize(s: str) -> str:" in test_content
-        assert 'RUNTIME_ERROR = "[RUNTIME ERROR]"' in test_content
-        assert 'COMPILER_ERROR = "[COMPILER ERROR]"' in test_content
-        assert 'TIME_LIMIT_EXCEEDED = "[TIME LIMITED EXCEEDED]"' in test_content
-        assert 'CORRECT_ANSWER = "[CORRECT ANSWER]"' in test_content
-        assert 'WRONG_ANSWER = "[WRONG ANSWER]"' in test_content
 
         assert "def test_verify_git_submission(self):" in test_content
         assert 'print(f"# 1.1) verify_git_submission")' in test_content
         assert "submission_metadata.json" in test_content
-        assert "A GitLab repository was not used in the submission." in test_content
+        assert "StudentMessage.WRONG_GITLAB_NOT_USED" in test_content
         assert "GitLab" in test_content
 
         assert "def test_output_test(self):" in test_content
         assert 'print(f"# 1.2) output_test")' in test_content
-        assert "{COMPILER_ERROR}" in test_content
-        assert "{TIME_LIMIT_EXCEEDED}" in test_content
-        assert "{RUNTIME_ERROR}" in test_content
-        assert "{CORRECT_ANSWER}" in test_content
-        assert "{WRONG_ANSWER}" in test_content
+        assert "from student_message import StudentMessage" in test_content
+        assert "self.fail(StudentMessage.COMPILER_ERROR)" in test_content
+        assert "self.fail(StudentMessage.RUNTIME_ERROR)" in test_content
+        assert "StudentMessage.WRONG_ANSWER_FILE.format(file_name=target_file)" in test_content
+        assert "StudentMessage.CORRECT_ANSWER_FILE.format(file_name=target_file)" in test_content
+        assert "StudentMessage.TIME_LIMIT_EXCEEDED_FILE.format(seconds=" in test_content
         assert "expected_out = normalize(expected_output)" in test_content
         assert "actual_out = normalize(result.stdout)" in test_content
 
 
 def test_gitlab_submission_execution_logic(tmp_path):
     metadata_file = tmp_path / "submission_metadata.json"
-    
+
     metadata_file.write_text(json.dumps({"submission_method": "GitLab"}), encoding="utf-8")
     with metadata_file.open(encoding="utf-8") as f:
         metadata = json.load(f)
@@ -201,10 +198,54 @@ def test_function_test_template_expected_actual_output(tmp_path):
     zip_path = generator.generate(str(output_dir))
 
     with zipfile.ZipFile(zip_path, "r") as z:
+        assert "student_message.py" in z.namelist()
         test_content = z.read("tests/question_1_test.py").decode("utf-8")
         assert 'print(f"# 1.1) Math Test")' in test_content
         assert 'expected_out = normalize("3")' in test_content
         assert "actual_out = normalize(str(result))" in test_content
-        assert 'print(f"Expected output:\\n{expected_out}")' in test_content
-        assert 'print(f"Actual output:\\n{actual_out}")' in test_content
-        assert "{WRONG_ANSWER} Output mismatch" in test_content
+        assert "from student_message import StudentMessage" in test_content
+        assert (
+            "StudentMessage.WRONG_ANSWER_FUNCTION.format(function_name=function_name)"
+            in test_content
+        )
+        assert (
+            "StudentMessage.CORRECT_ANSWER_FUNCTION.format(function_name=function_name)"
+            in test_content
+        )
+        assert "StudentMessage.TIME_LIMIT_EXCEEDED_FUNCTION.format(seconds=" in test_content
+        assert (
+            "StudentMessage.ERROR_FUNCTION_NOT_CALLABLE.format(function_name=function_name)"
+            in test_content
+        )
+
+
+def test_file_exists_template_student_message(tmp_path):
+    config_dict = {
+        "version": "1.0",
+        "language": "python",
+        "files_necessary": ["solution.py"],
+        "questions": [
+            {
+                "name": "File Existence",
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 10,
+                        "type": "file_exists",
+                    }
+                ],
+            }
+        ],
+    }
+    config = ag.Config.model_validate(config_dict)
+    generator = ag.Engine(config, config_dict)
+    output_dir = tmp_path / "output_fe"
+    zip_path = generator.generate(str(output_dir))
+
+    with zipfile.ZipFile(zip_path, "r") as z:
+        assert "student_message.py" in z.namelist()
+        test_content = z.read("tests/question_1_test.py").decode("utf-8")
+        assert "from student_message import StudentMessage" in test_content
+        assert "StudentMessage.ERROR_FILE_NOT_EXISTS.format(file_name=target_file)" in test_content
+        assert "StudentMessage.CORRECT_FILE_EXISTS.format(file_name=target_file)" in test_content
+        assert "self.fail(StudentMessage.COMPILER_ERROR)" in test_content

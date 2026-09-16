@@ -22,11 +22,18 @@ import concurrent.futures
 from pathlib import Path
 from gradescope_utils.autograder_utils.decorators import weight, visibility, number
 
+if str(Path(__file__).parent.parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+if str(Path(__file__).parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).parent))
+from student_message import StudentMessage
+
 def normalize(s: str) -> str:
     if s is None:
         return ""
     s = s.replace("\r\n", "\n")
     return "\n".join(line.rstrip() for line in s.splitlines() if line.strip())
+
 
 class TestQuestion{{ question_number }}(unittest.TestCase):
     """Test class for Question {{ question_number }}: {{ question.name }}."""
@@ -64,7 +71,7 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
             
             # Check if file exists
             if not file_path.exists():
-                raise ImportError(f"File {file_name} not found")
+                raise ImportError(f"Failed to import {function_name} from {file_name}: File {file_name} not found")
             
             # Load the module
             spec = importlib.util.spec_from_file_location("student_module", file_path)
@@ -81,6 +88,10 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
             
             return getattr(module, function_name)
             
+        except SyntaxError:
+            raise
+        except ImportError:
+            raise
         except Exception as e:
             raise ImportError(f"Failed to import {function_name} from {file_name}: {str(e)}")
 
@@ -90,7 +101,8 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
         """Compile Java file and execute specified function with args."""
         file_path = self.source_dir / file_name
         if not file_path.exists():
-            raise FileNotFoundError(f"File '{file_name}' not found")
+            print(StudentMessage.ERROR_FILE_NOT_EXISTS.format(file_name=file_name))
+            raise AssertionError(StudentMessage.COMPILER_ERROR)
         
         compile_res = subprocess.run(
             ['javac', file_name],
@@ -99,7 +111,11 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
             cwd=self.source_dir
         )
         if compile_res.returncode != 0:
-            raise RuntimeError(f"Failed to compile '{file_name}': {compile_res.stderr}")
+            err = compile_res.stderr or compile_res.stdout
+            if err:
+                print(StudentMessage.COMPILING)
+                print(err.strip())
+            raise AssertionError(StudentMessage.COMPILER_ERROR)
         
         runner_path = self.source_dir / "JavaRunner.java"
         if not runner_path.exists():
