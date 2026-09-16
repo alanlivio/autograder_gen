@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator, Validat
 class MarkingItem(BaseModel):
     """Represents a single marking item within a question."""
 
-    target_file: str
+    target_file: str = ""
     total_mark: int
     type: str
     time_limit: int = 30
@@ -154,7 +154,6 @@ class Config(BaseModel):
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid format in YAML configuration file: {e}")
         except ValidationError as e:
-            # We let ValidationError bubble up
             raise e
         except Exception as e:
             raise ValueError(f"Error parsing configuration: {e}")

@@ -50,7 +50,8 @@ def main():
                 f"Example '{args.example}' configuration generated at: {target_path}"
             )
             return 0
-        with open(args.config, "r", encoding="utf-8") as f:
+        path = Path(args.config)
+        with open(path, "r", encoding="utf-8") as f:
             raw_config_data = yaml.safe_load(f)
         # Validate configuration
         validator = ag.Validator()
@@ -68,7 +69,6 @@ def main():
         config = ag.Config.model_validate(raw_config_data)
         original_config_dict = None
         try:
-            path = Path(args.config)
             with open(path, "r", encoding="utf-8") as f:
                 if path.suffix.lower() not in [".yaml", ".yml"]:
                     raise ValueError("File must be a YAML file (.yml or .yaml)")
