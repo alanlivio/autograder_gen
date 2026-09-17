@@ -61,7 +61,6 @@ questions:
     function_name: add_numbers
     total_mark: 4
     type: signature_check
-    time_limit: 10
     visibility: visible
     expected_parameters: 'a: int, b: int'
     expected_return_type: int
@@ -69,7 +68,6 @@ questions:
     function_name: multiply
     total_mark: 4
     type: signature_check
-    time_limit: 10
     visibility: visible
     expected_parameters: 'x: float, y: float'
     expected_return_type: float
@@ -80,7 +78,6 @@ questions:
     function_name: process_data
     total_mark: 5
     type: signature_check
-    time_limit: 15
     visibility: visible
     expected_parameters: 'data: list, threshold: float = 0.5, normalize: bool = True'
     expected_return_type: dict
@@ -88,14 +85,12 @@ questions:
     function_name: filter_values
     total_mark: 5
     type: signature_check
-    time_limit: 15
     visibility: after_due_date
     expected_parameters: values, min_val=0, max_val=100, inclusive=True
   - target_file: advanced_algorithms.py
     function_name: complex_calculation
     total_mark: 5
     type: signature_check
-    time_limit: 20
     visibility: hidden
     expected_parameters: input_data, algorithm='default', precision=2, debug=False
 - name: Simple Function Testing
@@ -171,7 +166,6 @@ questions:
     function_name: main_algorithm
     total_mark: 5
     type: signature_check
-    time_limit: 20
     visibility: visible
     expected_parameters: input_list, config=None, verbose=False
   - target_file: advanced_algorithms.py
