@@ -637,7 +637,9 @@ class Engine:
                             functions.add(item.function_name)
 
             def _infer_java_type(val, desc=""):
-                if isinstance(val, bool) or (str(val).lower() in ("true", "false") and not isinstance(val, (int, float))):
+                if isinstance(val, bool) or (
+                    str(val).lower() in ("true", "false") and not isinstance(val, (int, float))
+                ):
                     return "boolean"
                 if isinstance(val, int):
                     return "long" if abs(val) > 2147483647 else "int"
@@ -645,23 +647,34 @@ class Engine:
                     return "double"
                 if isinstance(val, list):
                     if val and isinstance(val[0], list):
-                        return "double[][]" if any("." in str(x) for row in val for x in row) else "int[][]"
+                        return (
+                            "double[][]"
+                            if any("." in str(x) for row in val for x in row)
+                            else "int[][]"
+                        )
                     is_arraylist = "arraylist" in desc.lower() or "list" in desc.lower()
                     has_strings = any(
-                        isinstance(x, str) and not x.strip().lstrip("-").isdigit()
-                        for x in val
+                        isinstance(x, str) and not x.strip().lstrip("-").isdigit() for x in val
                     )
                     if has_strings or any(isinstance(x, str) for x in val):
                         if is_arraylist:
                             return "java.util.ArrayList<String>"
                         return "String[]"
                     if is_arraylist:
-                        return "java.util.ArrayList<Double>" if any("." in str(x) for x in val) else "java.util.ArrayList<Integer>"
+                        return (
+                            "java.util.ArrayList<Double>"
+                            if any("." in str(x) for x in val)
+                            else "java.util.ArrayList<Integer>"
+                        )
                     return "double[]" if any("." in str(x) for x in val) else "int[]"
                 s = str(val).strip()
-                if (s.startswith("{{") and s.endswith("}}")) or (s.startswith("[[") and s.endswith("]]")):
+                if (s.startswith("{{") and s.endswith("}}")) or (
+                    s.startswith("[[") and s.endswith("]]")
+                ):
                     return "double[][]" if "." in s else "int[][]"
-                if (s.startswith("{") and s.endswith("}")) or (s.startswith("[") and s.endswith("]")):
+                if (s.startswith("{") and s.endswith("}")) or (
+                    s.startswith("[") and s.endswith("]")
+                ):
                     is_arraylist = "arraylist" in desc.lower() or "list" in desc.lower()
                     inner = s[1:-1].strip()
                     has_letters = any(c.isalpha() for c in inner)
@@ -670,7 +683,11 @@ class Engine:
                             return "java.util.ArrayList<String>"
                         return "String[]"
                     if is_arraylist:
-                        return "java.util.ArrayList<Double>" if "." in inner else "java.util.ArrayList<Integer>"
+                        return (
+                            "java.util.ArrayList<Double>"
+                            if "." in inner
+                            else "java.util.ArrayList<Integer>"
+                        )
                     return "double[]" if "." in s else "int[]"
                 try:
                     v_int = int(s)
@@ -687,20 +704,19 @@ class Engine:
                     item
                     for q in self.config.questions
                     for item in q.marking_items
-                    if item.target_file == target_file and getattr(item, "function_name", "") == func
+                    if item.target_file == target_file
+                    and getattr(item, "function_name", "") == func
                 ]
-                desc_text = " ".join([
-                    getattr(item, "description", "")
-                    for item in func_items
-                ] + [
-                    getattr(item, "name", "")
-                    for item in func_items
-                ] + [
-                    getattr(q, "description", "")
-                    for q in self.config.questions
-                    for item in q.marking_items
-                    if item in func_items
-                ])
+                desc_text = " ".join(
+                    [getattr(item, "description", "") for item in func_items]
+                    + [getattr(item, "name", "") for item in func_items]
+                    + [
+                        getattr(q, "description", "")
+                        for q in self.config.questions
+                        for item in q.marking_items
+                        if item in func_items
+                    ]
+                )
                 cases = []
                 for item in func_items:
                     for tc in getattr(item, "test_cases", []) or []:
@@ -714,7 +730,9 @@ class Engine:
 
                 param_types = []
                 for i in range(max_args):
-                    arg_vals = [tc.get("args", [])[i] for tc in cases if len(tc.get("args", []) or []) > i]
+                    arg_vals = [
+                        tc.get("args", [])[i] for tc in cases if len(tc.get("args", []) or []) > i
+                    ]
                     ptype = _infer_java_type(arg_vals[0], desc_text) if arg_vals else "Object"
                     param_types.append(ptype)
 
@@ -726,7 +744,10 @@ class Engine:
                     exp0 = str(cases[0].get("expected", ""))
                     if "\n" in exp0:
                         ret_type = "void"
-                    elif ("arraylist" in desc_text.lower() or "list" in desc_text.lower()) and ((exp0.startswith("[") and exp0.endswith("]")) or (exp0.startswith("{") and exp0.endswith("}"))):
+                    elif ("arraylist" in desc_text.lower() or "list" in desc_text.lower()) and (
+                        (exp0.startswith("[") and exp0.endswith("]"))
+                        or (exp0.startswith("{") and exp0.endswith("}"))
+                    ):
                         inner = exp0[1:-1].strip()
                         if any(c.isalpha() for c in inner) or not inner:
                             ret_type = "java.util.ArrayList<String>"
@@ -734,7 +755,9 @@ class Engine:
                             ret_type = "java.util.ArrayList<Double>"
                         else:
                             ret_type = "java.util.ArrayList<Integer>"
-                    elif (exp0.startswith("[") and exp0.endswith("]")) or (exp0.startswith("{") and exp0.endswith("}")):
+                    elif (exp0.startswith("[") and exp0.endswith("]")) or (
+                        exp0.startswith("{") and exp0.endswith("}")
+                    ):
                         inner = exp0[1:-1].strip()
                         if any(c.isalpha() for c in inner):
                             ret_type = "String[]"
@@ -783,28 +806,40 @@ class Engine:
                             elif pt == "boolean":
                                 cond_parts.append(f"{pn} == {str(arg_val).lower()}")
                             elif pt == "String":
-                                cond_parts.append(f"{pn} != null && {pn}.equals({json.dumps(str(arg_val))})")
+                                cond_parts.append(
+                                    f"{pn} != null && {pn}.equals({json.dumps(str(arg_val))})"
+                                )
                             elif pt == "java.util.ArrayList<String>":
                                 if isinstance(arg_val, list):
                                     items_code = ", ".join(json.dumps(str(x)) for x in arg_val)
                                 else:
                                     raw = str(arg_val).strip().lstrip("[").rstrip("]").strip()
-                                    items = [x.strip().strip("'\"") for x in raw.split(",") if x.strip()]
+                                    items = [
+                                        x.strip().strip("'\"") for x in raw.split(",") if x.strip()
+                                    ]
                                     items_code = ", ".join(json.dumps(x) for x in items)
-                                cond_parts.append(f"{pn} != null && {pn}.equals(new java.util.ArrayList<>(java.util.Arrays.asList({items_code})))")
+                                cond_parts.append(
+                                    f"{pn} != null && {pn}.equals(new java.util.ArrayList<>(java.util.Arrays.asList({items_code})))"
+                                )
                             elif pt == "String[]":
                                 if isinstance(arg_val, list):
                                     items_code = ", ".join(json.dumps(str(x)) for x in arg_val)
                                 else:
                                     raw = str(arg_val).strip().lstrip("[").rstrip("]").strip()
-                                    items = [x.strip().strip("'\"") for x in raw.split(",") if x.strip()]
+                                    items = [
+                                        x.strip().strip("'\"") for x in raw.split(",") if x.strip()
+                                    ]
                                     items_code = ", ".join(json.dumps(x) for x in items)
-                                cond_parts.append(f"java.util.Arrays.equals({pn}, new String[]{{{items_code}}})")
+                                cond_parts.append(
+                                    f"java.util.Arrays.equals({pn}, new String[]{{{items_code}}})"
+                                )
                             elif pt.endswith("[][]"):
                                 raw_s = str(arg_val).strip()
                                 if raw_s.startswith("["):
                                     raw_s = raw_s.replace("[", "{").replace("]", "}")
-                                cond_parts.append(f"java.util.Arrays.deepEquals({pn}, new {pt}{raw_s})")
+                                cond_parts.append(
+                                    f"java.util.Arrays.deepEquals({pn}, new {pt}{raw_s})"
+                                )
                             elif pt.endswith("[]"):
                                 raw_s = str(arg_val).strip()
                                 if raw_s.startswith("["):
@@ -815,9 +850,13 @@ class Engine:
                         exp_val = tc.get("expected", "")
                         if ret_type == "void":
                             lines.append(f"        if ({cond}) {{")
-                            lines.append(f"            System.out.print({json.dumps(str(exp_val))});")
+                            lines.append(
+                                f"            System.out.print({json.dumps(str(exp_val))});"
+                            )
                             lines.append("            try {")
-                            lines.append(f"                java.nio.file.Files.writeString(java.nio.file.Path.of(\"sortComparison.csv\"), {json.dumps(str(exp_val))});")
+                            lines.append(
+                                f'                java.nio.file.Files.writeString(java.nio.file.Path.of("sortComparison.csv"), {json.dumps(str(exp_val))});'
+                            )
                             lines.append("            } catch (Exception e) {}")
                             lines.append("            return;")
                             lines.append("        }")
@@ -826,17 +865,23 @@ class Engine:
                                 items = [str(x) for x in exp_val]
                             else:
                                 raw = str(exp_val).strip().lstrip("[").rstrip("]").strip()
-                                items = [x.strip().strip("'\"") for x in raw.split(",") if x.strip()]
+                                items = [
+                                    x.strip().strip("'\"") for x in raw.split(",") if x.strip()
+                                ]
                             items_code = ", ".join(json.dumps(x) for x in items)
                             lines.append(f"        if ({cond}) {{")
-                            lines.append(f"            return new java.util.ArrayList<>(java.util.Arrays.asList({items_code}));")
+                            lines.append(
+                                f"            return new java.util.ArrayList<>(java.util.Arrays.asList({items_code}));"
+                            )
                             lines.append("        }")
                         elif ret_type == "String[]":
                             if isinstance(exp_val, list):
                                 items = [str(x) for x in exp_val]
                             else:
                                 raw = str(exp_val).strip().lstrip("[").rstrip("]").strip()
-                                items = [x.strip().strip("'\"") for x in raw.split(",") if x.strip()]
+                                items = [
+                                    x.strip().strip("'\"") for x in raw.split(",") if x.strip()
+                                ]
                             items_code = ", ".join(json.dumps(x) for x in items)
                             lines.append(f"        if ({cond}) {{")
                             lines.append(f"            return new String[]{{{items_code}}};")
@@ -891,7 +936,9 @@ class Engine:
                     elif ret_type == "long":
                         lines.append("        return -999999L;")
                     elif ret_type == "boolean":
-                        has_false = any(str(tc.get("expected", "")).strip().lower() == "false" for tc in cases)
+                        has_false = any(
+                            str(tc.get("expected", "")).strip().lower() == "false" for tc in cases
+                        )
                         lines.append(f"        return {'true' if has_false else 'false'};")
                     elif ret_type == "java.util.ArrayList<String>":
                         lines.append("        return new java.util.ArrayList<>();")
@@ -914,14 +961,16 @@ class Engine:
                     lines.append("        java.util.Scanner sc = new java.util.Scanner(System.in);")
                     lines.append("        StringBuilder sb = new StringBuilder();")
                     lines.append("        while (sc.hasNextLine()) {")
-                    lines.append("            sb.append(sc.nextLine()).append(\"\\n\");")
+                    lines.append('            sb.append(sc.nextLine()).append("\\n");')
                     lines.append("        }")
                     lines.append("        String inStr = sb.toString().trim();")
                     for idx, item in enumerate(output_items):
                         cond = f"inStr.equals({json.dumps(item.expected_input.strip())})"
                         branch = "if" if idx == 0 else "else if"
                         lines.append(f"        {branch} ({cond}) {{")
-                        lines.append(f"            System.out.print({json.dumps(item.expected_output)});")
+                        lines.append(
+                            f"            System.out.print({json.dumps(item.expected_output)});"
+                        )
                         lines.append("            return;")
                         lines.append("        }")
                     default_out = output_items[0].expected_output if output_items else ""
@@ -1090,19 +1139,19 @@ class Engine:
 
         readme_content = f"""# Autograder Package
 
-Generated by TIF Autograder Tool
+Generated by [AutograderGen](https://github.com/alanlivio/autograder_gen)
 
-## Configuration Summary
 - **Language**: {self.config.language}
-- **Questions**: {len(self.config.questions)}
-- **Total Marking Items**: {sum(len(q.marking_items) for q in self.config.questions)}
-- **Total Points**: {sum(sum(item.total_mark for item in q.marking_items) for q in self.config.questions)}
+- **Number of questions**: {len(self.config.questions)}
+- **Total marking items**: {sum(len(q.marking_items) for q in self.config.questions)}
+- **Total points**: {sum(sum(item.total_mark for item in q.marking_items) for q in self.config.questions)}
 - **Required Files**: {', '.join(self.config.files_necessary) if self.config.files_necessary else 'None specified'}
 
 ## Package Structure
+
 ```
 autograder.zip
-├── setup.sh                 # Environment setup script
+├── setup.sh                # Environment setup script
 ├── run_autograder          # Main autograder execution script
 ├── run_tests.py            # Primary test runner using gradescope-utils
 ├── requirements.txt        # Python dependencies
@@ -1110,31 +1159,28 @@ autograder.zip
 │   ├── question_1_test.py
 │   ├── question_2_test.py
 │   └── ...
-├── autograder_gen.yaml     # Original configuration file
-└── README.md              # This file
+├── config.yaml             # Original configuration file
+└── README.md               # This file
 ```
 
 ## Test Types Supported
+
 - **file_exists**: Checks if required files are present in submission
 - **output_comparison**: Compares program output with expected results
 - **signature_check**: Validates function signatures and parameters
 - **function_test**: Tests function behavior with specific inputs and expected outputs
 
-## Global Settings
-- **Global Time Limit**: {getattr(self.config, 'global_time_limit', 'Not set')} seconds
-- **Points Precision**: {getattr(self.config, 'points_precision', 1)} decimal place(s)
-
-## Questions and Marking Items"""
+## Questions"""
 
         for i, question in enumerate(self.config.questions, 1):
-            readme_content += f"\n\n### Question {i}: {question.name}\n"
+            readme_content += f"\n\n### Question {i}: {question.name}\n\n"
 
             question_points = sum(item.total_mark for item in question.marking_items)
             readme_content += f"**Total Points**: {question_points}\n\n"
 
             for j, item in enumerate(question.marking_items, 1):
                 item_name = getattr(item, "name", "") or f"Marking Item {j}"
-                readme_content += f"#### {j}. {item_name}\n"
+                readme_content += f"#### {j}. {item_name}\n\n"
                 readme_content += f"- **Type**: {item.type.replace('_', ' ').title()}\n"
                 readme_content += f"- **Target File**: {item.target_file}\n"
                 readme_content += f"- **Points**: {item.total_mark}\n"
@@ -1181,51 +1227,6 @@ autograder.zip
                     readme_content += (
                         "- **Requirement**: Submission must be made via a GitHub repository\n"
                     )
-
-                readme_content += "\n"
-
-        readme_content += f"""
-## Execution Details
-
-### Setup Process
-1. **Environment Setup**: `setup.sh` installs required packages and prepares the testing environment
-2. **Test Execution**: `run_autograder` executes `run_tests.py` which runs all question test files
-3. **Results Collection**: Results are formatted using gradescope-utils and written to `/autograder/results/results.json`
-
-### File Requirements
-Students must submit the following files:
-"""
-
-        if self.config.files_necessary:
-            for file in self.config.files_necessary:
-                readme_content += f"- `{file}`\n"
-        else:
-            readme_content += "- No specific files required (will be determined by marking items)\n"
-
-        readme_content += f"""
-### Points Distribution
-"""
-
-        for i, question in enumerate(self.config.questions, 1):
-            question_points = sum(item.total_mark for item in question.marking_items)
-            readme_content += f"- **Question {i}**: {question_points} points\n"
-
-        total_points = sum(
-            sum(item.total_mark for item in q.marking_items) for q in self.config.questions
-        )
-        readme_content += f"- **Total Possible**: {total_points} points\n"
-
-        readme_content += f"""
-## Technical Notes
-
-- Generated using TIF Autograder Tool
-- Uses gradescope-utils for test framework compatibility
-- Supports Python {self.config.language} submissions
-- All tests run in isolated environments with proper timeout handling
-- Results are automatically formatted for Gradescope integration
-
-For questions about this autograder configuration, refer to the original `autograder_gen.yaml` file included in this package.
-"""
 
         readme_file = self.temp_dir / "README.md"
         with open(readme_file, "w", encoding="utf-8") as f:
