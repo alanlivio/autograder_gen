@@ -90,3 +90,37 @@ def test_autograder_runner_config_obj(tmp_path):
     runner = ag.AutograderRunner(no_ext_file)
     assert runner.config_obj is not None
     assert runner.config_obj.total_score == 10
+
+
+def test_run_autograder_for_generated_submissions(tmp_path):
+    base_dir = Path(__file__).parent.parent.parent
+    config_path = base_dir / "tests/examples/py_simple/config.yaml"
+    runner = ag.AutograderRunner(config_path)
+
+    results = runner.run_autograder_for_generated_submissions()
+    assert "correct_answer" in results
+    assert "wrong_answer" in results
+
+    correct_score = sum(t.get("score", 0) for t in results["correct_answer"]["tests"])
+    wrong_score = sum(t.get("score", 0) for t in results["wrong_answer"]["tests"])
+
+    assert correct_score == 10
+    assert wrong_score == 0
+
+    assert "log_path" in results["correct_answer"]
+    assert "log_path" in results["wrong_answer"]
+    correct_log = Path(results["correct_answer"]["log_path"])
+    wrong_log = Path(results["wrong_answer"]["log_path"])
+    assert correct_log.exists()
+    assert wrong_log.exists()
+    assert correct_log.name == "config_correct_answer.log"
+    assert wrong_log.name == "config_wrong_answer.log"
+    assert "# Expected Score = 10, Actual Score = 10" in correct_log.read_text(encoding="utf-8")
+    assert "# Expected Score = 0, Actual Score = 0" in wrong_log.read_text(encoding="utf-8")
+
+    correct_text = correct_log.read_text(encoding="utf-8")
+    wrong_text = wrong_log.read_text(encoding="utf-8")
+    assert "[AutograderRunner Summary]" not in correct_text
+    assert "Status =" not in correct_text
+    assert "[AutograderRunner Summary]" not in wrong_text
+    assert "Status =" not in wrong_text
