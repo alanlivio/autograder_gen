@@ -66,6 +66,7 @@ class AutograderRunner:
         submission_path: str | Path | list[str | Path] | tuple[str | Path, ...] | None = None,
         *,
         submission_dir: str | Path | list[str | Path] | tuple[str | Path, ...] | None = None,
+        total_score: int | float | None = None,
         expected_score: int | float | None = None,
         save_log: bool | None = None,
         log_path: str | Path | None = None,
@@ -139,13 +140,20 @@ class AutograderRunner:
         if isinstance(actual_score, float) and actual_score.is_integer():
             actual_score = int(actual_score)
 
-        if expected_score is None and self.config_obj is not None:
-            expected_score = self.config_obj.total_score
+        resolved_total_score = total_score
+        if resolved_total_score is None and self.config_obj is not None:
+            resolved_total_score = self.config_obj.total_score
+        if resolved_total_score is None and expected_score is not None:
+            resolved_total_score = expected_score
+        if resolved_total_score is None:
+            tests_list = results.get("tests", [])
+            if tests_list and any("max_score" in t for t in tests_list):
+                resolved_total_score = sum(t.get("max_score", 0) for t in tests_list)
 
-        if expected_score is not None:
-            if isinstance(expected_score, float) and expected_score.is_integer():
-                expected_score = int(expected_score)
-            score_line = f"# Expected Score = {expected_score}, Actual Score = {actual_score}"
+        if resolved_total_score is not None:
+            if isinstance(resolved_total_score, float) and resolved_total_score.is_integer():
+                resolved_total_score = int(resolved_total_score)
+            score_line = f"# Total Score = {resolved_total_score}, Actual Score = {actual_score}"
         else:
             score_line = f"# Actual Score = {actual_score}"
 
@@ -234,8 +242,9 @@ class AutograderRunner:
     def run_autograder_for_generated_submissions(
         self,
         *,
+        total_score: int | float | None = None,
         expected_correct_score: int | float | None = None,
-        expected_wrong_score: int | float | None = 0,
+        expected_wrong_score: int | float | None = None,
         verbose: bool | None = None,
     ) -> dict[str, Any]:
         with tempfile.TemporaryDirectory() as td:
@@ -243,13 +252,17 @@ class AutograderRunner:
             correct_zip = td_path / "correct_answer.zip"
             correct_zip.write_bytes(self._get_correct_answer_zip_bytes())
             correct_res = self.run_autograder_for_submission(
-                correct_zip, expected_score=expected_correct_score, verbose=verbose
+                correct_zip,
+                total_score=total_score if total_score is not None else expected_correct_score,
+                verbose=verbose,
             )
 
             wrong_zip = td_path / "wrong_answer.zip"
             wrong_zip.write_bytes(self._get_wrong_answer_zip_bytes())
             wrong_res = self.run_autograder_for_submission(
-                wrong_zip, expected_score=expected_wrong_score, verbose=verbose
+                wrong_zip,
+                total_score=total_score if total_score is not None else expected_wrong_score,
+                verbose=verbose,
             )
 
         for res in (correct_res, wrong_res):

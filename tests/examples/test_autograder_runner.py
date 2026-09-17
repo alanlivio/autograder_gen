@@ -115,8 +115,8 @@ def test_run_autograder_for_generated_submissions(tmp_path):
     assert wrong_log.exists()
     assert correct_log.name == "config_correct_answer.log"
     assert wrong_log.name == "config_wrong_answer.log"
-    assert "# Expected Score = 10, Actual Score = 10" in correct_log.read_text(encoding="utf-8")
-    assert "# Expected Score = 0, Actual Score = 0" in wrong_log.read_text(encoding="utf-8")
+    assert "# Total Score = 10, Actual Score = 10" in correct_log.read_text(encoding="utf-8")
+    assert "# Total Score = 10, Actual Score = 0" in wrong_log.read_text(encoding="utf-8")
 
     correct_text = correct_log.read_text(encoding="utf-8")
     wrong_text = wrong_log.read_text(encoding="utf-8")
