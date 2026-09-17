@@ -12,8 +12,9 @@ class StudentMessage:
     COMPILING = "## Compiling"
     RUNNING = "## Running"
     COMPARING_OUTPUT = "## Comparing output"
-    EXPECTED_OUTPUT = "Expected output:"
-    ACTUAL_OUTPUT = "Actual output:"
+    INPUT = "### Input:"
+    EXPECTED_OUTPUT = "### Expected output:"
+    ACTUAL_OUTPUT = "### Actual output:"
     # RESULTS
     COMPILER_ERROR = "[COMPILER ERROR] Check compile errors above."
     RUNTIME_ERROR = "[RUNTIME ERROR] Check runtime errors above."
@@ -21,7 +22,7 @@ class StudentMessage:
         "[CORRECT_ANSWER] Output matches expected for std output of file {file_name}."
     )
     CORRECT_ANSWER_FUNCTION = StudentMessageStr(
-        "[CORRECT_ANSWER] Output matches expected for return of function {function_name}."
+        "[CORRECT_ANSWER] Output matches expected for return of function '{function_name}'."
     )
     WRONG_ANSWER_FILE = StudentMessageStr(
         "[WRONG ANSWER] Output mismatch for for std output of file '{file_name}'."
