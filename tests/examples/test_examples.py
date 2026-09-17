@@ -134,8 +134,8 @@ def test_autograder_integration_py_function(subdir, expected_score, config_file)
     "subdir, expected_score",
     [
         ("correct_answer", 100),
-        ("wrong_answer", 67),
-        ("compiler_error", 75),  # Only some files have errors, others still pass tests
+        ("wrong_answer", 0),
+        ("compiler_error", 0),
         ("missing_file", 0),
     ],
 )

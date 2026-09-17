@@ -1,7 +1,4 @@
-# math_functions.py - Syntax error scenario (but this file is correct)
-
-
-def add_numbers(a, b):
+def add_numbers(a, b)
     return a + b
 
 
