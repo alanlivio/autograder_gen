@@ -229,31 +229,27 @@ questions:
     type: output_comparison
     time_limit: 30
     visibility: visible
-    expected_input: 'Hello World
-
+    expected_input: |-
+      Hello World
       42
-
-      3.14'
-    expected_output: 'Hello World
-
+      3.14
+    expected_output: |-
+      Hello World
       Number: 42
-
-      Float: 3.14'
+      Float: 3.14
   - target_file: basic_operations.py
     total_mark: 5
     type: output_comparison
     time_limit: 45
     visibility: after_due_date
-    expected_input: 'Second Test
-
+    expected_input: |-
+      Second Test
       100
-
-      -5.5'
-    expected_output: 'Second Test
-
+      -5.5
+    expected_output: |-
+      Second Test
       Number: 100
-
-      Float: -5.5'
+      Float: -5.5
 - name: Basic Function Signature Validation
   description: "Interface contract check. Implement `add_numbers(a: int, b: int) -> int` and `multiply(x: float, y: float) -> float` in `math_functions.py`. The autograder will inspect these functions to ensure they match the requested type hints and parameter names exactly. \n\nExample:\nSignature: `def add_numbers(a: int, b: int) -> int:`"
   marking_items:
