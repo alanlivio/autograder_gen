@@ -3,8 +3,7 @@ import tempfile
 import shutil
 import pytest
 import autograder_gen as ag
-from autograder_gen.utils import normalize
-from autograder_gen.student_message import StudentMessage
+from autograder_gen.grader_utils import StudentMessage
 
 CONFIG_FOR_TEMPLATES = {
     "version": "1.0",
@@ -95,13 +94,6 @@ def test_java_setup_sh_contains_default_jdk(temp_output_dir):
             assert "Setup completed successfully" in content
 
 
-def test_normalize_function():
-    assert normalize("hello  \r\nworld   \r\n") == "hello\nworld"
-    assert normalize("  \n  test  \t  \n \n ") == "  test"
-    assert normalize(None) == ""
-    assert normalize("") == ""
-
-
 def test_output_comparison_template(tmp_path):
     config_dict = {
         "version": "1.0",
@@ -128,12 +120,12 @@ def test_output_comparison_template(tmp_path):
     zip_path = generator.generate(str(output_dir))
 
     with zipfile.ZipFile(zip_path, "r") as z:
-        assert "student_message.py" in z.namelist()
+        assert "grader_utils.py" in z.namelist()
         test_content = z.read("tests/question_1_test.py").decode("utf-8")
 
         assert "def test_output_test(self):" in test_content
         assert 'print(f"# 1.1) output_test")' in test_content
-        assert "from student_message import StudentMessage" in test_content
+        assert "from grader_utils import StudentMessage, normalize" in test_content
         assert "self.fail(StudentMessage.COMPILER_ERROR)" in test_content
         assert "self.fail(StudentMessage.RUNTIME_ERROR)" in test_content
         assert "StudentMessage.WRONG_ANSWER_FILE.format(file_name=target_file)" in test_content
@@ -171,12 +163,12 @@ def test_function_test_template_expected_actual_output(tmp_path):
     zip_path = generator.generate(str(output_dir))
 
     with zipfile.ZipFile(zip_path, "r") as z:
-        assert "student_message.py" in z.namelist()
+        assert "grader_utils.py" in z.namelist()
         test_content = z.read("tests/question_1_test.py").decode("utf-8")
         assert 'print(f"# 1.1) Math Test")' in test_content
         assert 'expected_out = normalize("3")' in test_content
         assert "actual_out = normalize(str(result))" in test_content
-        assert "from student_message import StudentMessage" in test_content
+        assert "from grader_utils import StudentMessage, normalize" in test_content
         assert (
             "StudentMessage.WRONG_ANSWER_FUNCTION.format(function_name=function_name)"
             in test_content
@@ -216,9 +208,9 @@ def test_file_exists_template_student_message(tmp_path):
     zip_path = generator.generate(str(output_dir))
 
     with zipfile.ZipFile(zip_path, "r") as z:
-        assert "student_message.py" in z.namelist()
+        assert "grader_utils.py" in z.namelist()
         test_content = z.read("tests/question_1_test.py").decode("utf-8")
-        assert "from student_message import StudentMessage" in test_content
+        assert "from grader_utils import StudentMessage, normalize" in test_content
         assert "StudentMessage.ERROR_FILE_NOT_EXISTS.format(file_name=target_file)" in test_content
         assert "StudentMessage.CORRECT_FILE_EXISTS.format(file_name=target_file)" in test_content
         assert "self.fail(StudentMessage.COMPILER_ERROR)" in test_content

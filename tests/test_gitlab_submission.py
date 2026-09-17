@@ -7,7 +7,7 @@ import pytest
 from pydantic import ValidationError
 
 import autograder_gen as ag
-from autograder_gen.student_message import StudentMessage
+from autograder_gen.grader_utils import StudentMessage
 
 
 def test_marking_item_gitlab_submission_exists_without_target_file():
@@ -105,7 +105,7 @@ def test_template_generation_gitlab(tmp_path):
     zip_path = generator.generate(str(output_dir))
 
     with zipfile.ZipFile(zip_path, "r") as z:
-        assert "student_message.py" in z.namelist()
+        assert "grader_utils.py" in z.namelist()
         test_content = z.read("tests/question_1_test.py").decode("utf-8")
 
         assert "def test_verify_git_submission(self):" in test_content

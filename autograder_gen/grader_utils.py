@@ -1,3 +1,15 @@
+def normalize(s: str) -> str:
+    if s is None:
+        return ""
+    s = s.replace("\r\n", "\n")
+    lines = [line.rstrip() for line in s.splitlines()]
+    while lines and not lines[0]:
+        lines.pop(0)
+    while lines and not lines[-1]:
+        lines.pop()
+    return "\n".join(lines)
+
+
 class StudentMessageStr(str):
     def format(self, *args, **kwargs):
         if "target_file" in kwargs and "file_name" not in kwargs:
@@ -8,14 +20,12 @@ class StudentMessageStr(str):
 
 
 class StudentMessage:
-    # Heading
     COMPILING = "## Compiling"
     RUNNING = "## Running"
     COMPARING_OUTPUT = "## Comparing output"
     INPUT = "### Input:"
     EXPECTED_OUTPUT = "### Expected output:"
     ACTUAL_OUTPUT = "### Actual output:"
-    # RESULTS
     COMPILER_ERROR = "[COMPILER ERROR] Check compile errors above."
     RUNTIME_ERROR = "[RUNTIME ERROR] Check runtime errors above."
     CORRECT_ANSWER_FILE = StudentMessageStr(
@@ -36,9 +46,7 @@ class StudentMessage:
     TIME_LIMIT_EXCEEDED_FUNCTION = StudentMessageStr(
         "[TIME_LIMIT_EXCEEDED] timed out after {seconds} for function {function_name}."
     )
-    CORRECT_FILE_EXISTS = StudentMessageStr(
-        "[CORRECT_ANSWER] File '{file_name}' exists and is valid"
-    )
+    CORRECT_FILE_EXISTS = StudentMessageStr("[CORRECT_ANSWER] File '{file_name}' exists.")
     ERROR_FILE_NOT_EXISTS = StudentMessageStr("Error: File '{file_name}' not found")
     ERROR_FUNCTION_NOT_CALLABLE = StudentMessageStr(
         "Error: Function '{function_name}' is not callable"
@@ -46,5 +54,5 @@ class StudentMessage:
     CORRECT_SIGNATURE = StudentMessageStr(
         "[CORRECT_ANSWER] Function '{function_name}' signature is correct"
     )
-    CORRECT_GITLAB_SUBMISSION = "[CORRECT_ANSWER] GitLab repository submission verified."
-    WRONG_GITLAB_NOT_USED = "[WRONG_ANSWER] A GitLab repository was not used in the submission."
+    CORRECT_GITLAB_SUBMISSION = "[CORRECT_ANSWER] GitLab repository was found."
+    WRONG_GITLAB_NOT_USED = "[WRONG_ANSWER] GitLab repository was not found."

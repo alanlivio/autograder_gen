@@ -26,13 +26,7 @@ if str(Path(__file__).parent.parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).parent.parent))
 if str(Path(__file__).parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).parent))
-from student_message import StudentMessage
-
-def normalize(s: str) -> str:
-    if s is None:
-        return ""
-    s = s.replace("\r\n", "\n")
-    return "\n".join(line.rstrip() for line in s.splitlines() if line.strip())
+from grader_utils import StudentMessage, normalize
 
 
 class TestQuestion{{ question_number }}(unittest.TestCase):

@@ -1,8 +1,3 @@
-"""
-Autograder generator for creating Gradescope autograder.zip files.
-Uses Jinja2 templates and gradescope-utils for proper test generation.
-"""
-
 import os
 import shutil
 import zipfile
@@ -19,7 +14,7 @@ from docx import Document
 from docx.shared import Pt
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from autograder_gen.config import Config
-from autograder_gen.utils import print_error, print_success, print_warning
+from autograder_gen.engine_utils import print_error, print_success, print_warning
 
 
 class Engine:

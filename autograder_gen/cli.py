@@ -11,7 +11,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import autograder_gen as ag
-from autograder_gen.utils import (
+from autograder_gen.engine_utils import (
     print_error,
     print_success,
     print_warning,
