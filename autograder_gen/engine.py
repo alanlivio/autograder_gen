@@ -377,7 +377,12 @@ class Engine:
         """Generate a ZIP file with correct implementation skeletons."""
         buffer = BytesIO()
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+            created_dirs = set()
             for filename in self.config.files_necessary:
+                parent = Path(filename).parent
+                if str(parent) != "." and str(parent) not in created_dirs:
+                    created_dirs.add(str(parent))
+                    zipf.writestr(f"{parent}/", "")
                 content = self._generate_skeleton_content(filename, correct=True)
                 zipf.writestr(filename, content)
         buffer.seek(0)
@@ -387,7 +392,12 @@ class Engine:
         """Generate a ZIP file with incorrect implementation skeletons."""
         buffer = BytesIO()
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+            created_dirs = set()
             for filename in self.config.files_necessary:
+                parent = Path(filename).parent
+                if str(parent) != "." and str(parent) not in created_dirs:
+                    created_dirs.add(str(parent))
+                    zipf.writestr(f"{parent}/", "")
                 content = self._generate_skeleton_content(filename, correct=False)
                 zipf.writestr(filename, content)
         buffer.seek(0)
