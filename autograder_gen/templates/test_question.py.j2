@@ -95,11 +95,12 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
         """Compile Java file and execute specified function with args."""
         file_path = self.source_dir / file_name
         if not file_path.exists():
-            print(StudentMessage.ERROR_FILE_NOT_EXISTS.format(file_name=file_name))
-            raise AssertionError(StudentMessage.COMPILER_ERROR)
+            raise AssertionError(StudentMessage.WRONG_FILE.format(file_name=file_name))
         
+        target_dir = Path(file_name).parent
+        classpath = f"{target_dir}{os.pathsep}." if str(target_dir) != "." else "."
         compile_res = subprocess.run(
-            ['javac', file_name],
+            ['javac', '-cp', classpath, file_name],
             capture_output=True,
             text=True,
             cwd=self.source_dir

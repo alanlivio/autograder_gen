@@ -26,8 +26,8 @@ class StudentMessage:
     INPUT = "### Input:"
     EXPECTED_OUTPUT = "### Expected output:"
     ACTUAL_OUTPUT = "### Actual output:"
-    COMPILER_ERROR = "[COMPILER ERROR] Check compile errors above."
-    RUNTIME_ERROR = "[RUNTIME ERROR] Check runtime errors above."
+    COMPILER_ERROR = "[COMPILER_ERROR] Check compile errors above."
+    RUNTIME_ERROR = "[RUNTIME_ERROR] Check runtime errors above."
     CORRECT_ANSWER_FILE = StudentMessageStr(
         "[CORRECT_ANSWER] Output matches expected for std output of file {file_name}."
     )
@@ -35,10 +35,10 @@ class StudentMessage:
         "[CORRECT_ANSWER] Output matches expected for return of function '{function_name}'."
     )
     WRONG_ANSWER_FILE = StudentMessageStr(
-        "[WRONG ANSWER] Output mismatch for for std output of file '{file_name}'."
+        "[WRONG_ANSWER] Output mismatch for for std output of file '{file_name}'."
     )
     WRONG_ANSWER_FUNCTION = StudentMessageStr(
-        "[WRONG ANSWER] Output mismatch for return of function '{function_name}'."
+        "[WRONG_ANSWER] Output mismatch for return of function '{function_name}'."
     )
     TIME_LIMIT_EXCEEDED_FILE = StudentMessageStr(
         "[TIME_LIMIT_EXCEEDED] timed out after {seconds} for {file_name}."
@@ -46,8 +46,8 @@ class StudentMessage:
     TIME_LIMIT_EXCEEDED_FUNCTION = StudentMessageStr(
         "[TIME_LIMIT_EXCEEDED] timed out after {seconds} for function {function_name}."
     )
-    CORRECT_FILE_EXISTS = StudentMessageStr("[CORRECT_ANSWER] File '{file_name}' exists.")
-    ERROR_FILE_NOT_EXISTS = StudentMessageStr("Error: File '{file_name}' not found")
+    CORRECT_FILE = StudentMessageStr("[CORRECT_FILE] File '{file_name}' exists.")
+    WRONG_FILE = StudentMessageStr("[WRONG_FILE] File '{file_name}' not found.")
     ERROR_FUNCTION_NOT_CALLABLE = StudentMessageStr(
         "Error: Function '{function_name}' is not callable"
     )

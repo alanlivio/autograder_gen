@@ -11,8 +11,7 @@
             file_path = self.source_dir / target_file
             
             if not file_path.exists():
-                print(StudentMessage.ERROR_FILE_NOT_EXISTS.format(file_name=target_file))
-                self.fail(StudentMessage.COMPILER_ERROR)
+                self.fail(StudentMessage.WRONG_FILE.format(file_name=target_file))
             
 {% if config.language == 'python' %}
             # Import the function from the file

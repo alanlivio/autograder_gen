@@ -9,15 +9,7 @@
         expected_output = """{{ item.expected_output }}"""
         file_path = self.source_dir / target_file
         if not file_path.exists():
-{% if config.language == 'python' %}
-            print(StudentMessage.RUNNING)
-            print(StudentMessage.ERROR_FILE_NOT_EXISTS.format(file_name=target_file))
-            self.fail(StudentMessage.RUNTIME_ERROR)
-{% elif config.language == 'java' %}
-            print(StudentMessage.COMPILING)
-            print(StudentMessage.ERROR_FILE_NOT_EXISTS.format(file_name=target_file))
-            self.fail(StudentMessage.COMPILER_ERROR)
-{% endif %}
+            self.fail(StudentMessage.WRONG_FILE.format(file_name=target_file))
         
         try:
 {% if config.language == 'python' %}
@@ -68,7 +60,7 @@
             expected_out = normalize(expected_output)
             print(StudentMessage.COMPARING_OUTPUT)
             if expected_input:
-                print(f"Input:\n{expected_input}")
+                print(f"{StudentMessage.INPUT}\n{expected_input}")
             print(f"{StudentMessage.EXPECTED_OUTPUT}\n{expected_out}")
             actual_out = normalize(result.stdout)
             print(f"{StudentMessage.ACTUAL_OUTPUT}\n{actual_out}")

@@ -211,6 +211,6 @@ def test_file_exists_template_student_message(tmp_path):
         assert "grader_utils.py" in z.namelist()
         test_content = z.read("tests/question_1_test.py").decode("utf-8")
         assert "from grader_utils import StudentMessage, normalize" in test_content
-        assert "StudentMessage.ERROR_FILE_NOT_EXISTS.format(file_name=target_file)" in test_content
-        assert "StudentMessage.CORRECT_FILE_EXISTS.format(file_name=target_file)" in test_content
-        assert "self.fail(StudentMessage.COMPILER_ERROR)" in test_content
+        assert "StudentMessage.WRONG_FILE.format(file_name=target_file)" in test_content
+        assert "StudentMessage.CORRECT_FILE.format(file_name=target_file)" in test_content
+        assert "self.fail(StudentMessage.WRONG_FILE.format(file_name=target_file))" in test_content
