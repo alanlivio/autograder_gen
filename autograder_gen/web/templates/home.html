@@ -207,19 +207,16 @@ questions:
   description: "Organizational check. Ensure that the project structure is correct by including the required files: `basic_operations.py`, `math_functions.py`, and `data_processing.py`. This verifies that you have correctly partitioned your logic according to the project specifications. \n\nExpected files: `basic_operations.py`, `math_functions.py`, `data_processing.py`."
   marking_items:
   - target_file: basic_operations.py
-    total_mark: 1
+    total_mark: 0
     type: file_exists
-    time_limit: 5
     visibility: visible
   - target_file: math_functions.py
-    total_mark: 1
+    total_mark: 0
     type: file_exists
-    time_limit: 5
     visibility: visible
   - target_file: data_processing.py
-    total_mark: 1
+    total_mark: 0
     type: file_exists
-    time_limit: 5
     visibility: hidden
 - name: Basic Output Comparison Tests
   description: "Standard input/output test. Your script `basic_operations.py` must read from standard input and produce a formatted report. This test checks your ability to handle string formatting and basic data ingestion. \n\nExample:\nInput: `42` on stdin\nOutput: `Number: 42` on stdout"
@@ -255,7 +252,7 @@ questions:
   marking_items:
   - target_file: math_functions.py
     function_name: add_numbers
-    total_mark: 3
+    total_mark: 4
     type: signature_check
     time_limit: 10
     visibility: visible
@@ -263,7 +260,7 @@ questions:
     expected_return_type: int
   - target_file: math_functions.py
     function_name: multiply
-    total_mark: 3
+    total_mark: 4
     type: signature_check
     time_limit: 10
     visibility: visible
@@ -282,7 +279,7 @@ questions:
     expected_return_type: dict
   - target_file: data_processing.py
     function_name: filter_values
-    total_mark: 4
+    total_mark: 5
     type: signature_check
     time_limit: 15
     visibility: after_due_date
@@ -362,7 +359,6 @@ questions:
   - target_file: advanced_algorithms.py
     total_mark: 2
     type: file_exists
-    time_limit: 5
     visibility: visible
   - target_file: advanced_algorithms.py
     function_name: main_algorithm
