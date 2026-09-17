@@ -571,7 +571,20 @@ class Engine:
                     else:
                         lines.append("    pass")
                 else:
-                    lines.append("    return None")
+                    func_expected = []
+                    for q in self.config.questions:
+                        for item in q.marking_items:
+                            if (
+                                item.target_file == target_file
+                                and getattr(item, "function_name", "") == func
+                                and item.type == "function_test"
+                            ):
+                                for tc in getattr(item, "test_cases", []) or []:
+                                    func_expected.append(str(tc.get("expected", "")).strip())
+                    if any(exp in ("None", "none", "null") for exp in func_expected):
+                        lines.append("    return 'wrong_answer'")
+                    else:
+                        lines.append("    return None")
                 lines.append("")
             output_items = []
             for q in self.config.questions:
@@ -596,7 +609,8 @@ class Engine:
                     lines.append("    else:")
                     lines.append(f"        sys.stdout.write({repr(default_out)})")
                 else:
-                    lines.append("    pass")
+                    lines.append("    import sys")
+                    lines.append('    sys.stdout.write("wrong_output\\n")')
                 lines.append("")
 
             if not functions and not output_items:
@@ -914,6 +928,8 @@ class Engine:
                     lines.append("        else {")
                     lines.append(f"            System.out.print({json.dumps(default_out)});")
                     lines.append("        }")
+                else:
+                    lines.append('        System.out.print("wrong_output\\n");')
                 lines.append("    }")
                 lines.append("")
 
