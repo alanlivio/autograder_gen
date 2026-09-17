@@ -357,6 +357,27 @@ class Engine:
                     zipf.writestr(f"{parent}/", "")
                 content = self._generate_skeleton_content(filename, correct=True)
                 zipf.writestr(filename, content)
+
+            has_gitlab = any(
+                item.type == "gitlab_submission_exists"
+                for q in self.config.questions
+                for item in q.marking_items
+            )
+            has_github = any(
+                item.type == "github_submission_exists"
+                for q in self.config.questions
+                for item in q.marking_items
+            )
+            if has_gitlab:
+                zipf.writestr(
+                    "submission_metadata.json",
+                    json.dumps({"submission_method": "GitLab"}),
+                )
+            elif has_github:
+                zipf.writestr(
+                    "submission_metadata.json",
+                    json.dumps({"submission_method": "GitHub"}),
+                )
         buffer.seek(0)
         return buffer
 
@@ -470,6 +491,9 @@ class Engine:
             escaped = expected_str.replace("\\", "\\\\").replace('"', '\\"')
             return f'"{escaped}"'
 
+        if target_file.endswith(".pdf"):
+            return ""
+
         if self.config.language == "python":
             lines = ["# Skeleton for " + target_file, ""]
             functions = set()
@@ -549,28 +573,350 @@ class Engine:
                 else:
                     lines.append("    return None")
                 lines.append("")
-            if not functions:
+            output_items = []
+            for q in self.config.questions:
+                for item in q.marking_items:
+                    if item.target_file == target_file and item.type == "output_comparison":
+                        output_items.append(item)
+
+            if output_items:
+                lines.append('if __name__ == "__main__":')
+                if correct:
+                    lines.append("    import sys")
+                    lines.append("    _raw_in = sys.stdin.read()")
+                    lines.append("    _in = _raw_in.strip()")
+                    for idx, item in enumerate(output_items):
+                        cond = f"_in == {repr(item.expected_input.strip())}"
+                        out_val = item.expected_output
+                        branch = "if" if idx == 0 else "elif"
+                        lines.append(f"    {branch} {cond}:")
+                        lines.append(f"        sys.stdout.write({repr(out_val)})")
+                        lines.append("        sys.exit(0)")
+                    default_out = output_items[0].expected_output if output_items else ""
+                    lines.append("    else:")
+                    lines.append(f"        sys.stdout.write({repr(default_out)})")
+                else:
+                    lines.append("    pass")
+                lines.append("")
+
+            if not functions and not output_items:
                 lines.append("# No specific functions defined for this file.")
                 if not correct:
                     lines.append("# This file might be intentionally wrong or missing logic.")
             return "\n".join(lines)
         elif self.config.language == "java":
+            import json
+
             class_name = Path(target_file).stem
-            lines = [f"public class {class_name} {{", ""]
+            lines = [
+                "import java.util.*;",
+                "import java.nio.file.*;",
+                "",
+                f"public class {class_name} {{",
+                "",
+            ]
             functions = set()
             for q in self.config.questions:
                 for item in q.marking_items:
                     if item.target_file == target_file:
                         if hasattr(item, "function_name") and item.function_name:
                             functions.add(item.function_name)
+
+            def _infer_java_type(val, desc=""):
+                if isinstance(val, bool) or (str(val).lower() in ("true", "false") and not isinstance(val, (int, float))):
+                    return "boolean"
+                if isinstance(val, int):
+                    return "long" if abs(val) > 2147483647 else "int"
+                if isinstance(val, float):
+                    return "double"
+                if isinstance(val, list):
+                    if val and isinstance(val[0], list):
+                        return "double[][]" if any("." in str(x) for row in val for x in row) else "int[][]"
+                    is_arraylist = "arraylist" in desc.lower() or "list" in desc.lower()
+                    has_strings = any(
+                        isinstance(x, str) and not x.strip().lstrip("-").isdigit()
+                        for x in val
+                    )
+                    if has_strings or any(isinstance(x, str) for x in val):
+                        if is_arraylist:
+                            return "java.util.ArrayList<String>"
+                        return "String[]"
+                    if is_arraylist:
+                        return "java.util.ArrayList<Double>" if any("." in str(x) for x in val) else "java.util.ArrayList<Integer>"
+                    return "double[]" if any("." in str(x) for x in val) else "int[]"
+                s = str(val).strip()
+                if (s.startswith("{{") and s.endswith("}}")) or (s.startswith("[[") and s.endswith("]]")):
+                    return "double[][]" if "." in s else "int[][]"
+                if (s.startswith("{") and s.endswith("}")) or (s.startswith("[") and s.endswith("]")):
+                    is_arraylist = "arraylist" in desc.lower() or "list" in desc.lower()
+                    inner = s[1:-1].strip()
+                    has_letters = any(c.isalpha() for c in inner)
+                    if has_letters:
+                        if is_arraylist:
+                            return "java.util.ArrayList<String>"
+                        return "String[]"
+                    if is_arraylist:
+                        return "java.util.ArrayList<Double>" if "." in inner else "java.util.ArrayList<Integer>"
+                    return "double[]" if "." in s else "int[]"
+                try:
+                    v_int = int(s)
+                    return "long" if abs(v_int) > 2147483647 else "int"
+                except ValueError:
+                    try:
+                        float(s)
+                        return "double"
+                    except ValueError:
+                        return "String"
+
             for func in sorted(functions):
-                lines.append(f"    public static double {func}(double a, double b) {{")
+                func_items = [
+                    item
+                    for q in self.config.questions
+                    for item in q.marking_items
+                    if item.target_file == target_file and getattr(item, "function_name", "") == func
+                ]
+                desc_text = " ".join([
+                    getattr(item, "description", "")
+                    for item in func_items
+                ] + [
+                    getattr(item, "name", "")
+                    for item in func_items
+                ] + [
+                    getattr(q, "description", "")
+                    for q in self.config.questions
+                    for item in q.marking_items
+                    if item in func_items
+                ])
+                cases = []
+                for item in func_items:
+                    for tc in getattr(item, "test_cases", []) or []:
+                        cases.append(tc)
+
+                max_args = 0
+                for tc in cases:
+                    args_len = len(tc.get("args", []) or [])
+                    if args_len > max_args:
+                        max_args = args_len
+
+                param_types = []
+                for i in range(max_args):
+                    arg_vals = [tc.get("args", [])[i] for tc in cases if len(tc.get("args", []) or []) > i]
+                    ptype = _infer_java_type(arg_vals[0], desc_text) if arg_vals else "Object"
+                    param_types.append(ptype)
+
+                param_names = [chr(97 + i) for i in range(max_args)]
+                param_str = ", ".join(f"{pt} {pn}" for pt, pn in zip(param_types, param_names))
+
+                ret_type = "double"
+                if cases:
+                    exp0 = str(cases[0].get("expected", ""))
+                    if "\n" in exp0:
+                        ret_type = "void"
+                    elif ("arraylist" in desc_text.lower() or "list" in desc_text.lower()) and ((exp0.startswith("[") and exp0.endswith("]")) or (exp0.startswith("{") and exp0.endswith("}"))):
+                        inner = exp0[1:-1].strip()
+                        if any(c.isalpha() for c in inner) or not inner:
+                            ret_type = "java.util.ArrayList<String>"
+                        elif "." in inner:
+                            ret_type = "java.util.ArrayList<Double>"
+                        else:
+                            ret_type = "java.util.ArrayList<Integer>"
+                    elif (exp0.startswith("[") and exp0.endswith("]")) or (exp0.startswith("{") and exp0.endswith("}")):
+                        inner = exp0[1:-1].strip()
+                        if any(c.isalpha() for c in inner):
+                            ret_type = "String[]"
+                        elif "." in exp0:
+                            ret_type = "double[]"
+                        else:
+                            ret_type = "int[]"
+                    elif exp0.strip().lower() in ("true", "false"):
+                        ret_type = "boolean"
+                    else:
+                        try:
+                            v_int = int(exp0.strip())
+                            ret_type = "long" if abs(v_int) > 2147483647 else "int"
+                        except ValueError:
+                            try:
+                                float(exp0.strip())
+                                ret_type = "double"
+                            except ValueError:
+                                ret_type = "String"
+
+                if func == "add" and max_args == 2:
+                    lines.append(f"    public static double {func}(double a, double b) {{")
+                    if correct:
+                        lines.append("        return a + b;")
+                    else:
+                        lines.append("        return 0.0;")
+                    lines.append("    }")
+                    lines.append("")
+                    continue
+
+                lines.append(f"    public static {ret_type} {func}({param_str}) {{")
                 if correct:
-                    lines.append("        return a + b;")
+                    for tc in cases:
+                        args_list = tc.get("args", []) or []
+                        cond_parts = []
+                        for idx, arg_val in enumerate(args_list):
+                            pn = param_names[idx]
+                            pt = param_types[idx]
+                            if pt == "double":
+                                try:
+                                    cond_parts.append(f"Math.abs({pn} - {float(arg_val)}) < 1e-4")
+                                except Exception:
+                                    cond_parts.append(f"{pn} == {arg_val}")
+                            elif pt in ("int", "long"):
+                                cond_parts.append(f"{pn} == {arg_val}")
+                            elif pt == "boolean":
+                                cond_parts.append(f"{pn} == {str(arg_val).lower()}")
+                            elif pt == "String":
+                                cond_parts.append(f"{pn} != null && {pn}.equals({json.dumps(str(arg_val))})")
+                            elif pt == "java.util.ArrayList<String>":
+                                if isinstance(arg_val, list):
+                                    items_code = ", ".join(json.dumps(str(x)) for x in arg_val)
+                                else:
+                                    raw = str(arg_val).strip().lstrip("[").rstrip("]").strip()
+                                    items = [x.strip().strip("'\"") for x in raw.split(",") if x.strip()]
+                                    items_code = ", ".join(json.dumps(x) for x in items)
+                                cond_parts.append(f"{pn} != null && {pn}.equals(new java.util.ArrayList<>(java.util.Arrays.asList({items_code})))")
+                            elif pt == "String[]":
+                                if isinstance(arg_val, list):
+                                    items_code = ", ".join(json.dumps(str(x)) for x in arg_val)
+                                else:
+                                    raw = str(arg_val).strip().lstrip("[").rstrip("]").strip()
+                                    items = [x.strip().strip("'\"") for x in raw.split(",") if x.strip()]
+                                    items_code = ", ".join(json.dumps(x) for x in items)
+                                cond_parts.append(f"java.util.Arrays.equals({pn}, new String[]{{{items_code}}})")
+                            elif pt.endswith("[][]"):
+                                raw_s = str(arg_val).strip()
+                                if raw_s.startswith("["):
+                                    raw_s = raw_s.replace("[", "{").replace("]", "}")
+                                cond_parts.append(f"java.util.Arrays.deepEquals({pn}, new {pt}{raw_s})")
+                            elif pt.endswith("[]"):
+                                raw_s = str(arg_val).strip()
+                                if raw_s.startswith("["):
+                                    raw_s = raw_s.replace("[", "{").replace("]", "}")
+                                cond_parts.append(f"java.util.Arrays.equals({pn}, new {pt}{raw_s})")
+
+                        cond = " && ".join(cond_parts) if cond_parts else "true"
+                        exp_val = tc.get("expected", "")
+                        if ret_type == "void":
+                            lines.append(f"        if ({cond}) {{")
+                            lines.append(f"            System.out.print({json.dumps(str(exp_val))});")
+                            lines.append("            try {")
+                            lines.append(f"                java.nio.file.Files.writeString(java.nio.file.Path.of(\"sortComparison.csv\"), {json.dumps(str(exp_val))});")
+                            lines.append("            } catch (Exception e) {}")
+                            lines.append("            return;")
+                            lines.append("        }")
+                        elif ret_type == "java.util.ArrayList<String>":
+                            if isinstance(exp_val, list):
+                                items = [str(x) for x in exp_val]
+                            else:
+                                raw = str(exp_val).strip().lstrip("[").rstrip("]").strip()
+                                items = [x.strip().strip("'\"") for x in raw.split(",") if x.strip()]
+                            items_code = ", ".join(json.dumps(x) for x in items)
+                            lines.append(f"        if ({cond}) {{")
+                            lines.append(f"            return new java.util.ArrayList<>(java.util.Arrays.asList({items_code}));")
+                            lines.append("        }")
+                        elif ret_type == "String[]":
+                            if isinstance(exp_val, list):
+                                items = [str(x) for x in exp_val]
+                            else:
+                                raw = str(exp_val).strip().lstrip("[").rstrip("]").strip()
+                                items = [x.strip().strip("'\"") for x in raw.split(",") if x.strip()]
+                            items_code = ", ".join(json.dumps(x) for x in items)
+                            lines.append(f"        if ({cond}) {{")
+                            lines.append(f"            return new String[]{{{items_code}}};")
+                            lines.append("        }")
+                        elif ret_type.endswith("[]"):
+                            raw_e = str(exp_val).strip()
+                            if raw_e.startswith("["):
+                                raw_e = raw_e.replace("[", "{").replace("]", "}")
+                            lines.append(f"        if ({cond}) {{")
+                            lines.append(f"            return new {ret_type}{raw_e};")
+                            lines.append("        }")
+                        elif ret_type == "double":
+                            lines.append(f"        if ({cond}) {{")
+                            lines.append(f"            return {float(exp_val)};")
+                            lines.append("        }")
+                        elif ret_type in ("int", "long"):
+                            lines.append(f"        if ({cond}) {{")
+                            lines.append(f"            return {int(exp_val)};")
+                            lines.append("        }")
+                        elif ret_type == "boolean":
+                            lines.append(f"        if ({cond}) {{")
+                            lines.append(f"            return {str(exp_val).lower()};")
+                            lines.append("        }")
+                        else:
+                            lines.append(f"        if ({cond}) {{")
+                            lines.append(f"            return {json.dumps(str(exp_val))};")
+                            lines.append("        }")
+
+                    if ret_type == "void":
+                        pass
+                    elif ret_type == "double":
+                        lines.append("        return 0.0;")
+                    elif ret_type == "int":
+                        lines.append("        return 0;")
+                    elif ret_type == "long":
+                        lines.append("        return 0L;")
+                    elif ret_type == "boolean":
+                        lines.append("        return false;")
+                    elif ret_type == "java.util.ArrayList<String>":
+                        lines.append("        return new java.util.ArrayList<>();")
+                    elif ret_type.endswith("[]"):
+                        lines.append(f"        return new {ret_type[:-2]}[0];")
+                    else:
+                        lines.append('        return "";')
                 else:
-                    lines.append("        return 0.0;")
+                    if ret_type == "void":
+                        lines.append('        System.out.print("wrong_output");')
+                    elif ret_type == "double":
+                        lines.append("        return -999999.0;")
+                    elif ret_type == "int":
+                        lines.append("        return -999999;")
+                    elif ret_type == "long":
+                        lines.append("        return -999999L;")
+                    elif ret_type == "boolean":
+                        has_false = any(str(tc.get("expected", "")).strip().lower() == "false" for tc in cases)
+                        lines.append(f"        return {'true' if has_false else 'false'};")
+                    elif ret_type == "java.util.ArrayList<String>":
+                        lines.append("        return new java.util.ArrayList<>();")
+                    elif ret_type.endswith("[]"):
+                        lines.append("        return null;")
+                    else:
+                        lines.append('        return "wrong_answer";')
                 lines.append("    }")
                 lines.append("")
+
+            output_items = [
+                item
+                for q in self.config.questions
+                for item in q.marking_items
+                if item.target_file == target_file and item.type == "output_comparison"
+            ]
+            if output_items:
+                lines.append("    public static void main(String[] args) {")
+                if correct:
+                    lines.append("        java.util.Scanner sc = new java.util.Scanner(System.in);")
+                    lines.append("        StringBuilder sb = new StringBuilder();")
+                    lines.append("        while (sc.hasNextLine()) {")
+                    lines.append("            sb.append(sc.nextLine()).append(\"\\n\");")
+                    lines.append("        }")
+                    lines.append("        String inStr = sb.toString().trim();")
+                    for idx, item in enumerate(output_items):
+                        cond = f"inStr.equals({json.dumps(item.expected_input.strip())})"
+                        branch = "if" if idx == 0 else "else if"
+                        lines.append(f"        {branch} ({cond}) {{")
+                        lines.append(f"            System.out.print({json.dumps(item.expected_output)});")
+                        lines.append("            return;")
+                        lines.append("        }")
+                    default_out = output_items[0].expected_output if output_items else ""
+                    lines.append("        else {")
+                    lines.append(f"            System.out.print({json.dumps(default_out)});")
+                    lines.append("        }")
+                lines.append("    }")
+                lines.append("")
+
             lines.append("}")
             return "\n".join(lines)
 

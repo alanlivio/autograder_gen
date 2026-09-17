@@ -7,7 +7,9 @@
         autograder_root = Path(os.environ.get('AUTOGRADER_ROOT', '/autograder'))
         metadata_paths = [
             autograder_root / "submission_metadata.json",
+            autograder_root / "submission" / "submission_metadata.json",
             self.source_dir.parent / "submission_metadata.json",
+            self.source_dir.parent / "submission" / "submission_metadata.json",
             self.source_dir / "submission_metadata.json",
             Path("submission_metadata.json"),
         ]

@@ -27,6 +27,9 @@ if [ -d "$SUBMISSION_DIR" ]; then
         echo "Warning: Required file {{ file }} not found in submission"
     fi
     {% endfor %}
+    if [ -f "submission_metadata.json" ]; then
+        cp "submission_metadata.json" "$SOURCE_DIR/"
+    fi
     echo "Files copied to source directory:"
     ls -la "$SOURCE_DIR/"
 else
