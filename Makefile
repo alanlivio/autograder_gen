@@ -1,4 +1,4 @@
-.PHONY: help venv deps build test run-examples serve clean format wheel publish-pypi
+.PHONY: help venv deps build test run-examples gen-example gen-examples serve clean format wheel publish-pypi
 
 PYTHON ?= $(shell if [ -f .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
 VENV ?= .venv
@@ -13,6 +13,7 @@ help:
 		"  wheel         - Build wheel distribution and check with twine" \
 		"  test          - Run pytest test suite" \
 		"  run-examples  - Run examples autograders and log student view results" \
+		"  gen-examples  - Generate autograder packages for tests/examples" \
 		"  format        - Format Python code using black" \
 		"  serve         - Start Flask web server" \
 		"  clean         - Clean build and temporary files"
@@ -41,6 +42,9 @@ test:
 run-examples:
 	PYTHONPATH=. $(PYTHON) scripts/run_autograder_for_configs_in_folder.py tests/examples
 
+gen-examples:
+	PYTHONPATH=. $(PYTHON) scripts/gen_autograder_for_configs_in_folder.py tests/examples
+
 format:
 	black .
 
@@ -48,7 +52,7 @@ serve:
 	python autograder_gen/web/app.py
 
 clean:
-	rm -rf dist build ./*.egg-info .pytest_cache
+	rm -rf dist build ./*.egg-info .pytest_cache tests/examples/*/*.zip tests/examples/*/description.* tests/examples/*/rubric.*
 
 wheel:
 	$(VENV)/bin/pip install build setuptools twine

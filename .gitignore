@@ -201,6 +201,10 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python
 
 /**/autograder.zip
+/**/correct_answer.zip
+/**/wrong_answer.zip
 /**/description.docx
+/**/description.md
+/**/rubric.csv
 package-lock.json
 /**/output/

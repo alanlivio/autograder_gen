@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import shutil
+import json
 import sys
 from pathlib import Path
+import yaml
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
@@ -16,7 +17,9 @@ def find_configs(target: Path) -> list[Path]:
     if not target.is_dir():
         return []
 
-    direct_configs = [target / f for f in ("config.yaml", "config.yml") if (target / f).is_file()]
+    direct_configs = [
+        target / f for f in ("config.yaml", "config.yml") if (target / f).is_file()
+    ]
     if direct_configs:
         return [direct_configs[0]]
 
@@ -41,17 +44,22 @@ def main():
     all_configs = sorted(set(all_configs), key=lambda p: str(p))
 
     for config_path in all_configs:
-        runner = ag.AutograderRunner(config_path)
-        cfg_obj = runner.config_obj
-        if (
-            cfg_obj is not None
-            and getattr(cfg_obj, "language", "").lower() == "java"
-            and shutil.which("javac") is None
-        ):
-            print(f"[SKIPPED] {config_path}: javac is not installed")
-            continue
+        config = ag.Config.parse(config_path)
+        with open(config_path, "r", encoding="utf-8") as f:
+            if config_path.suffix.lower() in [".yaml", ".yml"]:
+                original_config = yaml.safe_load(f)
+            else:
+                original_config = json.load(f)
 
-        runner.run_autograder_for_generated_submissions()
+        engine = ag.Engine(config, original_config)
+        out_dir = config_path.parent
+        zip_path_str = engine.generate(str(out_dir))
+        zip_path = Path(zip_path_str)
+        try:
+            display_path = str(zip_path.resolve().relative_to(Path.cwd().resolve()))
+        except ValueError:
+            display_path = str(zip_path)
+        print(display_path)
 
 
 if __name__ == "__main__":
