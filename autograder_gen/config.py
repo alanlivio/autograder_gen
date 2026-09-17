@@ -49,6 +49,8 @@ class MarkingItem(BaseModel):
 
     @model_validator(mode="after")
     def validate_type_fields(self) -> "MarkingItem":
+        if self.type == "file_exists" and "time_limit" in self.model_fields_set:
+            raise ValueError("time_limit is not allowed for type 'file_exists'")
         if self.type == "function_test" and not self.function_name:
             raise ValueError("function_name is required for function_test")
         if (

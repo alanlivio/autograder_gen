@@ -121,3 +121,27 @@ def test_config_missing_target_file_in_files_necessary():
     }
     with pytest.raises(ValidationError):
         ag.Config.model_validate(data)
+
+
+def test_file_exists_with_time_limit_fails_validation():
+    data = {
+        "version": "1.0",
+        "language": "python",
+        "files_necessary": ["solution.py"],
+        "questions": [
+            {
+                "name": "Q1",
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 0,
+                        "type": "file_exists",
+                        "time_limit": 5,
+                    }
+                ],
+            }
+        ],
+    }
+    with pytest.raises(ValidationError) as excinfo:
+        ag.Config.model_validate(data)
+    assert "time_limit is not allowed for type 'file_exists'" in str(excinfo.value)
