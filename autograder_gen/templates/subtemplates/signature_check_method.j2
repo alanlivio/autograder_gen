@@ -28,8 +28,10 @@
             sig = inspect.signature(function)
 {% elif config.language == 'java' %}
             class_name = Path(target_file).stem
+            target_dir = Path(target_file).parent
+            classpath = f"{target_dir}{os.pathsep}." if str(target_dir) != "." else "."
             compile_res = subprocess.run(
-                ['javac', target_file],
+                ['javac', '-cp', classpath, target_file],
                 capture_output=True,
                 text=True,
                 cwd=self.source_dir
@@ -41,7 +43,7 @@
                     print(err.strip())
                 self.fail(StudentMessage.COMPILER_ERROR)
             javap_res = subprocess.run(
-                ['javap', '-public', class_name],
+                ['javap', '-cp', classpath, '-public', class_name],
                 capture_output=True,
                 text=True,
                 cwd=self.source_dir
