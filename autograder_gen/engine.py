@@ -20,9 +20,7 @@ from autograder_gen.engine_utils import print_error, print_success, print_warnin
 class Engine:
     """Generates Gradescope autograder packages from configuration using Jinja templates."""
 
-    def __init__(
-        self, config: Config, original_config_dict: Optional[dict] = None
-    ):
+    def __init__(self, config: Config, original_config_dict: Optional[dict] = None):
         """
         Initialize generator with configuration.
         Args:
@@ -30,9 +28,7 @@ class Engine:
             original_config_dict: Optional dictionary of original unparsed YAML configuration
         """
         self.config = config
-        self.original_config_dict = (
-            original_config_dict
-        )
+        self.original_config_dict = original_config_dict
         self.temp_dir: Optional[Path] = None
         self.templates_dir = Path(__file__).parent / "templates"
         self.jinja_env = Environment(
@@ -124,8 +120,7 @@ class Engine:
             if "setup.sh" in names:
                 checks.append("Found environment setup script: setup.sh")
             if any(
-                n.startswith("source/") or n.startswith("autograder/") or "/" in n
-                for n in names
+                n.startswith("source/") or n.startswith("autograder/") or "/" in n for n in names
             ):
                 checks.append("Archive contains valid folder structures")
             valid = len(errors) == 0
@@ -150,9 +145,7 @@ class Engine:
             if hasattr(question, "description") and question.description:
                 doc.add_paragraph(question.description)
             question_points = sum(
-                item.total_mark
-                for item in question.marking_items
-                if item.type != "file_exists"
+                item.total_mark for item in question.marking_items if item.type != "file_exists"
             )
             p = doc.add_paragraph()
             run = p.add_run(f"Total Points: {question_points}")
@@ -162,9 +155,7 @@ class Engine:
             for item in question.marking_items:
                 if item.type == "file_exists":
                     continue
-                item_name = (
-                    getattr(item, "name", "") or f"Marking Item {visible_item_idx}"
-                )
+                item_name = getattr(item, "name", "") or f"Marking Item {visible_item_idx}"
                 doc.add_heading(f"{visible_item_idx}. {item_name}", level=3)
                 doc.add_paragraph(f"Points: {item.total_mark}")
                 if item.type == "output_comparison":
@@ -212,9 +203,7 @@ class Engine:
                 lines.append(question.description)
                 lines.append("")
             question_points = sum(
-                item.total_mark
-                for item in question.marking_items
-                if item.type != "file_exists"
+                item.total_mark for item in question.marking_items if item.type != "file_exists"
             )
             lines.append(f"**Total Points:** {question_points}")
             lines.append("")
@@ -224,9 +213,7 @@ class Engine:
             for item in question.marking_items:
                 if item.type == "file_exists":
                     continue
-                item_name = (
-                    getattr(item, "name", "") or f"Marking Item {visible_item_idx}"
-                )
+                item_name = getattr(item, "name", "") or f"Marking Item {visible_item_idx}"
                 lines.append(f"#### {visible_item_idx}. {item_name}")
                 lines.append("")
                 lines.append(f"- **Points:** {item.total_mark}")
@@ -304,16 +291,12 @@ class Engine:
         ]
         for i, question in enumerate(self.config.questions, 1):
             question_points = sum(
-                item.total_mark
-                for item in question.marking_items
-                if item.type != "file_exists"
+                item.total_mark for item in question.marking_items if item.type != "file_exists"
             )
             html_lines.append('  <div class="question-card">')
             html_lines.append('    <div class="question-title">')
             html_lines.append(f"      <h2>Question {i}: {question.name}</h2>")
-            html_lines.append(
-                f'      <span class="points-tag">{question_points} pts</span>'
-            )
+            html_lines.append(f'      <span class="points-tag">{question_points} pts</span>')
             html_lines.append("    </div>")
             if hasattr(question, "description") and question.description:
                 html_lines.append(f"    <p>{question.description}</p>")
@@ -322,9 +305,7 @@ class Engine:
             for item in question.marking_items:
                 if item.type == "file_exists":
                     continue
-                item_name = (
-                    getattr(item, "name", "") or f"Marking Item {visible_item_idx}"
-                )
+                item_name = getattr(item, "name", "") or f"Marking Item {visible_item_idx}"
                 html_lines.append('    <div class="item-block">')
                 html_lines.append(
                     f"      <h4>{visible_item_idx}. {item_name} ({item.total_mark} pts)</h4>"
@@ -334,14 +315,10 @@ class Engine:
                         f"      <p><strong>Requirement:</strong> Program must produce specific output for target file <code>{item.target_file}</code>.</p>"
                     )
                     if item.expected_input:
-                        html_lines.append(
-                            "      <p><strong>Example Input:</strong></p>"
-                        )
+                        html_lines.append("      <p><strong>Example Input:</strong></p>")
                         html_lines.append(f"      <pre>{item.expected_input}</pre>")
                     if item.expected_output:
-                        html_lines.append(
-                            "      <p><strong>Expected Output:</strong></p>"
-                        )
+                        html_lines.append("      <p><strong>Expected Output:</strong></p>")
                         html_lines.append(f"      <pre>{item.expected_output}</pre>")
                 elif item.type == "signature_check":
                     html_lines.append(
@@ -502,7 +479,32 @@ class Engine:
                         if hasattr(item, "function_name") and item.function_name:
                             functions.add(item.function_name)
             for func in sorted(functions):
-                lines.append(f"def {func}(*args, **kwargs):")
+                expected_params = ""
+                expected_return = ""
+                for q in self.config.questions:
+                    for item in q.marking_items:
+                        if (
+                            item.target_file == target_file
+                            and getattr(item, "function_name", "") == func
+                        ):
+                            if getattr(item, "expected_parameters", "") and not expected_params:
+                                expected_params = item.expected_parameters.strip()
+                            if getattr(item, "expected_return_type", "") and not expected_return:
+                                expected_return = item.expected_return_type.strip()
+
+                param_names = []
+                if expected_params:
+                    for part in expected_params.split(","):
+                        name = part.split(":")[0].split("=")[0].strip()
+                        if name:
+                            param_names.append(name)
+
+                if correct and expected_params:
+                    ret_anno = f" -> {expected_return}" if expected_return else ""
+                    lines.append(f"def {func}({expected_params}){ret_anno}:")
+                else:
+                    lines.append(f"def {func}(*args, **kwargs):")
+
                 if correct:
                     cases = []
                     for q in self.config.questions:
@@ -520,15 +522,23 @@ class Engine:
                             conds = []
                             args_list = tc.get("args", []) or []
                             kwargs_dict = tc.get("kwargs", {}) or {}
-                            if args_list:
-                                conds.append(f"args == {tuple(args_list)}")
+                            if expected_params and param_names:
+                                for idx, arg_val in enumerate(args_list):
+                                    if idx < len(param_names):
+                                        conds.append(f"{param_names[idx]} == {repr(arg_val)}")
+                                for k, v in kwargs_dict.items():
+                                    if k in param_names:
+                                        conds.append(f"{k} == {repr(v)}")
                             else:
-                                conds.append("not args")
-                            if kwargs_dict:
-                                conds.append(f"kwargs == {kwargs_dict}")
-                            else:
-                                conds.append("not kwargs")
-                            cond_str = " and ".join(conds)
+                                if args_list:
+                                    conds.append(f"args == {tuple(args_list)}")
+                                else:
+                                    conds.append("not args")
+                                if kwargs_dict:
+                                    conds.append(f"kwargs == {kwargs_dict}")
+                                else:
+                                    conds.append("not kwargs")
+                            cond_str = " and ".join(conds) if conds else "True"
                             expected_val = tc.get("expected", "")
                             expr = get_python_literal_str(expected_val)
                             lines.append(f"    if {cond_str}:")
@@ -542,12 +552,10 @@ class Engine:
             if not functions:
                 lines.append("# No specific functions defined for this file.")
                 if not correct:
-                    lines.append(
-                        "# This file might be intentionally wrong or missing logic."
-                    )
+                    lines.append("# This file might be intentionally wrong or missing logic.")
             return "\n".join(lines)
         elif self.config.language == "java":
-            class_name = target_file.replace(".java", "")
+            class_name = Path(target_file).stem
             lines = [f"public class {class_name} {{", ""]
             functions = set()
             for q in self.config.questions:
@@ -603,13 +611,12 @@ class Engine:
         with open(run_tests_file, "w", encoding="utf-8") as f:
             f.write(content)
 
-        student_message_src = Path(__file__).parent / "student_message.py"
-        if student_message_src.exists():
-            shutil.copy2(student_message_src, self.temp_dir / "student_message.py")
-            shutil.copy2(student_message_src, tests_dir / "student_message.py")
+        grader_utils_src = Path(__file__).parent / "grader_utils.py"
+        if grader_utils_src.exists():
+            shutil.copy2(grader_utils_src, self.temp_dir / "grader_utils.py")
+            shutil.copy2(grader_utils_src, tests_dir / "grader_utils.py")
 
         self._generate_question_test_files(tests_dir)
-
 
     def _generate_question_test_files(self, tests_dir: Path):
         """Generate individual test files for each question."""
@@ -618,9 +625,7 @@ class Engine:
         for idx, question in enumerate(self.config.questions, 1):
             question_filename = f"question_{idx}"
 
-            processed_question = self._preprocess_question_for_output_comparison(
-                question
-            )
+            processed_question = self._preprocess_question_for_output_comparison(question)
 
             content = question_template.render(
                 config=self.config, question=processed_question, question_number=idx
@@ -788,17 +793,12 @@ autograder.zip
                     if hasattr(item, "function_name") and item.function_name:
                         readme_content += f"- **Function**: `{item.function_name}()`\n"
                     if hasattr(item, "test_cases") and item.test_cases:
-                        readme_content += (
-                            f"- **Test Cases**: {len(item.test_cases)} case(s)\n"
-                        )
+                        readme_content += f"- **Test Cases**: {len(item.test_cases)} case(s)\n"
 
                 elif item.type == "signature_check":
                     if hasattr(item, "function_name") and item.function_name:
                         readme_content += f"- **Function**: `{item.function_name}()`\n"
-                    if (
-                        hasattr(item, "expected_parameters")
-                        and item.expected_parameters
-                    ):
+                    if hasattr(item, "expected_parameters") and item.expected_parameters:
                         readme_content += (
                             f"- **Expected Parameters**: `{item.expected_parameters}`\n"
                         )
@@ -809,14 +809,16 @@ autograder.zip
                         readme_content += f"- **Input Lines**: {input_lines}\n"
                     if hasattr(item, "expected_output") and item.expected_output:
                         output_lines = item.expected_output.count("\n") + 1
-                        readme_content += (
-                            f"- **Expected Output Lines**: {output_lines}\n"
-                        )
+                        readme_content += f"- **Expected Output Lines**: {output_lines}\n"
 
                 elif item.type == "gitlab_submission_exists":
-                    readme_content += "- **Requirement**: Submission must be made via a GitLab repository\n"
+                    readme_content += (
+                        "- **Requirement**: Submission must be made via a GitLab repository\n"
+                    )
                 elif item.type == "github_submission_exists":
-                    readme_content += "- **Requirement**: Submission must be made via a GitHub repository\n"
+                    readme_content += (
+                        "- **Requirement**: Submission must be made via a GitHub repository\n"
+                    )
 
                 readme_content += "\n"
 
@@ -836,9 +838,7 @@ Students must submit the following files:
             for file in self.config.files_necessary:
                 readme_content += f"- `{file}`\n"
         else:
-            readme_content += (
-                "- No specific files required (will be determined by marking items)\n"
-            )
+            readme_content += "- No specific files required (will be determined by marking items)\n"
 
         readme_content += f"""
 ### Points Distribution
@@ -849,8 +849,7 @@ Students must submit the following files:
             readme_content += f"- **Question {i}**: {question_points} points\n"
 
         total_points = sum(
-            sum(item.total_mark for item in q.marking_items)
-            for q in self.config.questions
+            sum(item.total_mark for item in q.marking_items) for q in self.config.questions
         )
         readme_content += f"- **Total Possible**: {total_points} points\n"
 
@@ -879,4 +878,3 @@ For questions about this autograder configuration, refer to the original `autogr
                 if file_path.is_file():
                     arcname = file_path.relative_to(self.temp_dir)
                     zipf.write(file_path, arcname)
-
