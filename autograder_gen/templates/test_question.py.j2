@@ -26,7 +26,7 @@ if str(Path(__file__).parent.parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).parent.parent))
 if str(Path(__file__).parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).parent))
-from grader_utils import StudentMessage, normalize
+from grader_utils import StudentMessage, normalize_output
 
 
 class TestQuestion{{ question_number }}(unittest.TestCase):

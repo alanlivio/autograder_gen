@@ -46,8 +46,8 @@
         {% endif %}
         try:
             result = self.call_function_with_timeout(function, args, kwargs, {{ item.time_limit }})
-            expected_out = normalize("{{ test_case.expected }}")
-            actual_out = normalize(str(result))
+            expected_out = normalize_output({{ test_case.expected | string | tojson }})
+            actual_out = normalize_output(str(result))
             if expected_output is None:
                 expected_output = expected_out
                 actual_output = actual_out
@@ -78,8 +78,8 @@
         {% endif %}
         try:
             result = self.call_java_function(target_file, function_name, args, {{ item.time_limit }})
-            expected_out = normalize("{{ test_case.expected }}")
-            actual_out = normalize(str(result))
+            expected_out = normalize_output({{ test_case.expected | string | tojson }})
+            actual_out = normalize_output(str(result))
             if expected_output is None:
                 expected_output = expected_out
                 actual_output = actual_out

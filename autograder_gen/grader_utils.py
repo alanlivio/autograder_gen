@@ -1,4 +1,4 @@
-def normalize(s: str) -> str:
+def normalize_output(s: str) -> str:
     if s is None:
         return ""
     s = s.replace("\r\n", "\n")
@@ -8,6 +8,7 @@ def normalize(s: str) -> str:
     while lines and not lines[-1]:
         lines.pop()
     return "\n".join(lines)
+
 
 
 class StudentMessageStr(str):

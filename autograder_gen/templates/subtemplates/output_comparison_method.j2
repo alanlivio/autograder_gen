@@ -59,12 +59,12 @@
                 else:
                     self.fail(StudentMessage.RUNTIME_ERROR)
             
-            expected_out = normalize(expected_output)
+            expected_out = normalize_output(expected_output)
             print(StudentMessage.COMPARING_OUTPUT)
             if expected_input:
                 print(f"{StudentMessage.INPUT}\n{expected_input}")
             print(f"{StudentMessage.EXPECTED_OUTPUT}\n{expected_out}")
-            actual_out = normalize(result.stdout)
+            actual_out = normalize_output(result.stdout)
             print(f"{StudentMessage.ACTUAL_OUTPUT}\n{actual_out}")
             
             if actual_out != expected_out:

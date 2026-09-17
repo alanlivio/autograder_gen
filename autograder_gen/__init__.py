@@ -7,7 +7,10 @@ from autograder_gen.config import Config, Question, MarkingItem
 from autograder_gen.engine import Engine
 from autograder_gen.validator import Validator
 from autograder_gen.autograder_runner import AutograderRunner
-from autograder_gen.grader_utils import StudentMessage, normalize
+from autograder_gen.grader_utils import (
+    StudentMessage,
+    normalize_output,
+)
 
 __all__ = [
     "__version__",
@@ -18,5 +21,5 @@ __all__ = [
     "Validator",
     "AutograderRunner",
     "StudentMessage",
-    "normalize",
+    "normalize_output",
 ]
