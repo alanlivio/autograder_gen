@@ -61,7 +61,9 @@ def run_autograder_scenario(
         # Copy ALL files from the student directory to handle multi-file scenarios
         if student_dir.exists():
             for student_file in student_dir.iterdir():
-                if student_file.is_file():
+                if student_file.is_dir():
+                    shutil.copytree(student_file, submission_dir / student_file.name, dirs_exist_ok=True)
+                elif student_file.is_file():
                     shutil.copy(student_file, submission_dir / student_file.name)
 
         # 3. Run Autograder
@@ -103,6 +105,7 @@ def run_autograder_scenario(
         ("wrong_answer", 0),
         ("compiler_error", 0),
         ("missing_file", 0),
+        ("wrong_file_location", 10),
     ],
 )
 @pytest.mark.parametrize("config_file", ["config.yaml"])
@@ -117,9 +120,10 @@ def test_autograder_integration_py_simple(subdir, expected_score, config_file):
     "subdir, expected_score",
     [
         ("correct_answer", 10),
-        ("wrong_answer", 5),  # Signature check passes, function test fails
+        ("wrong_answer", 5),
         ("compiler_error", 0),
         ("missing_file", 0),
+        ("wrong_file_location", 10),
     ],
 )
 @pytest.mark.parametrize("config_file", ["config.yaml"])
@@ -137,6 +141,7 @@ def test_autograder_integration_py_function(subdir, expected_score, config_file)
         ("wrong_answer", 0),
         ("compiler_error", 0),
         ("missing_file", 0),
+        ("wrong_file_location", 100),
     ],
 )
 @pytest.mark.parametrize("config_file", ["config.yaml"])
@@ -155,6 +160,7 @@ def test_autograder_integration_py_complete(subdir, expected_score, config_file)
         ("wrong_answer", 0),
         ("compiler_error", 0),
         ("missing_file", 0),
+        ("wrong_file_location", 10),
     ],
 )
 def test_autograder_integration_java_scenarios(subdir, expected_score):

@@ -5,7 +5,7 @@
         """{{ item.name if item.name else (question.name + " - Item " + loop.index|string) }}"""
         print(f"# {{ question_number }}.{{ loop.index }}) {{ item.name if item.name else question.name }}")
         target_file = "{{ item.target_file }}"
-        file_path = self.source_dir / target_file
+        file_path = self.resolve_target(target_file)
         
         if not file_path.exists() or not file_path.is_file():
             self.fail(StudentMessage.WRONG_FILE.format(file_name=target_file))

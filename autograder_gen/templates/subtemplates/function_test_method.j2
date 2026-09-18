@@ -6,7 +6,7 @@
         print(f"# {{ question_number }}.{{ loop.index }}) {{ item.name if item.name else question.name }}")
         target_file = "{{ item.target_file }}"
         function_name = "{{ item.function_name }}"
-        file_path = self.source_dir / target_file
+        file_path = self.resolve_target(target_file)
         if not file_path.exists():
             self.fail(StudentMessage.WRONG_FILE.format(file_name=target_file))
 {% if config.language == 'python' %}
