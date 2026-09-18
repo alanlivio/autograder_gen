@@ -293,3 +293,86 @@ def test_java_remove_package_execution(tmp_path):
     total_score = sum(t.get("score", 0) for t in results["tests"])
     assert total_score == 10
 
+
+def test_float_comparison_tolerance_non_strict(tmp_path):
+    config_dict = {
+        "version": "1.0",
+        "language": "python",
+        "required_files": ["solution.py"],
+        "questions": [
+            {
+                "name": "Float Question",
+                "strict_float": False,
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 10,
+                        "type": "function_test",
+                        "function_name": "calc_volume",
+                        "test_cases": [
+                            {"args": [20.24], "expected": "4341.40345"}
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    cfg_file = tmp_path / "config.yaml"
+    with open(cfg_file, "w", encoding="utf-8") as f:
+        yaml.dump(config_dict, f)
+
+    sub_dir = tmp_path / "submission"
+    sub_dir.mkdir()
+    (sub_dir / "solution.py").write_text(
+        "def calc_volume(d):\n    return 4341.403447756641\n",
+        encoding="utf-8",
+    )
+
+    runner = ag.AutograderRunner(cfg_file)
+    results = runner.run_autograder_for_submission(sub_dir)
+    assert "tests" in results
+    total_score = sum(t.get("score", 0) for t in results["tests"])
+    assert total_score == 10
+
+
+def test_float_comparison_strict_fails(tmp_path):
+    config_dict = {
+        "version": "1.0",
+        "language": "python",
+        "required_files": ["solution.py"],
+        "questions": [
+            {
+                "name": "Float Question",
+                "strict_float": True,
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 10,
+                        "type": "function_test",
+                        "function_name": "calc_volume",
+                        "test_cases": [
+                            {"args": [20.24], "expected": "4341.40345"}
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    cfg_file = tmp_path / "config.yaml"
+    with open(cfg_file, "w", encoding="utf-8") as f:
+        yaml.dump(config_dict, f)
+
+    sub_dir = tmp_path / "submission"
+    sub_dir.mkdir()
+    (sub_dir / "solution.py").write_text(
+        "def calc_volume(d):\n    return 4341.403447756641\n",
+        encoding="utf-8",
+    )
+
+    runner = ag.AutograderRunner(cfg_file)
+    results = runner.run_autograder_for_submission(sub_dir)
+    assert "tests" in results
+    total_score = sum(t.get("score", 0) for t in results["tests"])
+    assert total_score == 0
+
+

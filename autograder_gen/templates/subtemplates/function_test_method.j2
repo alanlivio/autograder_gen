@@ -51,7 +51,7 @@
             if expected_output is None:
                 expected_output = expected_out
                 actual_output = actual_out
-            if actual_out != expected_out:
+            if not compare_outputs(actual_out, expected_out, strict_float={{ question.strict_float | default(False) | tojson }}):
                 print(StudentMessage.COMPARING_OUTPUT)
                 print(f"{StudentMessage.EXPECTED_OUTPUT}\n{expected_out}")
                 print(f"{StudentMessage.ACTUAL_OUTPUT}\n{actual_out}")
@@ -83,7 +83,7 @@
             if expected_output is None:
                 expected_output = expected_out
                 actual_output = actual_out
-            if actual_out != expected_out:
+            if not compare_outputs(actual_out, expected_out, strict_float={{ question.strict_float | default(False) | tojson }}):
                 print(StudentMessage.COMPARING_OUTPUT)
                 print(f"{StudentMessage.EXPECTED_OUTPUT}\n{expected_out}")
                 print(f"{StudentMessage.ACTUAL_OUTPUT}\n{actual_out}")

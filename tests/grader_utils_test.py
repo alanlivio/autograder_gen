@@ -1,4 +1,8 @@
-from autograder_gen.grader_utils import normalize_output, remove_package_line
+from autograder_gen.grader_utils import (
+    compare_outputs,
+    normalize_output,
+    remove_package_line,
+)
 
 
 def test_normalize_function():
@@ -71,3 +75,29 @@ def test_remove_package_line_no_package(tmp_path):
 def test_remove_package_line_nonexistent(tmp_path):
     f = tmp_path / "Nonexistent.java"
     remove_package_line(f)
+
+
+def test_compare_outputs_exact_match():
+    assert compare_outputs("hello", "hello") is True
+    assert compare_outputs("42", "42") is True
+    assert compare_outputs("3.14", "3.14") is True
+
+
+def test_compare_outputs_float_tolerance_when_not_strict():
+    assert compare_outputs("4341.403447", "4341.40345", strict_float=False) is True
+    assert compare_outputs("0.523598", "0.52360", strict_float=False) is True
+    assert compare_outputs("0.0", "0.00000", strict_float=False) is True
+    assert compare_outputs("10.00001", "10.0", strict_float=False) is True
+    assert compare_outputs("10.5", "10.0", strict_float=False) is False
+
+
+def test_compare_outputs_float_requires_exact_when_strict():
+    assert compare_outputs("4341.403447", "4341.40345", strict_float=True) is False
+    assert compare_outputs("3.14159", "3.14159", strict_float=True) is True
+    assert compare_outputs("0.0", "0.0", strict_float=True) is True
+
+
+def test_compare_outputs_non_numeric_fallback():
+    assert compare_outputs("abc", "abd", strict_float=False) is False
+    assert compare_outputs("result: 42.0", "result: 42.00", strict_float=False) is False
+

@@ -69,6 +69,7 @@ class Question(BaseModel):
 
     name: str
     description: str = ""
+    strict_float: bool = False
     marking_items: List[MarkingItem] = Field(min_length=1)
 
 

@@ -228,6 +228,16 @@
                             placeholder="Describe the question for students..."></textarea>
                     </div>
                 </div>
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input q-strict-float-input" type="checkbox">
+                            <label class="form-check-label small text-muted">
+                                <strong>Strict Float Comparison</strong> (require exact match without tolerance)
+                            </label>
+                        </div>
+                    </div>
+                </div>
                 <div>
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <label class="form-label font-weight-bold mb-0">Marking Items</label>
@@ -419,6 +429,11 @@
             if (descInput) {
                 descInput.name = `${prefix}-description`;
                 descInput.id = `${prefix}-description`;
+            }
+            const strictFloatInput = question.querySelector('.q-strict-float-input');
+            if (strictFloatInput) {
+                strictFloatInput.name = `${prefix}-strict_float`;
+                strictFloatInput.id = `${prefix}-strict_float`;
             }
             const qTotalPointsSpan = question.querySelector('.q-total-points');
             let questionTotal = 0;
@@ -705,6 +720,7 @@
             const question = {
                 name: formData.get(`${prefix}-name`),
                 description: formData.get(`${prefix}-description`),
+                strict_float: formData.get(`${prefix}-strict_float`) === 'on' || formData.get(`${prefix}-strict_float`) === 'true',
                 marking_items: []
             };
             const markingItems = q.querySelectorAll('.marking-item');
@@ -1026,6 +1042,8 @@
                         if (nameInput) nameInput.value = q.name || '';
                         const descInput = qCard.querySelector('.q-description-input');
                         if (descInput && q.description) descInput.value = q.description;
+                        const strictFloatInput = qCard.querySelector('.q-strict-float-input');
+                        if (strictFloatInput) strictFloatInput.checked = Boolean(q.strict_float);
 
                         const miList = qCard.querySelector('.marking-items-list');
                         if (miList) miList.innerHTML = '';

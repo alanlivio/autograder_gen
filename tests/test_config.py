@@ -271,3 +271,37 @@ def test_required_files_and_backwards_compatibility():
     assert summary_rf["required_files"] == ["app.py"]
     assert summary_rf["src_files"] == ["app.py"]
     assert summary_rf["files_necessary"] == ["app.py"]
+
+
+def test_question_strict_float_configuration():
+    data = {
+        "version": "1.0",
+        "language": "python",
+        "required_files": ["solution.py"],
+        "questions": [
+            {
+                "name": "Default Float Question",
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 10,
+                        "type": "file_exists",
+                    }
+                ],
+            },
+            {
+                "name": "Strict Float Question",
+                "strict_float": True,
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 10,
+                        "type": "file_exists",
+                    }
+                ],
+            },
+        ],
+    }
+    cfg = ag.Config.model_validate(data)
+    assert cfg.questions[0].strict_float is False
+    assert cfg.questions[1].strict_float is True

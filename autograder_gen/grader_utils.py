@@ -3,6 +3,9 @@ import re
 from typing import Union
 
 
+import math
+
+
 def normalize_output(s: str) -> str:
     if s is None:
         return ""
@@ -13,6 +16,26 @@ def normalize_output(s: str) -> str:
     while lines and not lines[-1]:
         lines.pop()
     return "\n".join(lines)
+
+
+def compare_outputs(
+    actual: str,
+    expected: str,
+    strict_float: bool = False,
+    rel_tol: float = 1e-4,
+    abs_tol: float = 1e-4,
+) -> bool:
+    if actual == expected:
+        return True
+    if strict_float:
+        return False
+    try:
+        a_val = float(actual.strip())
+        e_val = float(expected.strip())
+        return math.isclose(a_val, e_val, rel_tol=rel_tol, abs_tol=abs_tol)
+    except (ValueError, TypeError):
+        pass
+    return False
 
 
 def remove_package_line(path: Union[str, Path]) -> None:

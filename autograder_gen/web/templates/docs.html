@@ -144,6 +144,12 @@
                     <td>Question details, instructions, or examples. Supports markdown formatting.</td>
                 </tr>
                 <tr>
+                    <td><strong><code>strict_float</code></strong></td>
+                    <td><code>boolean</code></td>
+                    <td><span class="badge bg-light text-dark">Default: false</span></td>
+                    <td>Controls floating-point comparison precision. When <code>false</code>, allows numerical comparison tolerance (relative and absolute tolerance 1e-4). When <code>true</code>, requires exact match.</td>
+                </tr>
+                <tr>
                     <td><strong><code>marking_items</code></strong></td>
                     <td><a href="#marking-item-model" class="nested-model-link"><code>array of MarkingItemModel</code></a></td>
                     <td><span class="badge bg-success">Required</span></td>
