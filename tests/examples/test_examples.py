@@ -211,3 +211,52 @@ def test_autograder_integration_java_simple():
             content = z.read("Solution.java").decode("utf-8")
             assert "public class Solution {" in content
             assert "return 0.0;" in content
+
+
+def test_strict_file_location_true_fails_wrong_location(tmp_path):
+    base_dir = Path(__file__).parent.parent.parent
+    config_path = base_dir / "tests/examples/py_simple/config.yaml"
+    with open(config_path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    data["strict_file_location"] = True
+    config = ag.Config.model_validate(data)
+
+    generator = ag.Engine(config, data)
+    gen_dir = tmp_path / "generated"
+    output_zip = generator.generate(str(gen_dir))
+
+    work_dir = tmp_path / "run"
+    work_dir.mkdir()
+    import zipfile
+
+    with zipfile.ZipFile(output_zip, "r") as z:
+        z.extractall(work_dir)
+
+    submission_dir = work_dir / "submission"
+    submission_dir.mkdir()
+    student_dir = base_dir / "tests/examples/py_simple/wrong_file_location"
+    for item in student_dir.iterdir():
+        if item.is_dir():
+            shutil.copytree(item, submission_dir / item.name, dirs_exist_ok=True)
+        else:
+            shutil.copy(item, submission_dir / item.name)
+
+    results_path = work_dir / "results.json"
+    process = subprocess.run(
+        [sys.executable, str(work_dir / "run_tests.py")],
+        cwd=work_dir,
+        capture_output=True,
+        text=True,
+        env={
+            **os.environ,
+            "PYTHONPATH": str(work_dir),
+            "GRADESCOPE_RESULTS_PATH": str(results_path),
+            "GRADESCOPE_SOURCE_PATH": str(submission_dir),
+        },
+    )
+    assert results_path.exists(), f"results.json not created. stderr: {process.stderr}"
+    with open(results_path, "r", encoding="utf-8") as f:
+        results = json.load(f)
+    total_score = sum(t.get("score", 0) for t in results["tests"])
+    assert total_score == 0
+    assert any("[WRONG_FILE]" in t.get("output", "") for t in results["tests"])

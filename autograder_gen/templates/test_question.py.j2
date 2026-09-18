@@ -48,6 +48,7 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
 
     def resolve_target(self, target_file):
         target_path = self.source_dir / target_file
+{% if not config.strict_file_location %}
         if target_path.exists():
             return target_path
         matches = list(self.source_dir.rglob(Path(target_file).name))
@@ -57,6 +58,7 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
             if resolved_parent not in sys.path:
                 sys.path.insert(0, resolved_parent)
             return resolved
+{% endif %}
         return target_path
 
 {% if needs_timeout %}

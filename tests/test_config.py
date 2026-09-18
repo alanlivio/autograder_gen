@@ -145,3 +145,28 @@ def test_file_exists_with_time_limit_fails_validation():
     with pytest.raises(ValidationError) as excinfo:
         ag.Config.model_validate(data)
     assert "time_limit is not allowed for type 'file_exists'" in str(excinfo.value)
+
+
+def test_strict_file_location_configuration():
+    base_data = {
+        "version": "1.0",
+        "language": "python",
+        "files_necessary": ["solution.py"],
+        "questions": [
+            {
+                "name": "Q1",
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 10,
+                        "type": "file_exists",
+                    }
+                ],
+            }
+        ],
+    }
+    cfg_default = ag.Config.model_validate(base_data)
+    assert cfg_default.strict_file_location is False
+
+    cfg_strict = ag.Config.model_validate({**base_data, "strict_file_location": True})
+    assert cfg_strict.strict_file_location is True

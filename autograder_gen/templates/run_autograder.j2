@@ -25,12 +25,14 @@ if [ -d "$SUBMISSION_DIR" ]; then
         cp "{{ file }}" "$SOURCE_DIR/{{ file }}"
     else
         echo "Warning: Required file {{ file }} not found in submission"
+        {% if not config.strict_file_location %}
         FOUND_FILE=$(find . -name "$(basename "{{ file }}")" -type f | head -n 1)
         if [ -n "$FOUND_FILE" ]; then
             TARGET_SUBDIR=$(dirname "$FOUND_FILE" | sed 's|^\./||')
             mkdir -p "$SOURCE_DIR/$TARGET_SUBDIR"
             cp "$FOUND_FILE" "$SOURCE_DIR/$TARGET_SUBDIR/"
         fi
+        {% endif %}
     fi
     {% endfor %}
     if [ -f "submission_metadata.json" ]; then
