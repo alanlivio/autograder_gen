@@ -81,8 +81,31 @@ class Config(BaseModel):
     strict_file_location: bool = False
     remove_use_of_java_package: bool = False
     setup_commands: List[str] = Field(default_factory=list)
-    files_necessary: List[str] = Field(default_factory=list)
+    required_files: List[str] = Field(default_factory=list)
     questions: List[Question] = Field(min_length=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def handle_required_files_backwards_compat(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "required_files" not in data or not data["required_files"]:
+                if "src_files" in data and data["src_files"]:
+                    data["required_files"] = data["src_files"]
+                elif "files_necessary" in data and data["files_necessary"]:
+                    data["required_files"] = data["files_necessary"]
+            if "src_files" not in data and "required_files" in data:
+                data["src_files"] = data["required_files"]
+            if "files_necessary" not in data and "required_files" in data:
+                data["files_necessary"] = data["required_files"]
+        return data
+
+    @property
+    def files_necessary(self) -> List[str]:
+        return self.required_files
+
+    @property
+    def src_files(self) -> List[str]:
+        return self.required_files
 
     @field_validator("language")
     @classmethod
@@ -97,9 +120,9 @@ class Config(BaseModel):
         for i, q in enumerate(self.questions):
             for j, item in enumerate(q.marking_items):
                 target = item.target_file
-                if target and target not in self.files_necessary:
+                if target and target not in self.required_files:
                     raise ValueError(
-                        f"Question '{q.name}', Item {j+1}: Target file '{target}' is not listed in 'files_necessary'"
+                        f"Question '{q.name}', Item {j+1}: Target file '{target}' is not listed in 'required_files'"
                     )
         return self
 
@@ -125,7 +148,9 @@ class Config(BaseModel):
             "total_questions": len(self.questions),
             "total_marking_items": total_items,
             "total_marks": total_marks,
-            "files_necessary": self.files_necessary,
+            "required_files": self.required_files,
+            "src_files": self.required_files,
+            "files_necessary": self.required_files,
             "visibility_counts": visibility_counts,
         }
 
@@ -184,9 +209,11 @@ class Config(BaseModel):
         dump["setup_commands"] = [
             cmd.strip() for cmd in dump.get("setup_commands", []) if cmd and cmd.strip()
         ]
-        dump["files_necessary"] = [
-            f.strip() for f in dump.get("files_necessary", []) if f and f.strip()
+        dump["required_files"] = [
+            f.strip() for f in dump.get("required_files", []) if f and f.strip()
         ]
+        dump["src_files"] = dump["required_files"]
+        dump["files_necessary"] = dump["required_files"]
         return dump
 
 

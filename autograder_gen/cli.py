@@ -83,9 +83,9 @@ def main():
         print(f"  Total Questions: {summary['total_questions']}")
         print(f"  Total Marking Items: {summary['total_marking_items']}")
         print(f"  Total Marks: {summary['total_marks']}")
-        print(f"  Necessary Files: {', '.join(summary['files_necessary'])}")
+        print(f"  Required Files: {', '.join(summary['required_files'])}")
 
-        generator = ag.Engine(config, original_config_dict)
+        generator = ag.Engine(config, original_config_dict, base_dir=path.parent)
         output_path = generator.generate(args.output)
         print_success(f"Autograder package generated successfully at: {args.output}")
         print_success(

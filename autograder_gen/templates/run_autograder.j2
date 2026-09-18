@@ -18,7 +18,7 @@ echo "Copying required submission files to source directory..."
 
 if [ -d "$SUBMISSION_DIR" ]; then
     cd "$SUBMISSION_DIR"
-    {% for file in config.files_necessary %}
+    {% for file in config.required_files %}
     if [ -f "{{ file }}" ]; then
         echo "Copying {{ file }}..."
         mkdir -p "$SOURCE_DIR/$(dirname "{{ file }}")"

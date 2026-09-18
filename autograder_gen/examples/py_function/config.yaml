@@ -1,6 +1,6 @@
 version: '1.0'
 language: python
-files_necessary:
+required_files:
 - solution.py
 questions:
 - name: Function Signature and Logic

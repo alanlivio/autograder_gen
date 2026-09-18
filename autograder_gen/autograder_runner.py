@@ -326,14 +326,14 @@ class AutograderRunner:
                     if "autograder_gen.yaml" in z.namelist():
                         data = yaml.safe_load(z.read("autograder_gen.yaml"))
                         parsed_config = Config.model_validate(data)
-                        return Engine(parsed_config, data)
+                        return Engine(parsed_config, data, base_dir=cfg_path.parent)
             parsed_config = Config.parse(cfg_path)
             with open(cfg_path, "r", encoding="utf-8") as f:
                 if cfg_path.suffix.lower() in [".yaml", ".yml"]:
                     original_config = yaml.safe_load(f)
                 else:
                     original_config = json.load(f)
-            return Engine(parsed_config, original_config)
+            return Engine(parsed_config, original_config, base_dir=cfg_path.parent)
         elif isinstance(self.config, Config):
             return Engine(self.config)
         elif isinstance(self.config, dict):

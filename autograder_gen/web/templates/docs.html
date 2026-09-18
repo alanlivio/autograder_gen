@@ -97,10 +97,10 @@
                     <td>Commands executed inside the sandbox during setup (e.g., installing package dependencies).</td>
                 </tr>
                 <tr>
-                    <td><strong><code>files_necessary</code></strong></td>
+                    <td><strong><code>required_files</code></strong></td>
                     <td><code>array of strings</code></td>
                     <td><span class="badge bg-success">Required</span></td>
-                    <td>List of files required to be submitted by the student. Validated on submission.</td>
+                    <td>List of files required to be submitted by the student (formerly <code>files_necessary</code>). Validated on submission.</td>
                 </tr>
                 <tr>
                     <td><strong><code>questions</code></strong></td>
@@ -176,7 +176,7 @@
                     <td><strong><code>target_file</code></strong></td>
                     <td><code>string</code></td>
                     <td><span class="badge bg-success">Required</span></td>
-                    <td>The file to check. Must be listed under global <code>files_necessary</code>.</td>
+                    <td>The file to check. Must be listed under global <code>required_files</code>.</td>
                 </tr>
                 <tr>
                     <td><strong><code>total_mark</code></strong></td>

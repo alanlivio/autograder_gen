@@ -1,6 +1,6 @@
 version: '1.0'
 language: java
-files_necessary:
+required_files:
 - Solution.java
 questions:
 - name: Question 1

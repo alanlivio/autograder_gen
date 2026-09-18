@@ -177,7 +177,7 @@
                                 <span class="text-muted small">No specific file requirements defined.</span>
                             </div>
                         </div>
-                        <textarea id="files_necessary" name="files_necessary" class="d-none"></textarea>
+                        <textarea id="required_files" name="required_files" class="d-none"></textarea>
                         <div class="form-text">Files that students MUST submit.</div>
                     </div>
                 </div>
@@ -341,7 +341,7 @@
         document.getElementById('autograder-form').reset();
         document.getElementById('questions-list').innerHTML = '';
         document.getElementById('required-files-list').innerHTML = '';
-        document.getElementById('files_necessary').value = '';
+        document.getElementById('required_files').value = '';
         document.getElementById('setup_commands').value = '';
         questionCount = 0;
         addQuestion();
@@ -547,15 +547,22 @@
         mi.querySelector('.type-fields').innerHTML = html;
         populateTargetFileDropdown(mi.querySelector('select[id$="-target_file"]'));
     }
+    function getRequiredFilesTextarea() {
+        return document.getElementById('required_files');
+    }
+    function setRequiredFilesValue(val) {
+        const rf = document.getElementById('required_files');
+        if (rf) rf.value = val;
+    }
     function addRequiredFile() {
         const input = document.getElementById('new-file-input');
         const filename = input.value.trim();
         if (!filename) return;
-        const filesTextarea = document.getElementById('files_necessary');
-        const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
+        const filesTextarea = getRequiredFilesTextarea();
+        const files = filesTextarea && filesTextarea.value ? filesTextarea.value.split('\n') : [];
         if (!files.includes(filename)) {
             files.push(filename);
-            filesTextarea.value = files.join('\n');
+            setRequiredFilesValue(files.join('\n'));
             renderRequiredFilesList();
             updateAllTargetFileDropdowns();
         }
@@ -563,18 +570,18 @@
         disableGenerateButton();
     }
     function removeRequiredFile(filename) {
-        const filesTextarea = document.getElementById('files_necessary');
-        let files = filesTextarea.value.split('\n');
+        const filesTextarea = getRequiredFilesTextarea();
+        let files = filesTextarea && filesTextarea.value ? filesTextarea.value.split('\n') : [];
         files = files.filter(f => f !== filename);
-        filesTextarea.value = files.join('\n');
+        setRequiredFilesValue(files.join('\n'));
         renderRequiredFilesList();
         updateAllTargetFileDropdowns();
         disableGenerateButton();
     }
     function renderRequiredFilesList() {
         const list = document.getElementById('required-files-list');
-        const filesTextarea = document.getElementById('files_necessary');
-        const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
+        const filesTextarea = getRequiredFilesTextarea();
+        const files = filesTextarea && filesTextarea.value ? filesTextarea.value.split('\n') : [];
         if (files.length === 0) {
             list.innerHTML = '<span class="text-muted small">No specific file requirements defined.</span>';
             return;
@@ -593,12 +600,12 @@
     function editRequiredFile(oldName) {
         const newName = prompt('Rename file requirement:', oldName);
         if (!newName || newName === oldName) return;
-        const filesTextarea = document.getElementById('files_necessary');
-        let files = filesTextarea.value.split('\n');
+        const filesTextarea = getRequiredFilesTextarea();
+        let files = filesTextarea && filesTextarea.value ? filesTextarea.value.split('\n') : [];
         const idx = files.indexOf(oldName);
         if (idx !== -1) {
             files[idx] = newName;
-            filesTextarea.value = files.join('\n');
+            setRequiredFilesValue(files.join('\n'));
             renderRequiredFilesList();
             updateAllTargetFileDropdowns();
         }
@@ -608,8 +615,8 @@
     }
     function populateTargetFileDropdown(select) {
         const currentValue = select.value;
-        const filesTextarea = document.getElementById('files_necessary');
-        const files = filesTextarea.value ? filesTextarea.value.split('\n') : [];
+        const filesTextarea = getRequiredFilesTextarea();
+        const files = filesTextarea && filesTextarea.value ? filesTextarea.value.split('\n') : [];
         select.innerHTML = '<option value="">Select file...</option>';
         files.forEach(file => {
             const option = document.createElement('option');
@@ -689,7 +696,7 @@
             language: formData.get('language'),
             global_time_limit: parseInt(formData.get('global_time_limit')),
             setup_commands: (formData.get('setup_commands') || '').split('\n').filter(c => c.trim()),
-            files_necessary: (formData.get('files_necessary') || '').split('\n').filter(f => f.trim()),
+            required_files: (formData.get('required_files') || '').split('\n').filter(f => f.trim()),
             questions: []
         };
         const questions = document.querySelectorAll('#questions-list > .card');
@@ -1001,7 +1008,10 @@
                 if (config.version) setElVal('version', config.version);
                 if (config.global_time_limit) setElVal('global_time_limit', config.global_time_limit);
                 if (config.setup_commands) setElVal('setup_commands', (config.setup_commands || []).join('\n'));
-                if (config.files_necessary) setElVal('files_necessary', (config.files_necessary || []).join('\n'));
+                if (config.required_files || config.src_files) {
+                    const filesStr = (config.required_files || config.src_files || []).join('\n');
+                    setElVal('required_files', filesStr);
+                }
                 renderRequiredFilesList();
 
                 const questionsList = document.getElementById('questions-list');

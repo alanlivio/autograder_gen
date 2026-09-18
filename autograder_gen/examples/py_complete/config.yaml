@@ -4,7 +4,7 @@ global_time_limit: 600
 setup_commands:
 - pip install numpy pandas matplotlib requests
 - pip install scipy scikit-learn
-files_necessary:
+required_files:
 - basic_operations.py
 - math_functions.py
 - data_processing.py

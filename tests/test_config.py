@@ -195,3 +195,79 @@ def test_remove_use_of_java_package_configuration():
 
     cfg_remove = ag.Config.model_validate({**base_data, "remove_use_of_java_package": True})
     assert cfg_remove.remove_use_of_java_package is True
+
+
+def test_required_files_and_backwards_compatibility():
+    legacy_files_necessary = {
+        "version": "1.0",
+        "language": "python",
+        "files_necessary": ["solution.py"],
+        "questions": [
+            {
+                "name": "Q1",
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 10,
+                        "type": "file_exists",
+                    }
+                ],
+            }
+        ],
+    }
+    cfg_fn = ag.Config.model_validate(legacy_files_necessary)
+    assert cfg_fn.required_files == ["solution.py"]
+    assert cfg_fn.src_files == ["solution.py"]
+    assert cfg_fn.files_necessary == ["solution.py"]
+    summary_fn = cfg_fn.get_config_summary()
+    assert summary_fn["required_files"] == ["solution.py"]
+    assert summary_fn["src_files"] == ["solution.py"]
+    assert summary_fn["files_necessary"] == ["solution.py"]
+
+    legacy_src_files = {
+        "version": "1.0",
+        "language": "python",
+        "src_files": ["main.py"],
+        "questions": [
+            {
+                "name": "Q1",
+                "marking_items": [
+                    {
+                        "target_file": "main.py",
+                        "total_mark": 10,
+                        "type": "file_exists",
+                    }
+                ],
+            }
+        ],
+    }
+    cfg_sf = ag.Config.model_validate(legacy_src_files)
+    assert cfg_sf.required_files == ["main.py"]
+    assert cfg_sf.src_files == ["main.py"]
+    assert cfg_sf.files_necessary == ["main.py"]
+
+    modern_data = {
+        "version": "1.0",
+        "language": "python",
+        "required_files": ["app.py"],
+        "questions": [
+            {
+                "name": "Q1",
+                "marking_items": [
+                    {
+                        "target_file": "app.py",
+                        "total_mark": 10,
+                        "type": "file_exists",
+                    }
+                ],
+            }
+        ],
+    }
+    cfg_rf = ag.Config.model_validate(modern_data)
+    assert cfg_rf.required_files == ["app.py"]
+    assert cfg_rf.src_files == ["app.py"]
+    assert cfg_rf.files_necessary == ["app.py"]
+    summary_rf = cfg_rf.get_config_summary()
+    assert summary_rf["required_files"] == ["app.py"]
+    assert summary_rf["src_files"] == ["app.py"]
+    assert summary_rf["files_necessary"] == ["app.py"]
