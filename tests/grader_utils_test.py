@@ -1,4 +1,4 @@
-from autograder_gen.grader_utils import normalize_output
+from autograder_gen.grader_utils import normalize_output, remove_package_line
 
 
 def test_normalize_function():
@@ -44,3 +44,30 @@ def test_normalize_whitespace_only_strings():
     assert normalize_output("   ") == ""
     assert normalize_output("\n\n\n") == ""
     assert normalize_output("  \n \t \n  ") == ""
+
+
+def test_remove_package_line_standard(tmp_path):
+    f = tmp_path / "Solution.java"
+    f.write_text("package coursework1;\npublic class Solution {\n}\n", encoding="utf-8")
+    remove_package_line(f)
+    assert f.read_text(encoding="utf-8") == "public class Solution {\n}\n"
+
+
+def test_remove_package_line_with_comment_and_spaces(tmp_path):
+    f = tmp_path / "Solution.java"
+    f.write_text("// student code\n  package   my.pkg.name ; // comment\npublic class Solution {}\n", encoding="utf-8")
+    remove_package_line(f)
+    assert f.read_text(encoding="utf-8") == "// student code\npublic class Solution {}\n"
+
+
+def test_remove_package_line_no_package(tmp_path):
+    f = tmp_path / "Solution.java"
+    content = "public class Solution {\n    // package test\n}\n"
+    f.write_text(content, encoding="utf-8")
+    remove_package_line(f)
+    assert f.read_text(encoding="utf-8") == content
+
+
+def test_remove_package_line_nonexistent(tmp_path):
+    f = tmp_path / "Nonexistent.java"
+    remove_package_line(f)

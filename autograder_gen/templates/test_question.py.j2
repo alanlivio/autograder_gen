@@ -26,7 +26,7 @@ if str(Path(__file__).parent.parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).parent.parent))
 if str(Path(__file__).parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).parent))
-from grader_utils import StudentMessage, normalize_output
+from grader_utils import StudentMessage, normalize_output{% if config.language == 'java' and config.remove_use_of_java_package %}, remove_package_line{% endif %}
 
 
 class TestQuestion{{ question_number }}(unittest.TestCase):
@@ -45,6 +45,10 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
         # Add source directory to Python path for imports
         if str(self.source_dir) not in sys.path:
             sys.path.insert(0, str(self.source_dir))
+{% if config.language == 'java' and config.remove_use_of_java_package %}
+        for java_file in self.source_dir.rglob("*.java"):
+            remove_package_line(java_file)
+{% endif %}
 
     def resolve_target(self, target_file):
         target_path = self.source_dir / target_file
@@ -106,11 +110,19 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
 
 {% endif %}
 {% if config.language == 'java' %}
+{% if config.remove_use_of_java_package %}
+    def remove_package_line(self, file_path):
+        remove_package_line(file_path)
+
+{% endif %}
     def call_java_function(self, file_name, function_name, args, timeout_seconds):
         """Compile Java file and execute specified function with args."""
         file_path = self.resolve_target(file_name)
         if not file_path.exists():
             raise AssertionError(StudentMessage.WRONG_FILE.format(file_name=file_name))
+{% if config.remove_use_of_java_package %}
+        remove_package_line(file_path)
+{% endif %}
         
         target_dir = file_path.parent
         classpath = f"{target_dir}{os.pathsep}{self.source_dir}{os.pathsep}."

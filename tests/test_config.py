@@ -170,3 +170,28 @@ def test_strict_file_location_configuration():
 
     cfg_strict = ag.Config.model_validate({**base_data, "strict_file_location": True})
     assert cfg_strict.strict_file_location is True
+
+
+def test_remove_use_of_java_package_configuration():
+    base_data = {
+        "version": "1.0",
+        "language": "java",
+        "files_necessary": ["Solution.java"],
+        "questions": [
+            {
+                "name": "Q1",
+                "marking_items": [
+                    {
+                        "target_file": "Solution.java",
+                        "total_mark": 10,
+                        "type": "file_exists",
+                    }
+                ],
+            }
+        ],
+    }
+    cfg_default = ag.Config.model_validate(base_data)
+    assert cfg_default.remove_use_of_java_package is False
+
+    cfg_remove = ag.Config.model_validate({**base_data, "remove_use_of_java_package": True})
+    assert cfg_remove.remove_use_of_java_package is True

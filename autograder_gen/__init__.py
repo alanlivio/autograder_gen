@@ -10,6 +10,7 @@ from autograder_gen.autograder_runner import AutograderRunner
 from autograder_gen.grader_utils import (
     StudentMessage,
     normalize_output,
+    remove_package_line,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "AutograderRunner",
     "StudentMessage",
     "normalize_output",
+    "remove_package_line",
 ]

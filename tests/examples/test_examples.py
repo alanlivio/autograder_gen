@@ -260,3 +260,27 @@ def test_strict_file_location_true_fails_wrong_location(tmp_path):
     total_score = sum(t.get("score", 0) for t in results["tests"])
     assert total_score == 0
     assert any("[WRONG_FILE]" in t.get("output", "") for t in results["tests"])
+
+
+@pytest.mark.skipif(shutil.which("javac") is None, reason="javac is not installed")
+def test_java_simple_correct_answer_with_package():
+    base_dir = Path(__file__).parent.parent.parent
+    java_simple_dir = base_dir / "tests/examples/java_simple"
+    config_path = java_simple_dir / "config.yaml"
+    student_dir = java_simple_dir / "correct_answer_with_package"
+
+    runner_without = ag.AutograderRunner(config_path)
+    res_without = runner_without.run_autograder_for_submission(student_dir)
+    assert "tests" in res_without
+    score_without = sum(t.get("score", 0) for t in res_without["tests"])
+    assert score_without == 0
+
+    with open(config_path, "r", encoding="utf-8") as f:
+        data_with = yaml.safe_load(f)
+    data_with["remove_use_of_java_package"] = True
+
+    runner_with = ag.AutograderRunner(data_with)
+    res_with = runner_with.run_autograder_for_submission(student_dir)
+    assert "tests" in res_with
+    score_with = sum(t.get("score", 0) for t in res_with["tests"])
+    assert score_with == 10

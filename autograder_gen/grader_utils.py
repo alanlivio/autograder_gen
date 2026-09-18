@@ -1,3 +1,8 @@
+from pathlib import Path
+import re
+from typing import Union
+
+
 def normalize_output(s: str) -> str:
     if s is None:
         return ""
@@ -8,6 +13,25 @@ def normalize_output(s: str) -> str:
     while lines and not lines[-1]:
         lines.pop()
     return "\n".join(lines)
+
+
+def remove_package_line(path: Union[str, Path]) -> None:
+    try:
+        p = Path(path)
+        if not p.exists() or not p.is_file():
+            return
+        content = p.read_text(encoding="utf-8", errors="replace")
+        new_content = re.sub(
+            r"^\s*package\s+[\w.]+\s*;[^\S\r\n]*(//.*)?(\r?\n)?",
+            "",
+            content,
+            flags=re.MULTILINE,
+        )
+        if new_content != content:
+            print(f"[INFO] removing not expected package line from {p.name}.")
+            p.write_text(new_content, encoding="utf-8")
+    except Exception:
+        pass
 
 
 

@@ -1,6 +1,7 @@
 import zipfile
 import tempfile
 import shutil
+import yaml
 import pytest
 import autograder_gen as ag
 from autograder_gen.grader_utils import StudentMessage
@@ -214,3 +215,81 @@ def test_file_exists_template_student_message(tmp_path):
         assert "StudentMessage.WRONG_FILE.format(file_name=target_file)" in test_content
         assert "StudentMessage.CORRECT_FILE.format(file_name=target_file)" in test_content
         assert "self.fail(StudentMessage.WRONG_FILE.format(file_name=target_file))" in test_content
+
+
+def test_java_remove_package_template(tmp_path):
+    config_dict = {
+        "version": "1.0",
+        "language": "java",
+        "remove_use_of_java_package": True,
+        "files_necessary": ["Solution.java"],
+        "questions": [
+            {
+                "name": "Java Test",
+                "marking_items": [
+                    {
+                        "target_file": "Solution.java",
+                        "total_mark": 10,
+                        "type": "function_test",
+                        "function_name": "add",
+                        "test_cases": [
+                            {"args": [1.0, 2.0], "expected": "3.0"}
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    config = ag.Config.model_validate(config_dict)
+    generator = ag.Engine(config, config_dict)
+    output_dir = tmp_path / "output_java_pkg"
+    zip_path = generator.generate(str(output_dir))
+
+    with zipfile.ZipFile(zip_path, "r") as z:
+        assert "grader_utils.py" in z.namelist()
+        test_content = z.read("tests/question_1_test.py").decode("utf-8")
+        assert "from grader_utils import StudentMessage, normalize_output, remove_package_line" in test_content
+        assert "remove_package_line(file_path)" in test_content
+        assert "remove_package_line(java_file)" in test_content
+
+
+def test_java_remove_package_execution(tmp_path):
+    config_dict = {
+        "version": "1.0",
+        "language": "java",
+        "remove_use_of_java_package": True,
+        "files_necessary": ["Solution.java"],
+        "questions": [
+            {
+                "name": "Java Test",
+                "marking_items": [
+                    {
+                        "target_file": "Solution.java",
+                        "total_mark": 10,
+                        "type": "function_test",
+                        "function_name": "add",
+                        "test_cases": [
+                            {"args": [1.0, 2.0], "expected": "3.0"}
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    cfg_file = tmp_path / "config.yaml"
+    with open(cfg_file, "w", encoding="utf-8") as f:
+        yaml.dump(config_dict, f)
+
+    sub_dir = tmp_path / "submission"
+    sub_dir.mkdir()
+    (sub_dir / "Solution.java").write_text(
+        "package coursework1;\n\npublic class Solution {\n    public static double add(double a, double b) {\n        return a + b;\n    }\n}\n",
+        encoding="utf-8",
+    )
+
+    runner = ag.AutograderRunner(cfg_file)
+    results = runner.run_autograder_for_submission(sub_dir)
+    assert "tests" in results
+    total_score = sum(t.get("score", 0) for t in results["tests"])
+    assert total_score == 10
+

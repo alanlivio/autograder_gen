@@ -79,6 +79,7 @@ class Config(BaseModel):
     language: str
     global_time_limit: int = 300
     strict_file_location: bool = False
+    remove_use_of_java_package: bool = False
     setup_commands: List[str] = Field(default_factory=list)
     files_necessary: List[str] = Field(default_factory=list)
     questions: List[Question] = Field(min_length=1)
