@@ -6,6 +6,7 @@ import zipfile
 from pathlib import Path
 import pytest
 import yaml
+from pydantic import ValidationError
 import autograder_gen as ag
 
 
@@ -76,7 +77,7 @@ def test_config_wrong_file_location_deduction_requires_strict_false():
             }
         ],
     }
-    with pytest.raises(ag.ValidationError) as exc:
+    with pytest.raises(ValidationError) as exc:
         ag.Config.model_validate(data)
     assert "wrong_file_location_deduction is only supported when strict_file_location is False" in str(exc.value)
 
@@ -100,7 +101,7 @@ def test_config_wrong_file_location_deduction_negative_fails():
             }
         ],
     }
-    with pytest.raises(ag.ValidationError) as exc:
+    with pytest.raises(ValidationError) as exc:
         ag.Config.model_validate(data)
     assert "wrong_file_location_deduction must be non-negative" in str(exc.value)
 

@@ -11,5 +11,5 @@
             self.fail(StudentMessage.WRONG_FILE.format(file_name=target_file))
         print(f"## File Found: {target_file}")
 {% endif %}
-        setattr(getattr(self, self._testMethodName), '__score__', 0.0)
+        setattr(getattr(self.__class__, self._testMethodName), '__score__', 0.0)
         print("[MANUAL_REVIEW] Submission accepted for qualitative review. Final score will be assigned manually by the instructor.")

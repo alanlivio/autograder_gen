@@ -76,7 +76,7 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
         if target_file in self.wrong_location_files:
             deduction = {{ config.wrong_file_location_deduction }}
             awarded = max(0.0, float(total_mark) - float(deduction))
-            setattr(getattr(self, self._testMethodName), '__score__', awarded)
+            setattr(getattr(self.__class__, self._testMethodName), '__score__', awarded)
             print(f"[INFO] penalties applied for file in wrong location: -{deduction} pts")
 {% endif %}
         pass
@@ -153,7 +153,7 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
             if err:
                 print(StudentMessage.COMPILING)
                 print(err.strip())
-            raise AssertionError(StudentMessage.COMPILER_ERROR)
+            raise AssertionError(StudentMessage.COMPILATION_ERROR)
         
         runner_path = self.source_dir / "JavaRunner.java"
         if not runner_path.exists():

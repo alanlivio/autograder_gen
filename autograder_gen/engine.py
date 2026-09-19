@@ -1076,7 +1076,9 @@ class Engine:
         """Preprocess question to add newlines to expected output for output comparison tests."""
 
         processed_question = SimpleNamespace()
-        processed_question.name = question.name
+        for attr in dir(question):
+            if not attr.startswith("_") and not attr.startswith("model_"):
+                setattr(processed_question, attr, getattr(question, attr))
         processed_question.marking_items = []
 
         for item in question.marking_items:
