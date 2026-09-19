@@ -34,6 +34,7 @@ class MarkingItem(BaseModel):
             "function_test",
             "gitlab_submission_exists",
             "github_submission_exists",
+            "manual_review",
         }
         if v not in allowed:
             raise ValueError(f"type must be one of: {allowed}")
@@ -57,7 +58,7 @@ class MarkingItem(BaseModel):
         if self.type == "function_test" and not self.function_name:
             raise ValueError("function_name is required for function_test")
         if (
-            self.type not in ("gitlab_submission_exists", "github_submission_exists")
+            self.type not in ("gitlab_submission_exists", "github_submission_exists", "manual_review")
             and not self.target_file
         ):
             raise ValueError(f"target_file is required for type '{self.type}'")
@@ -70,7 +71,27 @@ class Question(BaseModel):
     name: str
     description: str = ""
     strict_float: bool = False
+    manual_review: bool = False
     marking_items: List[MarkingItem] = Field(min_length=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def handle_manual_review_question(cls, data: Any) -> Any:
+        if isinstance(data, dict) and data.get("manual_review"):
+            if not data.get("marking_items"):
+                data["marking_items"] = [
+                    {
+                        "name": data.get("name", "Manual Review"),
+                        "total_mark": data.get("total_mark", 0.0),
+                        "type": "manual_review",
+                        "target_file": data.get("target_file", ""),
+                    }
+                ]
+            else:
+                for item in data.get("marking_items", []):
+                    if isinstance(item, dict) and not item.get("type"):
+                        item["type"] = "manual_review"
+        return data
 
 
 class Config(BaseModel):

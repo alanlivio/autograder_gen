@@ -365,6 +365,8 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
     {% include 'subtemplates/gitlab_submission_exists.j2' %}
 {% elif item.type == "github_submission_exists" %}
     {% include 'subtemplates/github_submission_exists.j2' %}
+{% elif item.type == "manual_review" %}
+    {% include 'subtemplates/manual_review_method.j2' %}
 {% endif %}
 
 {% endfor %}

@@ -196,6 +196,12 @@ class Engine:
                     doc.add_paragraph(
                         "Requirement: Submission must be made via a GitHub repository."
                     )
+                elif item.type == "manual_review":
+                    doc.add_paragraph(
+                        f"Requirement: Qualitative evaluation of '{item.target_file}' (manual review by instructor)."
+                        if item.target_file
+                        else "Requirement: Qualitative evaluation (manual review by instructor)."
+                    )
                 visible_item_idx += 1
         buffer = BytesIO()
         doc.save(buffer)
@@ -256,6 +262,12 @@ class Engine:
                 elif item.type == "github_submission_exists":
                     lines.append(
                         "- **Requirement:** Submission must be made via a GitHub repository."
+                    )
+                elif item.type == "manual_review":
+                    lines.append(
+                        f"- **Requirement:** Qualitative evaluation of `{item.target_file}` (manual review by instructor)."
+                        if item.target_file
+                        else "- **Requirement:** Qualitative evaluation (manual review by instructor)."
                     )
                 lines.append("")
                 visible_item_idx += 1
@@ -343,6 +355,12 @@ class Engine:
                 elif item.type == "github_submission_exists":
                     html_lines.append(
                         "      <p><strong>Requirement:</strong> Submission must be made via a GitHub repository.</p>"
+                    )
+                elif item.type == "manual_review":
+                    html_lines.append(
+                        f"      <p><strong>Requirement:</strong> Qualitative evaluation of <code>{item.target_file}</code> (manual review by instructor).</p>"
+                        if item.target_file
+                        else "      <p><strong>Requirement:</strong> Qualitative evaluation (manual review by instructor).</p>"
                     )
                 html_lines.append("    </div>")
                 visible_item_idx += 1
@@ -1177,6 +1195,7 @@ autograder.zip
 - **output_comparison**: Compares program output with expected results
 - **signature_check**: Validates function signatures and parameters
 - **function_test**: Tests function behavior with specific inputs and expected outputs
+- **manual_review**: Qualitative manual review by instructor (e.g. written report, PDF)
 
 ## Questions"""
 

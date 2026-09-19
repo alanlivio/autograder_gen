@@ -162,6 +162,12 @@
                     <td>Controls floating-point comparison precision. When <code>false</code>, allows numerical comparison tolerance (relative and absolute tolerance 1e-4). When <code>true</code>, requires exact match.</td>
                 </tr>
                 <tr>
+                    <td><strong><code>manual_review</code></strong></td>
+                    <td><code>boolean</code></td>
+                    <td><span class="badge bg-light text-dark">Default: false</span></td>
+                    <td>Designates question for qualitative / manual instructor review (e.g., written reports, PDFs).</td>
+                </tr>
+                <tr>
                     <td><strong><code>marking_items</code></strong></td>
                     <td><a href="#marking-item-model" class="nested-model-link"><code>array of MarkingItemModel</code></a></td>
                     <td><span class="badge bg-success">Required</span></td>
@@ -206,7 +212,7 @@
                     <td><strong><code>type</code></strong></td>
                     <td><code>string</code></td>
                     <td><span class="badge bg-success">Required</span></td>
-                    <td>Type of automated check. Enum: <code>file_exists</code>, <code>output_comparison</code>, <code>signature_check</code>, <code>function_test</code>, <code>gitlab_submission_exists</code>, <code>github_submission_exists</code>.</td>
+                    <td>Type of automated check. Enum: <code>file_exists</code>, <code>output_comparison</code>, <code>signature_check</code>, <code>function_test</code>, <code>gitlab_submission_exists</code>, <code>github_submission_exists</code>, <code>manual_review</code>.</td>
                 </tr>
                 <tr>
                     <td><strong><code>time_limit</code></strong></td>
