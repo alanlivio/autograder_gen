@@ -26,7 +26,7 @@ if str(Path(__file__).parent.parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).parent.parent))
 if str(Path(__file__).parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).parent))
-from grader_utils import StudentMessage, normalize_output, compare_outputs{% if config.language == 'java' and config.remove_use_of_java_package %}, remove_package_line{% endif %}
+from grader_utils import StudentMessage, normalize_output, compare_outputs{% if config.language == 'java' and config.remove_use_of_java_package %}, remove_package_line{% endif %}{% if config.retrieve_student_id %}, get_student_id{% endif %}
 
 
 class TestQuestion{{ question_number }}(unittest.TestCase):
@@ -45,6 +45,10 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
         # Add source directory to Python path for imports
         if str(self.source_dir) not in sys.path:
             sys.path.insert(0, str(self.source_dir))
+{% if config.retrieve_student_id %}
+        self.student_id = get_student_id()
+        os.environ["STUDENT_ID"] = self.student_id
+{% endif %}
 {% if config.language == 'java' and config.remove_use_of_java_package %}
         for java_file in self.source_dir.rglob("*.java"):
             remove_package_line(java_file)

@@ -1,8 +1,8 @@
 from pathlib import Path
 import re
-from typing import Union
-
-
+from typing import Union, Optional
+import json
+import os
 import math
 
 
@@ -56,6 +56,75 @@ def remove_package_line(path: Union[str, Path]) -> None:
     except Exception:
         pass
 
+
+def get_student_id(
+    autograder_root: Union[str, Path, None] = None,
+    classlist_path: Union[str, Path, None] = None,
+    default_id: str = "12345678",
+) -> str:
+    root = (
+        Path(autograder_root)
+        if autograder_root
+        else Path(os.environ.get("AUTOGRADER_ROOT", "/autograder"))
+    )
+    metadata_candidates = [
+        root / "submission_metadata.json",
+        root / "submission" / "submission_metadata.json",
+        root / "source" / "submission_metadata.json",
+        Path("submission_metadata.json"),
+        Path("source/submission_metadata.json"),
+    ]
+    metadata = {}
+    for p in metadata_candidates:
+        if p.exists():
+            try:
+                with p.open(encoding="utf-8") as f:
+                    metadata = json.load(f)
+                break
+            except Exception:
+                pass
+
+    users = metadata.get("users") or []
+    first_user = users[0] if users else {}
+    student_id = first_user.get("sid")
+    student_id = re.sub(r"\D+", "", str(student_id) if student_id else "")
+    email = first_user.get("email")
+
+    if not student_id.strip():
+        print("[INFO] Couldn't find student ID in GradeScope metadata; using classlist.")
+        class_entry = ""
+        classlist_candidates = [
+            Path(classlist_path) if classlist_path else None,
+            root / "source" / "classlist.csv",
+            root / "classlist.csv",
+            Path("source/classlist.csv"),
+            Path("classlist.csv"),
+        ]
+        chosen_classlist = None
+        for cp in classlist_candidates:
+            if cp and cp.exists():
+                chosen_classlist = cp
+                break
+
+        if email and chosen_classlist:
+            with chosen_classlist.open(encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    if email in line:
+                        class_entry = line
+                        break
+
+        match = re.search(r"(\d+)", class_entry) if class_entry else None
+        if match:
+            student_id = match.group(1)
+        else:
+            print(f"[INFO] Couldn't find e-mail in classlist, so using {default_id}.")
+            student_id = default_id
+
+    if not student_id.strip():
+        student_id = default_id
+
+    print(f"[INFO] Your student ID: {student_id}\n")
+    return student_id
 
 
 class StudentMessageStr(str):

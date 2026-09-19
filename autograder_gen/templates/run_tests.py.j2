@@ -30,6 +30,13 @@ class NaturalOrderTestLoader(unittest.TestLoader):
 
 def main():
     """Main test runner that combines all question tests."""
+{% if config.retrieve_student_id %}
+    try:
+        from grader_utils import get_student_id
+        os.environ["STUDENT_ID"] = get_student_id()
+    except Exception as e:
+        print(f"[WARNING] Could not retrieve student ID: {e}")
+{% endif %}
     loader = NaturalOrderTestLoader()
     suite = loader.discover("tests", pattern="*_test.py")
 

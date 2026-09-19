@@ -81,6 +81,7 @@ class Config(BaseModel):
     global_time_limit: int = 300
     strict_file_location: bool = False
     remove_use_of_java_package: bool = False
+    retrieve_student_id: bool = False
     setup_commands: List[str] = Field(default_factory=list)
     required_files: List[str] = Field(default_factory=list)
     questions: List[Question] = Field(min_length=1)
@@ -149,6 +150,7 @@ class Config(BaseModel):
             "total_questions": len(self.questions),
             "total_marking_items": total_items,
             "total_marks": total_marks,
+            "retrieve_student_id": self.retrieve_student_id,
             "required_files": self.required_files,
             "src_files": self.required_files,
             "files_necessary": self.required_files,

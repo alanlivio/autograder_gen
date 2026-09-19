@@ -103,6 +103,12 @@
                     <td>List of files required to be submitted by the student (formerly <code>files_necessary</code>). Validated on submission.</td>
                 </tr>
                 <tr>
+                    <td><strong><code>retrieve_student_id</code></strong></td>
+                    <td><code>boolean</code></td>
+                    <td><span class="badge bg-light text-dark">Default: false</span></td>
+                    <td>Retrieve student ID from GradeScope metadata or classlist.csv and expose as <code>STUDENT_ID</code> environment variable.</td>
+                </tr>
+                <tr>
                     <td><strong><code>questions</code></strong></td>
                     <td><a href="#question-model" class="nested-model-link"><code>array of QuestionModel</code></a></td>
                     <td><span class="badge bg-success">Required</span></td>

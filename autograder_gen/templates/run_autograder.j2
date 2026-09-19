@@ -38,6 +38,9 @@ if [ -d "$SUBMISSION_DIR" ]; then
     if [ -f "submission_metadata.json" ]; then
         cp "submission_metadata.json" "$SOURCE_DIR/"
     fi
+    if [ -f "classlist.csv" ]; then
+        cp "classlist.csv" "$SOURCE_DIR/"
+    fi
     echo "Files copied to source directory:"
     ls -la "$SOURCE_DIR/"
 else
