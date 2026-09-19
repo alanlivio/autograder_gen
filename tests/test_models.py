@@ -9,7 +9,14 @@ def test_marking_item_schema_valid():
     assert result.target_file == "solution.py"
     assert result.total_mark == 10
     assert result.type == "file_exists"
-    assert result.time_limit == 30  # Default
+    assert result.time_limit == 30
+
+
+def test_marking_item_schema_float_total_mark():
+    data = {"target_file": "solution.py", "total_mark": 7.5, "type": "file_exists"}
+    result = ag.MarkingItem(**data)
+    assert result.total_mark == 7.5
+    assert isinstance(result.total_mark, float)
 
 
 def test_marking_item_schema_invalid_type():

@@ -67,12 +67,12 @@ class Validator:
         """Perform additional custom validations not covered by Pydantic schema."""
 
         # Check total marks > 0
-        total_marks = 0
+        total_marks = 0.0
         questions = data.get("questions", [])
         for q in questions:
             marking_items = q.get("marking_items", [])
             for item in marking_items:
-                total_marks += item.get("total_mark", 0)
+                total_marks += float(item.get("total_mark", 0))
 
                 # Custom check: output comparison warning
                 self._validate_output_comparison_warnings(item)

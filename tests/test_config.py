@@ -28,6 +28,37 @@ def test_config_total_score_single_question():
     assert config.total_score == 10
 
 
+def test_config_total_score_float_marks():
+    data = {
+        "version": "1.0",
+        "language": "python",
+        "files_necessary": ["solution.py"],
+        "questions": [
+            {
+                "name": "Question 1",
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 2.5,
+                        "type": "file_exists",
+                    },
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 7.5,
+                        "type": "file_exists",
+                    },
+                ],
+            }
+        ],
+    }
+    config = ag.Config.model_validate(data)
+    assert config.total_score == 10.0
+    assert isinstance(config.total_score, float)
+    summary = config.get_config_summary()
+    assert summary["total_marks"] == 10.0
+    assert isinstance(summary["total_marks"], float)
+
+
 def test_config_total_score_multiple_questions_and_items():
     data = {
         "version": "1.0",

@@ -8,7 +8,7 @@ class MarkingItem(BaseModel):
     """Represents a single marking item within a question."""
 
     target_file: str = ""
-    total_mark: int
+    total_mark: float
     type: str
     time_limit: int = 30
     visibility: str = "visible"
@@ -128,12 +128,12 @@ class Config(BaseModel):
         return self
 
     @property
-    def total_score(self) -> int:
+    def total_score(self) -> float:
         return sum(item.total_mark for q in self.questions for item in q.marking_items)
 
     def get_config_summary(self) -> Dict[str, Any]:
         total_items = 0
-        total_marks = 0
+        total_marks = 0.0
         visibility_counts: Dict[str, int] = {}
         for q in self.questions:
             for item in q.marking_items:
