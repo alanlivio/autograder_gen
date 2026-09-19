@@ -127,7 +127,7 @@ def test_output_comparison_template(tmp_path):
         assert "def test_output_test(self):" in test_content
         assert 'print(f"# 1.1) output_test")' in test_content
         assert "from grader_utils import StudentMessage, normalize_output, compare_outputs" in test_content
-        assert "self.fail(StudentMessage.COMPILER_ERROR)" in test_content
+        assert "self.fail(StudentMessage.COMPILATION_ERROR)" in test_content
         assert "self.fail(StudentMessage.RUNTIME_ERROR)" in test_content
         assert "StudentMessage.WRONG_ANSWER_FILE.format(file_name=target_file)" in test_content
         assert "StudentMessage.CORRECT_ANSWER_FILE.format(file_name=target_file)" in test_content
@@ -374,5 +374,12 @@ def test_float_comparison_strict_fails(tmp_path):
     assert "tests" in results
     total_score = sum(t.get("score", 0) for t in results["tests"])
     assert total_score == 0
+
+
+def test_student_message_compilation_error():
+    from autograder_gen.grader_utils import StudentMessage
+
+    assert StudentMessage.COMPILATION_ERROR == "[COMPILATION_ERROR] Check compile errors above."
+    assert not hasattr(StudentMessage, "COMPILER_ERROR")
 
 

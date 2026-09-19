@@ -44,7 +44,7 @@
                 if err:
                     print(StudentMessage.COMPILING)
                     print(err.strip())
-                self.fail(StudentMessage.COMPILER_ERROR)
+                self.fail(StudentMessage.COMPILATION_ERROR)
             javap_res = subprocess.run(
                 ['javap', '-cp', classpath, '-public', class_name],
                 capture_output=True,
@@ -210,7 +210,7 @@
         except SyntaxError as e:
             print(StudentMessage.COMPILING)
             print(f"Error: {str(e)}")
-            self.fail(StudentMessage.COMPILER_ERROR)
+            self.fail(StudentMessage.COMPILATION_ERROR)
         except ImportError as e:
             print(StudentMessage.RUNNING)
             print(f"Error: {str(e)}")

@@ -143,7 +143,7 @@ class StudentMessage:
     INPUT = "### Input:"
     EXPECTED_OUTPUT = "### Expected output:"
     ACTUAL_OUTPUT = "### Actual output:"
-    COMPILER_ERROR = "[COMPILER_ERROR] Check compile errors above."
+    COMPILATION_ERROR = "[COMPILATION_ERROR] Check compile errors above."
     RUNTIME_ERROR = "[RUNTIME_ERROR] Check runtime errors above."
     CORRECT_ANSWER_FILE = StudentMessageStr(
         "[CORRECT_ANSWER] Output matches expected for std output of file {file_name}."

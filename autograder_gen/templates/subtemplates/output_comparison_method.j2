@@ -39,7 +39,7 @@
                 if err:
                     print(StudentMessage.COMPILING)
                     print(err.strip())
-                self.fail(StudentMessage.COMPILER_ERROR)
+                self.fail(StudentMessage.COMPILATION_ERROR)
             result = subprocess.run(
                 ['java', '-cp', classpath, class_name],
                 input=expected_input,
@@ -58,7 +58,7 @@
                 if err:
                     print(err)
                 if "SyntaxError" in err or "IndentationError" in err:
-                    self.fail(StudentMessage.COMPILER_ERROR)
+                    self.fail(StudentMessage.COMPILATION_ERROR)
                 else:
                     self.fail(StudentMessage.RUNTIME_ERROR)
             
