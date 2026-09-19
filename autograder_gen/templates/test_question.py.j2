@@ -36,6 +36,7 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
         """Set up test environment."""
         self.source_dir = Path(os.environ.get('GRADESCOPE_SOURCE_PATH', '/autograder/source'))
         self.submission_files = []
+        self.wrong_location_files = set()
         
         # Get list of submitted files
         for file_path in self.source_dir.iterdir():
@@ -61,6 +62,7 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
             return target_path
         matches = list(self.source_dir.rglob(Path(target_file).name))
         if matches:
+            self.wrong_location_files.add(target_file)
             resolved = matches[0]
             resolved_parent = str(resolved.parent)
             if resolved_parent not in sys.path:
@@ -68,6 +70,16 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
             return resolved
 {% endif %}
         return target_path
+
+    def apply_wrong_location_deduction(self, target_file, total_mark):
+{% if not config.strict_file_location and config.wrong_file_location_deduction > 0 %}
+        if target_file in self.wrong_location_files:
+            deduction = {{ config.wrong_file_location_deduction }}
+            awarded = max(0.0, float(total_mark) - float(deduction))
+            setattr(getattr(self, self._testMethodName), '__score__', awarded)
+            print(f"[INFO] penalties applied for file in wrong location: -{deduction} pts")
+{% endif %}
+        pass
 
 {% if needs_timeout %}
     def call_function_with_timeout(self, func, args, kwargs, timeout_seconds):

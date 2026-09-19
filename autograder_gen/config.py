@@ -82,6 +82,7 @@ class Config(BaseModel):
     strict_file_location: bool = False
     remove_use_of_java_package: bool = False
     retrieve_student_id: bool = False
+    wrong_file_location_deduction: float = 0.0
     setup_commands: List[str] = Field(default_factory=list)
     required_files: List[str] = Field(default_factory=list)
     questions: List[Question] = Field(min_length=1)
@@ -128,6 +129,16 @@ class Config(BaseModel):
                     )
         return self
 
+    @model_validator(mode="after")
+    def validate_wrong_file_location_deduction(self) -> "Config":
+        if self.wrong_file_location_deduction < 0:
+            raise ValueError("wrong_file_location_deduction must be non-negative")
+        if self.strict_file_location and self.wrong_file_location_deduction > 0:
+            raise ValueError(
+                "wrong_file_location_deduction is only supported when strict_file_location is False"
+            )
+        return self
+
     @property
     def total_score(self) -> float:
         return sum(item.total_mark for q in self.questions for item in q.marking_items)
@@ -151,6 +162,7 @@ class Config(BaseModel):
             "total_marking_items": total_items,
             "total_marks": total_marks,
             "retrieve_student_id": self.retrieve_student_id,
+            "wrong_file_location_deduction": self.wrong_file_location_deduction,
             "required_files": self.required_files,
             "src_files": self.required_files,
             "files_necessary": self.required_files,

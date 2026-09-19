@@ -10,4 +10,5 @@
         if not file_path.exists() or not file_path.is_file():
             self.fail(StudentMessage.WRONG_FILE.format(file_name=target_file))
         
-        print(f"## Test Passed: {StudentMessage.CORRECT_FILE.format(file_name=target_file)}") 
+        print(f"## Test Passed: {StudentMessage.CORRECT_FILE.format(file_name=target_file)}")
+        self.apply_wrong_location_deduction(target_file, {{ item.total_mark }}) 

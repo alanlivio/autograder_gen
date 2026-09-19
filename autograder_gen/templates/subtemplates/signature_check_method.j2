@@ -203,6 +203,7 @@
 {% endif %}
             
             print(f"## Test Passed: {StudentMessage.CORRECT_SIGNATURE.format(function_name=function_name)}")
+            self.apply_wrong_location_deduction(target_file, {{ item.total_mark }})
             
         except AssertionError:
             raise

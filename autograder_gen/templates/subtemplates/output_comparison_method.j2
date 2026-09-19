@@ -73,6 +73,7 @@
             if not compare_outputs(actual_out, expected_out, strict_float={{ 'True' if question.strict_float else 'False' }}):
                 self.fail(StudentMessage.WRONG_ANSWER_FILE.format(file_name=target_file))
             print(f"## Test Passed: {StudentMessage.CORRECT_ANSWER_FILE.format(file_name=target_file)}")
+            self.apply_wrong_location_deduction(target_file, {{ item.total_mark }})
         except AssertionError:
             raise
         except subprocess.TimeoutExpired:
