@@ -40,10 +40,10 @@ test:
 	$(PYTHON) -m pytest tests
 
 run-examples:
-	PYTHONPATH=. $(PYTHON) scripts/run_autograder_for_configs_in_folder.py tests/examples
+	PYTHONPATH=. $(PYTHON) -m autograder_gen.batch_run tests/examples
 
 gen-examples:
-	PYTHONPATH=. $(PYTHON) scripts/gen_autograder_for_configs_in_folder.py tests/examples
+	PYTHONPATH=. $(PYTHON) -m autograder_gen.batch_gen tests/examples
 
 format:
 	black .
