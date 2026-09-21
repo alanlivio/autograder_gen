@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,7 @@ name = "autograder_gen"
 authors = [{ name = "Alan Guedes", email = "a.guedes@reading.ac.uk" }]
 description = "A tool for lecturers to automatically generate assessment scripts for Gradescope"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 keywords = ["autograder", "gradescope"]
 license = "MIT"
 classifiers = [
@@ -22,29 +22,45 @@ dependencies = [
     "jinja2>=3.0.0",
     "pydantic>=2.0.0",
     "PyYAML>=6.0",
-    "python-dotenv>=1.0.0",
-    "Flask>=3.1.3",
-    "Flask-Cors>=5.0.0",
-    "gradescope-utils>=0.5.0",
-    "bootstrap-flask>=2.0.0",
     "python-docx>=1.1.0",
+    "gradescope-utils>=0.5.0",
+    "Flask>=3.0.0",
+    "Flask-Cors>=4.0.0",
+    "bootstrap-flask>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "gunicorn>=21.2.0; sys_platform != 'win32'",
 ]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "black>=24.0.0",
+    "build>=1.0.0",
+    "wheel>=0.40.0",
+    "twine>=5.0.0",
+]
 
 [project.urls]
 Homepage = "https://pypi.org/project/autograder_gen/"
 Repository = "https://github.com/alanlivio/autograder_gen"
 
 [project.scripts]
-autograder_gen = "autograder_gen.cli:main"
-autograder_gen_web = "autograder_gen.web.app:main"
+autograder-gen = "autograder_gen.cli:main"
+autograder-gen-web = "autograder_gen.web.app:main"
+autograder-gen-batch = "autograder_gen.batch_gen:main"
+autograder-run-batch = "autograder_gen.batch_run:main"
 
-[tool.setuptools]
-packages = ["autograder_gen", "autograder_gen.web"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["autograder_gen*"]
+exclude = ["tests*", "scripts*"]
+namespaces = false
 
 [tool.setuptools.package-data]
 autograder_gen = ["templates/*", "templates/**/*"]
-"autograder_gen.web" = ["templates/*", "templates/**/*", "static/*", "static/**/*"]
+"autograder_gen.web" = ["templates/*", "templates/**/*", "static/*", "static/**/*", "wsgi/*"]
+"autograder_gen.web.wsgi" = ["*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "autograder_gen.version.__version__" }

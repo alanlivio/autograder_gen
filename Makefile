@@ -1,22 +1,27 @@
-.PHONY: help venv deps build test run-examples gen-example gen-examples serve clean format wheel publish-pypi
+MAKEFLAGS += -s --no-print-directory
+.DEFAULT_GOAL := help
+
+.PHONY: help venv deps build wheel publish-pypi test run-examples gen-examples serve clean format
 
 PYTHON ?= $(shell if [ -f .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
 VENV ?= .venv
 
-
 help:
 	@printf "%s\n" \
-		"Available Makefile targets:" \
-		"  venv          - Create virtual environment (.venv) and install dependencies" \
-		"  deps          - Install dependencies" \
-		"  build         - Build package distribution" \
-		"  wheel         - Build wheel distribution and check with twine" \
-		"  test          - Run pytest test suite" \
-		"  run-examples  - Run examples autograders and log student view results" \
-		"  gen-examples  - Generate autograder packages for tests/examples" \
-		"  format        - Format Python code using black" \
-		"  serve         - Start Flask web server" \
-		"  clean         - Clean build and temporary files"
+		"Usage: make [target]" \
+		"" \
+		"Targets:" \
+		"  deps          Install dependencies" \
+		"  test          Run pytest test suite" \
+		"  wheel         Build wheel distribution and check with twine" \
+		"  build         Build package distribution (sdist and wheel)" \
+		"  publish-pypi  Build wheel and upload to PyPI" \
+		"  venv          Create virtual environment (.venv) and install dependencies" \
+		"  run-examples  Run examples autograders and log student view results" \
+		"  gen-examples  Generate autograder packages for tests/examples" \
+		"  format        Format Python code using black" \
+		"  serve         Start Flask web server" \
+		"  clean         Clean build and temporary files"
 
 venv:
 	$(PYTHON) -m venv $(VENV)
@@ -29,12 +34,22 @@ venv:
 		"  source $(VENV)/bin/activate"
 
 deps:
-	pip install --upgrade pip
-	pip install -r requirements.txt -r requirements-dev.txt
+	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install -r requirements.txt -r requirements-dev.txt
+
+wheel:
+	$(PYTHON) -m pip install --upgrade build wheel setuptools twine
+	rm -rf dist build ./*.egg-info
+	$(PYTHON) -m build --wheel
+	$(PYTHON) -m twine check dist/*
 
 build:
-	pip install --upgrade build
-	python -m build
+	$(PYTHON) -m pip install --upgrade build wheel setuptools
+	rm -rf dist build ./*.egg-info
+	$(PYTHON) -m build
+
+publish-pypi: wheel
+	$(PYTHON) -m twine upload dist/*
 
 test:
 	$(PYTHON) -m pytest tests
@@ -45,20 +60,9 @@ run-examples:
 gen-examples:
 	PYTHONPATH=. $(PYTHON) -m autograder_gen.batch_gen tests/examples
 
-format:
-	black .
 
 serve:
-	python autograder_gen/web/app.py
+	$(PYTHON) autograder_gen/web/app.py
 
 clean:
 	rm -rf dist build ./*.egg-info .pytest_cache tests/examples/*/*.zip tests/examples/*/description.* tests/examples/*/rubric.*
-
-wheel:
-	$(VENV)/bin/pip install build setuptools twine
-	rm -rf dist build ./*.egg-info
-	$(VENV)/bin/python -m build . --wheel
-	$(VENV)/bin/twine check dist/*
-
-publish-pypi: wheel
-	twine upload dist/*

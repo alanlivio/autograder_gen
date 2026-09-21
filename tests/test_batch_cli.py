@@ -38,7 +38,7 @@ def test_find_configs_directory_nested(tmp_path: Path):
 
 
 def test_batch_gen_main_no_args(capsys):
-    sys.argv = ["autograder_gen_batch"]
+    sys.argv = ["autograder-gen-batch"]
     with pytest.raises(SystemExit) as exc_info:
         batch_gen_main()
     assert exc_info.value.code == 1
@@ -47,7 +47,7 @@ def test_batch_gen_main_no_args(capsys):
 
 
 def test_batch_run_main_no_args(capsys):
-    sys.argv = ["autograder_run_batch"]
+    sys.argv = ["autograder-run-batch"]
     with pytest.raises(SystemExit) as exc_info:
         batch_run_main()
     assert exc_info.value.code == 1
@@ -71,7 +71,7 @@ questions:
 """
     cfg_path.write_text(cfg_content, encoding="utf-8")
 
-    monkeypatch.setattr(sys, "argv", ["autograder_gen_batch", str(tmp_path)])
+    monkeypatch.setattr(sys, "argv", ["autograder-gen-batch", str(tmp_path)])
     batch_gen_main()
 
     captured = capsys.readouterr()
