@@ -1,28 +1,72 @@
-# wsgi
+# WSGI Deployment Guide
 
-This folder contains configurations for WSGI deployment.
+This directory provides WSGI integration for deploying the AutograderGen Web UI using production WSGI servers such as **Apache mod_wsgi**, **Gunicorn**, or **uWSGI**.
 
-## Expected Symbolic Links at `/var/www/autograder/`
+## 1. Production Deployment from Installed Package (Recommended)
 
-For deployment, `/var/www/autograder` should be a directory containing the following symbolic links pointing to the project files:
+When `autograder_gen` is installed via `pip install autograder_gen`, all web components and WSGI scripts are installed into the Python environment.
 
-- `requirements.txt` -> `<project_root>/requirements.txt`
-- `static` -> `<project_root>/autograder_gen/web/static`
-- `autograder.wsgi` -> `<project_root>/autograder_gen/web/wsgi/autograder.wsgi`
-- `autograder` -> `<project_root>`
+### Option A: Gunicorn (Standalone WSGI Server)
 
-## Deployments
-
-### Local Development
-For local development, you can run the following command to set up the directory structure and start a Gunicorn server:
+Run `gunicorn` directly with the application callable:
 
 ```bash
-make dev_deploy
+gunicorn --workers 4 --bind 0.0.0.0:8000 autograder_gen.web:app
 ```
 
-### Production
-For production environments, an Apache configuration with the following directive is expected:
+### Option B: Apache with `mod_wsgi`
 
-```apache
-WSGIScriptAlias / "/var/www/autograder/autograder.wsgi"
+1. **Configure Apache VirtualHost:**
+
+   Add the following directives to your Apache site configuration (e.g. `/etc/apache2/sites-available/autograder.conf`):
+
+   ```apache
+   <VirtualHost *:80>
+       ServerName autograder.example.com
+
+       # Virtual environment (if used)
+       WSGIDaemonProcess autograder processes=2 threads=15 python-home=/path/to/venv
+       WSGIProcessGroup autograder
+
+       # Point directly to the installed WSGI script
+       WSGIScriptAlias / /path/to/venv/lib/python3.X/site-packages/autograder_gen/web/wsgi/autograder.wsgi
+
+       # Serve static files directly via Apache
+       Alias /static /path/to/venv/lib/python3.X/site-packages/autograder_gen/web/static
+       <Directory /path/to/venv/lib/python3.X/site-packages/autograder_gen/web/static>
+           Require all granted
+       </Directory>
+
+       <Directory /path/to/venv/lib/python3.X/site-packages/autograder_gen/web/wsgi>
+           <Files autograder.wsgi>
+               Require all granted
+           </Files>
+       </Directory>
+
+       ErrorLog ${APACHE_LOG_DIR}/autograder_error.log
+       CustomLog ${APACHE_LOG_DIR}/autograder_access.log combined
+   </VirtualHost>
+   ```
+
+3. **Alternative: Standalone `/var/www/autograder/autograder.wsgi` file**
+
+   If you prefer having a dedicated WSGI file in `/var/www/autograder/`, simply create `/var/www/autograder/autograder.wsgi` containing:
+
+   ```python
+   import logging
+   import sys
+
+   logging.basicConfig(stream=sys.stderr)
+
+   from autograder_gen.web.app import app as application
+   ```
+
+## 2. Local Development & Workspace Deployment
+
+For testing the WSGI setup inside this repository without a global installation:
+
+```bash
+make -C autograder_gen/web serve
 ```
+
+This target creates the local `/var/www/autograder` symlinks and runs the development Gunicorn server on `127.0.0.1:8000`.

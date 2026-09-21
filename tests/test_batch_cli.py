@@ -59,6 +59,8 @@ def test_batch_gen_execution(tmp_path: Path, monkeypatch, capsys):
     cfg_path = tmp_path / "config.yaml"
     cfg_content = """version: '1.0'
 language: python
+required_files:
+  - test.py
 questions:
   - name: Q1
     marking_items:
