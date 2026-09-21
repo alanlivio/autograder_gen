@@ -223,25 +223,43 @@ def test_manual_review_execution_no_target_file(tmp_path: Path):
     assert "[MANUAL_REVIEW]" in test_res["output"]
 
 
-def test_manual_review_cw2_config(tmp_path: Path):
-    cw2_config_path = (
-        Path(__file__).parent.parent
-        / ".data"
-        / "assessment_cw2_config"
-        / "config.yml"
-    )
-    assert cw2_config_path.exists()
-    import yaml
-
-    with open(cw2_config_path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-
-    cfg = ag.Config.model_validate(data)
-    assert cfg.total_score == 100.0
+def test_manual_review_generation_and_inspection(tmp_path: Path):
+    config_dict = {
+        "version": "1.0",
+        "language": "java",
+        "global_time_limit": 300,
+        "files_necessary": ["Main.java", "report.pdf"],
+        "questions": [
+            {
+                "name": "Question 0 - Submission Verification",
+                "marking_items": [
+                    {
+                        "name": "Git Repository Verification",
+                        "total_mark": 10.0,
+                        "type": "gitlab_submission_exists",
+                    },
+                    {
+                        "name": "Main.java File Exists",
+                        "target_file": "Main.java",
+                        "total_mark": 0.0,
+                        "type": "file_exists",
+                    },
+                    {
+                        "name": "report.pdf File Exists",
+                        "target_file": "report.pdf",
+                        "total_mark": 15.0,
+                        "type": "manual_review",
+                    },
+                ],
+            }
+        ],
+    }
+    cfg = ag.Config.model_validate(config_dict)
+    assert cfg.total_score == 25.0
     assert cfg.questions[0].marking_items[2].type == "manual_review"
     assert cfg.questions[0].marking_items[2].total_mark == 15.0
 
-    generator = ag.Engine(cfg, data)
+    generator = ag.Engine(cfg, config_dict)
     gen_dir = tmp_path / "generated"
     output_zip = generator.generate(str(gen_dir))
 
@@ -250,8 +268,6 @@ def test_manual_review_cw2_config(tmp_path: Path):
     with zipfile.ZipFile(output_zip, "r") as z:
         z.extractall(work_dir)
 
-    test_q0 = (work_dir / "tests" / "question_1_test.py").read_text(
-        encoding="utf-8"
-    )
+    test_q0 = (work_dir / "tests" / "question_1_test.py").read_text(encoding="utf-8")
     assert "[MANUAL_REVIEW]" in test_q0
-    assert "coursework2/SortComparison.pdf" in test_q0
+    assert "report.pdf" in test_q0
