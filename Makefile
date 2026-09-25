@@ -1,9 +1,10 @@
 MAKEFLAGS += -s --no-print-directory
 .DEFAULT_GOAL := help
 
-.PHONY: help venv deps build wheel publish-pypi test run-examples gen-examples serve clean format
+.PHONY: help venv deps build wheel pip install install-global publish-pypi test run-examples gen-examples serve clean format
 
 PYTHON ?= $(shell if [ -f .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
+GLOBAL_PYTHON ?= $(shell if [ -x /usr/bin/python3 ]; then echo /usr/bin/python3; else echo python3; fi)
 VENV ?= .venv
 
 help:
@@ -13,7 +14,8 @@ help:
 		"Targets:" \
 		"  deps          Install dependencies" \
 		"  test          Run pytest test suite" \
-		"  pip         Build wheel distribution and check with twine" \
+		"  wheel         Build wheel distribution and check with twine" \
+		"  install-global       Build wheel and install globally" \
 		"  build         Build package distribution (sdist and wheel)" \
 		"  publish-pypi  Build wheel and upload to PyPI" \
 		"  venv          Create virtual environment (.venv) and install dependencies" \
@@ -43,6 +45,9 @@ wheel:
 	$(PYTHON) -m build --wheel
 	$(PYTHON) -m twine check dist/*
 
+install-global: wheel
+	$(GLOBAL_PYTHON) -m pip install --force-reinstall --break-system-packages dist/*.whl
+
 build:
 	$(PYTHON) -m pip install --upgrade build wheel setuptools
 	rm -rf dist build ./*.egg-info
@@ -60,6 +65,8 @@ run-examples:
 gen-examples:
 	PYTHONPATH=. $(PYTHON) -m autograder_gen.batch_gen tests/examples
 
+format:
+	$(PYTHON) -m black .
 
 serve:
 	$(PYTHON) autograder_gen/web/app.py
