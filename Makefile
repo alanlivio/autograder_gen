@@ -13,7 +13,7 @@ help:
 		"Targets:" \
 		"  deps          Install dependencies" \
 		"  test          Run pytest test suite" \
-		"  wheel         Build wheel distribution and check with twine" \
+		"  pip         Build wheel distribution and check with twine" \
 		"  build         Build package distribution (sdist and wheel)" \
 		"  publish-pypi  Build wheel and upload to PyPI" \
 		"  venv          Create virtual environment (.venv) and install dependencies" \

@@ -54,13 +54,22 @@ def main():
 
         engine = Engine(config, original_config)
         out_dir = config_path.parent
-        zip_path_str = engine.generate(str(out_dir))
-        zip_path = Path(zip_path_str)
-        try:
-            display_path = str(zip_path.resolve().relative_to(Path.cwd().resolve()))
-        except ValueError:
-            display_path = str(zip_path)
-        print(display_path)
+        engine.generate(str(out_dir))
+        generated_assets = [
+            out_dir / "autograder.zip",
+            out_dir / "correct_answer.zip",
+            out_dir / "wrong_answer.zip",
+            out_dir / "description.docx",
+            out_dir / "description.md",
+            out_dir / "rubric.csv",
+        ]
+        for asset in generated_assets:
+            if asset.exists():
+                try:
+                    display_path = str(asset.resolve().relative_to(Path.cwd().resolve()))
+                except ValueError:
+                    display_path = str(asset)
+                print(display_path)
 
 
 if __name__ == "__main__":

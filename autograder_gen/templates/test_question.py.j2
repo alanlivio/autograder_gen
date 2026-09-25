@@ -72,9 +72,9 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
         return target_path
 
     def apply_wrong_location_deduction(self, target_file, total_mark):
-{% if not config.strict_file_location and config.wrong_file_location_deduction > 0 %}
+{% if not config.strict_file_location and question.wrong_file_location_deduction > 0 %}
         if target_file in self.wrong_location_files:
-            deduction = {{ config.wrong_file_location_deduction }}
+            deduction = {{ question.wrong_file_location_deduction }}
             awarded = max(0.0, float(total_mark) - float(deduction))
             setattr(getattr(self.__class__, self._testMethodName), '__score__', awarded)
             print(f"[INFO] penalties applied for file in wrong location: -{deduction} pts")

@@ -75,5 +75,13 @@ questions:
     batch_gen_main()
 
     captured = capsys.readouterr()
-    assert "autograder.zip" in captured.out
-    assert (tmp_path / "autograder.zip").exists()
+    for asset_name in [
+        "autograder.zip",
+        "correct_answer.zip",
+        "wrong_answer.zip",
+        "description.docx",
+        "description.md",
+        "rubric.csv",
+    ]:
+        assert asset_name in captured.out
+        assert (tmp_path / asset_name).exists()
