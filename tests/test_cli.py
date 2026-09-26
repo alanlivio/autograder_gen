@@ -114,8 +114,8 @@ def test_cli_run_submission_folder():
         text=True,
     )
     assert result.returncode == 0
-    assert "[AutograderRunner: Student View]" in result.stdout
-    assert "Actual Score = 10" in result.stdout
+    assert "submission.log" in result.stdout
+    assert "[AutograderRunner: Student View]" not in result.stdout
     assert (Path("tests/examples/py_simple") / "submission.log").exists()
 
 
@@ -138,8 +138,8 @@ def test_cli_run_submission_zip(tmp_path):
         text=True,
     )
     assert result.returncode == 0
-    assert "[AutograderRunner: Student View]" in result.stdout
-    assert "Actual Score = 10" in result.stdout
+    assert "submission.log" in result.stdout
+    assert "[AutograderRunner: Student View]" not in result.stdout
 
 
 def test_cli_run_submission_auto_config():
@@ -155,7 +155,28 @@ def test_cli_run_submission_auto_config():
         text=True,
     )
     assert result.returncode == 0
+    assert "submission.log" in result.stdout
+    assert "[AutograderRunner: Student View]" not in result.stdout
+
+
+def test_cli_run_submission_verbose():
+    python_executable = sys.executable
+    result = subprocess.run(
+        [
+            python_executable,
+            "autograder_gen/cli.py",
+            "--config",
+            "tests/examples/py_simple/config.yaml",
+            "--run-submission",
+            "tests/examples/py_simple/correct_answer",
+            "--verbose",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
     assert "[AutograderRunner: Student View]" in result.stdout
+    assert "submission.log" in result.stdout
 
 
 def test_cli_run_submission_not_found():
@@ -183,17 +204,17 @@ def test_cli_run_stubs_submissions_with_config():
             "autograder_gen/cli.py",
             "--config",
             "tests/examples/py_simple/config.yaml",
-            "--run-stubs-submissions",
+            "--run-stub-submissions",
         ],
         capture_output=True,
         text=True,
     )
     assert result.returncode == 0
-    assert "[AutograderRunner: Student View]" in result.stdout
-    assert "submission=stub_correct_answer.zip" in result.stdout
-    assert "submission=stub_wrong_answer.zip" in result.stdout
-    assert "submission=stub_compiler_error.zip" in result.stdout
-    assert "submission=stub_correct_answer_wrong_location.zip" in result.stdout
+    assert "stub_correct_answer.log" in result.stdout
+    assert "stub_wrong_answer.log" in result.stdout
+    assert "stub_compiler_error.log" in result.stdout
+    assert "stub_correct_answer_wrong_location.log" in result.stdout
+    assert "[AutograderRunner: Student View]" not in result.stdout
 
 
 def test_cli_run_stubs_submissions_with_zip(tmp_path):
@@ -221,14 +242,14 @@ def test_cli_run_stubs_submissions_with_zip(tmp_path):
             "autograder_gen/cli.py",
             "--config",
             str(autograder_zip),
-            "--run-stubs-submissions",
+            "--run-stub-submissions",
         ],
         capture_output=True,
         text=True,
     )
     assert result.returncode == 0
-    assert "[AutograderRunner: Student View]" in result.stdout
-    assert "submission=stub_correct_answer.zip" in result.stdout
+    assert "stub_correct_answer.log" in result.stdout
+    assert "[AutograderRunner: Student View]" not in result.stdout
 
 
 def test_cli_run_stubs_submissions_direct_arg():
@@ -237,12 +258,12 @@ def test_cli_run_stubs_submissions_direct_arg():
         [
             python_executable,
             "autograder_gen/cli.py",
-            "--run-stubs-submissions",
+            "--run-stub-submissions",
             "tests/examples/py_simple/config.yaml",
         ],
         capture_output=True,
         text=True,
     )
     assert result.returncode == 0
-    assert "[AutograderRunner: Student View]" in result.stdout
-    assert "submission=stub_correct_answer.zip" in result.stdout
+    assert "stub_correct_answer.log" in result.stdout
+    assert "[AutograderRunner: Student View]" not in result.stdout

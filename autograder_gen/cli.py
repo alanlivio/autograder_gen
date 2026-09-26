@@ -27,7 +27,8 @@ def main():
             "Generated files will be at the same folder as the config "
             "(autograder.zip, stub submissions for testing, "
             "and optionally description.docx and description.md when --descriptions is specified)."
-        )
+        ),
+        allow_abbrev=False,
     )
     parser.add_argument("--config", "-c", help="Path to YAML configuration file")
     parser.add_argument(
@@ -44,12 +45,19 @@ def main():
         help="Path to submission directory or zip file to run using AutograderRunner",
     )
     parser.add_argument(
-        "--run-stubs-submissions",
         "--run-stub-submissions",
+        dest="run_stubs_submissions",
         nargs="?",
         const=True,
         default=False,
         help="Run autograder for generated stub submissions (stub_correct_answer.zip, stub_wrong_answer.zip, stub_compiler_error.zip, stub_correct_answer_wrong_location.zip)",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        default=False,
+        help="Print full autograder execution logs instead of only paths to log files",
     )
     args = parser.parse_args()
     setup_logging()
@@ -103,14 +111,16 @@ def main():
         is_valid = validator.validate_json(raw_config_data)
         errors = validator.get_errors()
         warnings = validator.get_warnings()
-        for warning in warnings:
-            print_warning(warning)
+        if not (args.run_submission or args.run_stubs_submissions):
+            for warning in warnings:
+                print_warning(warning)
         if not is_valid:
             print_error("Configuration validation failed:")
             for error in errors:
                 print_error(f"  - {error}")
             return 1
-        print_success("Configuration validation passed")
+        if not (args.run_submission or args.run_stubs_submissions):
+            print_success("Configuration validation passed")
 
         output_dir = path.parent if str(path.parent) != "" else Path(".")
         if args.run_submission:
@@ -118,9 +128,9 @@ def main():
             if not sub_path.exists():
                 print_error(f"Submission path not found: {args.run_submission}")
                 return 1
-            runner = ag.AutograderRunner(path, verbose=True)
+            runner = ag.AutograderRunner(path, verbose=args.verbose)
             res = runner.run_autograder_for_submission(
-                sub_path, log_path=output_dir / "submission.log"
+                sub_path, log_path=output_dir / "submission.log", verbose=args.verbose
             )
             if "log_path" in res:
                 log_p = Path(res["log_path"])
@@ -132,8 +142,8 @@ def main():
             return 0
 
         if args.run_stubs_submissions:
-            runner = ag.AutograderRunner(path, verbose=True)
-            runner.run_autograder_for_generated_submissions()
+            runner = ag.AutograderRunner(path, verbose=args.verbose)
+            runner.run_autograder_for_generated_submissions(verbose=args.verbose)
             return 0
         config = ag.Config.model_validate(raw_config_data)
         original_config_dict = None

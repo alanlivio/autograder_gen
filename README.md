@@ -23,7 +23,8 @@ python autograder_gen/cli.py --config <path/to/config.yaml> [options]
 - `--config`, `-c`: Path to your configuration file (YAML).
 - `--descriptions`: Generate description.docx and description.md.
 - `--run-submission`, `-r`: Path to submission directory or zip file to run using the configuration.
-- `--run-stubs-submissions`: Run autograder for generated stub submissions (stub_correct_answer.zip, stub_wrong_answer.zip, stub_compiler_error.zip, stub_correct_answer_wrong_location.zip).
+- `--run-stub-submissions`: Run autograder for generated stub submissions (stub_correct_answer.zip, stub_wrong_answer.zip, stub_compiler_error.zip, stub_correct_answer_wrong_location.zip).
+- `--verbose`, `-v`: Print full autograder execution logs instead of only paths to log files.
 
 ### Examples:
 
@@ -42,7 +43,7 @@ python autograder_gen/cli.py --config tests/examples/py_simple/config.yaml --run
 Run autograder against generated stub submissions:
 
 ```bash
-python autograder_gen/cli.py --config tests/examples/py_simple/config.yaml --run-stubs-submissions
+python autograder_gen/cli.py --config tests/examples/py_simple/config.yaml --run-stub-submissions
 ```
 
 ## Web Interface
