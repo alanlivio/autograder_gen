@@ -81,6 +81,39 @@ questions:
         "wrong_answer.zip",
         "compiler_error.zip",
         "correct_answer_wrong_location.zip",
+    ]:
+        assert asset_name in captured.out
+        assert (tmp_path / asset_name).exists()
+    assert not (tmp_path / "description.docx").exists()
+    assert not (tmp_path / "description.md").exists()
+
+
+def test_batch_gen_with_descriptions(tmp_path: Path, monkeypatch, capsys):
+    cfg_path = tmp_path / "config.yaml"
+    cfg_content = """version: '1.0'
+language: python
+required_files:
+  - test.py
+questions:
+  - name: Q1
+    marking_items:
+      - name: Item 1
+        total_mark: 10
+        type: file_exists
+        target_file: test.py
+"""
+    cfg_path.write_text(cfg_content, encoding="utf-8")
+
+    monkeypatch.setattr(sys, "argv", ["autograder-gen-batch", "--descriptions", str(tmp_path)])
+    batch_gen_main()
+
+    captured = capsys.readouterr()
+    for asset_name in [
+        "autograder.zip",
+        "correct_answer.zip",
+        "wrong_answer.zip",
+        "compiler_error.zip",
+        "correct_answer_wrong_location.zip",
         "description.docx",
         "description.md",
     ]:

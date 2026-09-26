@@ -18,9 +18,7 @@ def find_configs(target: Path) -> list[Path]:
     if not target.is_dir():
         return []
 
-    direct_configs = [
-        target / f for f in ("config.yaml", "config.yml") if (target / f).is_file()
-    ]
+    direct_configs = [target / f for f in ("config.yaml", "config.yml") if (target / f).is_file()]
     if direct_configs:
         return [direct_configs[0]]
 
@@ -32,8 +30,19 @@ def find_configs(target: Path) -> list[Path]:
 
 def main():
     target_args = sys.argv[1:]
+    descriptions = False
+    if "--descriptions" in target_args:
+        descriptions = True
+        target_args = [arg for arg in target_args if arg != "--descriptions"]
+    elif "--description" in target_args:
+        descriptions = True
+        target_args = [arg for arg in target_args if arg != "--description"]
+
     if not target_args:
-        print(f"Usage: {Path(sys.argv[0]).name} <folder_or_config_path> [...]", file=sys.stderr)
+        print(
+            f"Usage: {Path(sys.argv[0]).name} [--descriptions] <folder_or_config_path> [...]",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     all_configs: list[Path] = []
@@ -54,16 +63,21 @@ def main():
 
         engine = Engine(config, original_config)
         out_dir = config_path.parent
-        engine.generate(str(out_dir))
+        engine.generate(str(out_dir), descriptions=descriptions)
         generated_assets = [
             out_dir / "autograder.zip",
             out_dir / "correct_answer.zip",
             out_dir / "wrong_answer.zip",
             out_dir / "compiler_error.zip",
             out_dir / "correct_answer_wrong_location.zip",
-            out_dir / "description.docx",
-            out_dir / "description.md",
         ]
+        if descriptions:
+            generated_assets.extend(
+                [
+                    out_dir / "description.docx",
+                    out_dir / "description.md",
+                ]
+            )
         for asset in generated_assets:
             if asset.exists():
                 try:

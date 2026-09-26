@@ -25,11 +25,18 @@ def main():
         description=(
             "Generate Gradescope autograder script from YAML configuration. "
             "Generated files will be at the same folder as the config "
-            "(autograder.zip, description.docx, description.md, "
-            "stub submissions for testing)."
+            "(autograder.zip, stub submissions for testing, "
+            "and optionally description.docx and description.md when --descriptions is specified)."
         )
     )
     parser.add_argument("--config", "-c", help="Path to YAML configuration file")
+    parser.add_argument(
+        "--descriptions",
+        "--description",
+        action="store_true",
+        default=False,
+        help="Generate description.docx and description.md assessment descriptions",
+    )
     parser.add_argument(
         "--run-submission",
         "-r",
@@ -138,10 +145,11 @@ def main():
 
         output_dir = path.parent if str(path.parent) != "" else Path(".")
         generator = ag.Engine(config, original_config_dict, base_dir=path.parent)
-        output_path = generator.generate(str(output_dir))
+        output_path = generator.generate(str(output_dir), descriptions=args.descriptions)
         print_success(f"Autograder package generated successfully at: {output_dir}")
+        assets_desc = "description.docx, description.md, " if args.descriptions else ""
         print_success(
-            "Generated assets: autograder.zip, description.docx, description.md, "
+            f"Generated assets: autograder.zip, {assets_desc}"
             "stub submissions for testing (correct_answer.zip, wrong_answer.zip, compiler_error.zip, correct_answer_wrong_location.zip)"
         )
         return 0

@@ -45,8 +45,15 @@ class Engine:
             lstrip_blocks=True,
         )
 
-    def generate(self, output_dir: str) -> str:
+    def generate(
+        self,
+        output_dir: str,
+        descriptions: bool = False,
+        generate_descriptions: bool | None = None,
+    ) -> str:
         """Generate the autograder.zip file using Jinja templates."""
+        if generate_descriptions is not None:
+            descriptions = generate_descriptions
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         self.temp_dir = output_path / "temp_autograder"
@@ -68,12 +75,13 @@ class Engine:
                 print_error(f"  [ERROR] {err}")
             for warn in verification.get("warnings", []):
                 print_warning(f"  [WARNING] {warn}")
-            docx_buffer = self.generate_description_docx()
-            with open(output_path / "description.docx", "wb") as f:
-                f.write(docx_buffer.getbuffer())
-            md_buffer = self.generate_description_md()
-            with open(output_path / "description.md", "wb") as f:
-                f.write(md_buffer.getbuffer())
+            if descriptions:
+                docx_buffer = self.generate_description_docx()
+                with open(output_path / "description.docx", "wb") as f:
+                    f.write(docx_buffer.getbuffer())
+                md_buffer = self.generate_description_md()
+                with open(output_path / "description.md", "wb") as f:
+                    f.write(md_buffer.getbuffer())
             correct_buffer = self.generate_correct_answer_zip()
             with open(output_path / "correct_answer.zip", "wb") as f:
                 f.write(correct_buffer.getbuffer())
@@ -90,7 +98,6 @@ class Engine:
         finally:
             if self.temp_dir and self.temp_dir.exists():
                 shutil.rmtree(self.temp_dir)
-
 
     def verify_autograder_zip(self, zip_source: Any = None) -> Dict[str, Any]:
         """Verify structure and validity of an autograder.zip archive."""
@@ -434,7 +441,9 @@ class Engine:
                 if str(parent) != "." and str(parent) not in created_dirs:
                     created_dirs.add(str(parent))
                     zipf.writestr(f"{parent}/", "")
-                content = self._generate_skeleton_content(filename, correct=False, compiler_error=True)
+                content = self._generate_skeleton_content(
+                    filename, correct=False, compiler_error=True
+                )
                 zipf.writestr(filename, content)
         buffer.seek(0)
         return buffer

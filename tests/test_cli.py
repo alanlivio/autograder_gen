@@ -58,13 +58,35 @@ def test_cli_generates_all_assets(tmp_path):
     )
     assert result.returncode == 0, f"CLI failed: {result.stderr}"
     assert (tmp_path / "autograder.zip").exists()
-    assert (tmp_path / "description.docx").exists()
-    assert (tmp_path / "description.md").exists()
+    assert not (tmp_path / "description.docx").exists()
+    assert not (tmp_path / "description.md").exists()
     assert not (tmp_path / "rubric.csv").exists()
     assert (tmp_path / "correct_answer.zip").exists()
     assert (tmp_path / "wrong_answer.zip").exists()
     assert (tmp_path / "compiler_error.zip").exists()
     assert (tmp_path / "correct_answer_wrong_location.zip").exists()
+
+
+def test_cli_generates_descriptions(tmp_path):
+    config_path = tmp_path / "config.yaml"
+    with open(config_path, "w") as f:
+        json.dump(SAMPLE_CONFIG, f)
+    python_executable = sys.executable
+    result = subprocess.run(
+        [
+            python_executable,
+            "autograder_gen/cli.py",
+            "--config",
+            str(config_path),
+            "--descriptions",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"CLI failed: {result.stderr}"
+    assert (tmp_path / "autograder.zip").exists()
+    assert (tmp_path / "description.docx").exists()
+    assert (tmp_path / "description.md").exists()
 
 
 def test_cli_missing_config():
@@ -223,5 +245,3 @@ def test_cli_run_stubs_submissions_direct_arg():
     assert result.returncode == 0
     assert "[AutograderRunner: Student View]" in result.stdout
     assert "submission=correct_answer.zip" in result.stdout
-
-
