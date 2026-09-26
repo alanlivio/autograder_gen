@@ -2,6 +2,7 @@ import json
 import subprocess
 from pathlib import Path
 import sys
+import zipfile
 
 SAMPLE_CONFIG = {
     "version": "1.0",
@@ -84,3 +85,79 @@ def test_cli_missing_config():
         text=True,
     )
     assert result.returncode != 0
+
+
+def test_cli_run_submission_folder():
+    python_executable = sys.executable
+    result = subprocess.run(
+        [
+            python_executable,
+            "autograder_gen/cli.py",
+            "--config",
+            "tests/examples/py_simple/config.yaml",
+            "--run-submission",
+            "tests/examples/py_simple/correct_answer",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "[AutograderRunner: Student View]" in result.stdout
+    assert "Actual Score = 10" in result.stdout
+
+
+def test_cli_run_submission_zip(tmp_path):
+    sub_zip = tmp_path / "submission.zip"
+    with zipfile.ZipFile(sub_zip, "w") as z:
+        for f in Path("tests/examples/py_simple/correct_answer").iterdir():
+            z.write(f, f.name)
+    python_executable = sys.executable
+    result = subprocess.run(
+        [
+            python_executable,
+            "autograder_gen/cli.py",
+            "--config",
+            "tests/examples/py_simple/config.yaml",
+            "--run-submission",
+            str(sub_zip),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "[AutograderRunner: Student View]" in result.stdout
+    assert "Actual Score = 10" in result.stdout
+
+
+def test_cli_run_submission_auto_config():
+    python_executable = sys.executable
+    result = subprocess.run(
+        [
+            python_executable,
+            "autograder_gen/cli.py",
+            "--run-submission",
+            "tests/examples/py_simple/correct_answer",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "[AutograderRunner: Student View]" in result.stdout
+
+
+def test_cli_run_submission_not_found():
+    python_executable = sys.executable
+    result = subprocess.run(
+        [
+            python_executable,
+            "autograder_gen/cli.py",
+            "--config",
+            "tests/examples/py_simple/config.yaml",
+            "--run-submission",
+            "nonexistent_submission_dir",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+

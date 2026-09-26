@@ -23,7 +23,12 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate Gradescope autograder scripts from YAML configuration"
     )
-    parser.add_argument("--config", "-c", required=True, help="Path to YAML configuration file")
+    parser.add_argument("--config", "-c", help="Path to YAML configuration file")
+    parser.add_argument(
+        "--run-submission",
+        "-r",
+        help="Path to submission directory or zip file to run using AutograderRunner",
+    )
     parser.add_argument(
         "--output",
         "-o",
@@ -33,7 +38,24 @@ def main():
     args = parser.parse_args()
     setup_logging()
     try:
-        path = Path(args.config)
+        config_arg = args.config
+        if not config_arg:
+            if args.run_submission:
+                sub_p = Path(args.run_submission)
+                for candidate in (
+                    sub_p / "config.yaml",
+                    sub_p / "config.yml",
+                    sub_p.parent / "config.yaml",
+                    sub_p.parent / "config.yml",
+                ):
+                    if candidate.is_file():
+                        config_arg = str(candidate)
+                        break
+            if not config_arg:
+                print_error("Error: --config / -c is required")
+                return 2
+
+        path = Path(config_arg)
         with open(path, "r", encoding="utf-8") as f:
             raw_config_data = yaml.safe_load(f)
         # Validate configuration
@@ -49,6 +71,15 @@ def main():
                 print_error(f"  - {error}")
             return 1
         print_success("Configuration validation passed")
+
+        if args.run_submission:
+            sub_path = Path(args.run_submission)
+            if not sub_path.exists():
+                print_error(f"Submission path not found: {args.run_submission}")
+                return 1
+            runner = ag.AutograderRunner(path, verbose=True)
+            runner.run_autograder_for_submission(sub_path)
+            return 0
         config = ag.Config.model_validate(raw_config_data)
         original_config_dict = None
         try:

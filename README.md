@@ -20,13 +20,22 @@ python autograder_gen/cli.py --config <path/to/config.yaml> [options]
 
 ### Arguments:
 
-- `--config`, `-c` (required): Path to your configuration file (YAML).
+- `--config`, `-c`: Path to your configuration file (YAML).
+- `--run-submission`, `-r`: Path to submission directory or zip file to run using the configuration.
 - `--output`, `-o`: Output directory for the generated files (default: `./output`).
 
-### Example:
+### Examples:
+
+Generate autograder package:
 
 ```bash
 python autograder_gen/cli.py --config tests/examples/py_simple/config.yaml
+```
+
+Run a submission directory or zip against an autograder configuration:
+
+```bash
+python autograder_gen/cli.py --config tests/examples/py_simple/config.yaml --run-submission tests/examples/py_simple/correct_answer
 ```
 
 ## Web Interface
