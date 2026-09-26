@@ -109,7 +109,10 @@ class AutograderRunner:
                 cfg_dir = resolved_log_path.parent
                 cfg_name = "config"
         elif should_save and cfg_dir is not None:
-            resolved_log_path = cfg_dir / f"{cfg_name}_{clean_sub}.log"
+            if clean_sub.startswith("stub_"):
+                resolved_log_path = cfg_dir / f"{clean_sub}.log"
+            else:
+                resolved_log_path = cfg_dir / "submission.log"
 
         try:
             if self.autograder_root is not None:
@@ -254,7 +257,7 @@ class AutograderRunner:
     ) -> dict[str, Any]:
         with tempfile.TemporaryDirectory() as td:
             td_path = Path(td)
-            correct_zip = td_path / "correct_answer.zip"
+            correct_zip = td_path / "stub_correct_answer.zip"
             correct_zip.write_bytes(self._get_correct_answer_zip_bytes())
             correct_res = self.run_autograder_for_submission(
                 correct_zip,
@@ -262,7 +265,7 @@ class AutograderRunner:
                 verbose=verbose,
             )
 
-            wrong_zip = td_path / "wrong_answer.zip"
+            wrong_zip = td_path / "stub_wrong_answer.zip"
             wrong_zip.write_bytes(self._get_wrong_answer_zip_bytes())
             wrong_res = self.run_autograder_for_submission(
                 wrong_zip,
@@ -270,19 +273,23 @@ class AutograderRunner:
                 verbose=verbose,
             )
 
-            compiler_zip = td_path / "compiler_error.zip"
+            compiler_zip = td_path / "stub_compiler_error.zip"
             compiler_zip.write_bytes(self._get_compiler_error_zip_bytes())
             compiler_res = self.run_autograder_for_submission(
                 compiler_zip,
-                total_score=total_score if total_score is not None else expected_compiler_error_score,
+                total_score=(
+                    total_score if total_score is not None else expected_compiler_error_score
+                ),
                 verbose=verbose,
             )
 
-            wrong_loc_zip = td_path / "correct_answer_wrong_location.zip"
+            wrong_loc_zip = td_path / "stub_correct_answer_wrong_location.zip"
             wrong_loc_zip.write_bytes(self._get_wrong_file_location_zip_bytes())
             wrong_loc_res = self.run_autograder_for_submission(
                 wrong_loc_zip,
-                total_score=total_score if total_score is not None else expected_wrong_location_score,
+                total_score=(
+                    total_score if total_score is not None else expected_wrong_location_score
+                ),
                 verbose=verbose,
             )
 
@@ -328,22 +335,38 @@ class AutograderRunner:
         output_zip = generator.generate(str(gen_dir))
         with open(output_zip, "rb") as f:
             self._cached_zip_bytes = f.read()
-        correct_zip_path = Path(gen_dir) / "correct_answer.zip"
-        if correct_zip_path.exists():
-            with open(correct_zip_path, "rb") as f:
-                self._cached_correct_zip_bytes = f.read()
-        wrong_zip_path = Path(gen_dir) / "wrong_answer.zip"
-        if wrong_zip_path.exists():
-            with open(wrong_zip_path, "rb") as f:
-                self._cached_wrong_zip_bytes = f.read()
-        compiler_zip_path = Path(gen_dir) / "compiler_error.zip"
-        if compiler_zip_path.exists():
-            with open(compiler_zip_path, "rb") as f:
-                self._cached_compiler_error_zip_bytes = f.read()
-        wrong_loc_zip_path = Path(gen_dir) / "correct_answer_wrong_location.zip"
-        if wrong_loc_zip_path.exists():
-            with open(wrong_loc_zip_path, "rb") as f:
-                self._cached_wrong_file_location_zip_bytes = f.read()
+        for p in (
+            Path(gen_dir) / "stub_correct_answer.zip",
+            Path(gen_dir) / "correct_answer.zip",
+        ):
+            if p.exists():
+                with open(p, "rb") as f:
+                    self._cached_correct_zip_bytes = f.read()
+                break
+        for p in (
+            Path(gen_dir) / "stub_wrong_answer.zip",
+            Path(gen_dir) / "wrong_answer.zip",
+        ):
+            if p.exists():
+                with open(p, "rb") as f:
+                    self._cached_wrong_zip_bytes = f.read()
+                break
+        for p in (
+            Path(gen_dir) / "stub_compiler_error.zip",
+            Path(gen_dir) / "compiler_error.zip",
+        ):
+            if p.exists():
+                with open(p, "rb") as f:
+                    self._cached_compiler_error_zip_bytes = f.read()
+                break
+        for p in (
+            Path(gen_dir) / "stub_correct_answer_wrong_location.zip",
+            Path(gen_dir) / "correct_answer_wrong_location.zip",
+        ):
+            if p.exists():
+                with open(p, "rb") as f:
+                    self._cached_wrong_file_location_zip_bytes = f.read()
+                break
         with zipfile.ZipFile(output_zip, "r") as z:
             z.extractall(source_dir)
 
@@ -389,15 +412,17 @@ class AutograderRunner:
             return self._cached_correct_zip_bytes
         if isinstance(self.config, (str, Path)):
             cfg_p = Path(self.config)
-            sibling = cfg_p.parent / "correct_answer.zip"
-            if sibling.is_file():
-                with open(sibling, "rb") as f:
-                    self._cached_correct_zip_bytes = f.read()
-                return self._cached_correct_zip_bytes
-            sibling_dir = cfg_p.parent / "correct_answer"
-            if sibling_dir.is_dir():
-                self._cached_correct_zip_bytes = self._zip_dir_to_bytes(sibling_dir)
-                return self._cached_correct_zip_bytes
+            for name in ("stub_correct_answer.zip", "correct_answer.zip"):
+                sibling = cfg_p.parent / name
+                if sibling.is_file():
+                    with open(sibling, "rb") as f:
+                        self._cached_correct_zip_bytes = f.read()
+                    return self._cached_correct_zip_bytes
+            for name in ("stub_correct_answer", "correct_answer"):
+                sibling_dir = cfg_p.parent / name
+                if sibling_dir.is_dir():
+                    self._cached_correct_zip_bytes = self._zip_dir_to_bytes(sibling_dir)
+                    return self._cached_correct_zip_bytes
         engine = self._get_engine()
         buf = engine.generate_correct_answer_zip()
         self._cached_correct_zip_bytes = buf.getvalue()
@@ -408,15 +433,17 @@ class AutograderRunner:
             return self._cached_wrong_zip_bytes
         if isinstance(self.config, (str, Path)):
             cfg_p = Path(self.config)
-            sibling = cfg_p.parent / "wrong_answer.zip"
-            if sibling.is_file():
-                with open(sibling, "rb") as f:
-                    self._cached_wrong_zip_bytes = f.read()
-                return self._cached_wrong_zip_bytes
-            sibling_dir = cfg_p.parent / "wrong_answer"
-            if sibling_dir.is_dir():
-                self._cached_wrong_zip_bytes = self._zip_dir_to_bytes(sibling_dir)
-                return self._cached_wrong_zip_bytes
+            for name in ("stub_wrong_answer.zip", "wrong_answer.zip"):
+                sibling = cfg_p.parent / name
+                if sibling.is_file():
+                    with open(sibling, "rb") as f:
+                        self._cached_wrong_zip_bytes = f.read()
+                    return self._cached_wrong_zip_bytes
+            for name in ("stub_wrong_answer", "wrong_answer"):
+                sibling_dir = cfg_p.parent / name
+                if sibling_dir.is_dir():
+                    self._cached_wrong_zip_bytes = self._zip_dir_to_bytes(sibling_dir)
+                    return self._cached_wrong_zip_bytes
         engine = self._get_engine()
         buf = engine.generate_wrong_answer_zip()
         self._cached_wrong_zip_bytes = buf.getvalue()
@@ -427,15 +454,17 @@ class AutograderRunner:
             return self._cached_compiler_error_zip_bytes
         if isinstance(self.config, (str, Path)):
             cfg_p = Path(self.config)
-            sibling = cfg_p.parent / "compiler_error.zip"
-            if sibling.is_file():
-                with open(sibling, "rb") as f:
-                    self._cached_compiler_error_zip_bytes = f.read()
-                return self._cached_compiler_error_zip_bytes
-            sibling_dir = cfg_p.parent / "compiler_error"
-            if sibling_dir.is_dir():
-                self._cached_compiler_error_zip_bytes = self._zip_dir_to_bytes(sibling_dir)
-                return self._cached_compiler_error_zip_bytes
+            for name in ("stub_compiler_error.zip", "compiler_error.zip"):
+                sibling = cfg_p.parent / name
+                if sibling.is_file():
+                    with open(sibling, "rb") as f:
+                        self._cached_compiler_error_zip_bytes = f.read()
+                    return self._cached_compiler_error_zip_bytes
+            for name in ("stub_compiler_error", "compiler_error"):
+                sibling_dir = cfg_p.parent / name
+                if sibling_dir.is_dir():
+                    self._cached_compiler_error_zip_bytes = self._zip_dir_to_bytes(sibling_dir)
+                    return self._cached_compiler_error_zip_bytes
         engine = self._get_engine()
         buf = engine.generate_compiler_error_zip()
         self._cached_compiler_error_zip_bytes = buf.getvalue()
@@ -447,6 +476,7 @@ class AutograderRunner:
         if isinstance(self.config, (str, Path)):
             cfg_p = Path(self.config)
             for name in (
+                "stub_correct_answer_wrong_location.zip",
                 "correct_answer_wrong_location.zip",
                 "correct_answer_with_wrong_location.zip",
             ):
@@ -456,6 +486,7 @@ class AutograderRunner:
                         self._cached_wrong_file_location_zip_bytes = f.read()
                     return self._cached_wrong_file_location_zip_bytes
             for name in (
+                "stub_correct_answer_wrong_location",
                 "correct_answer_wrong_location",
                 "wrong_file_location",
                 "correct_answer_with_wrong_location",

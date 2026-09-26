@@ -83,7 +83,7 @@
                     App --> ValidateExport[Validate & Export]
                     
                     ValidateExport -->|Generate Package| AutograderZip[autograder.zip]
-                    ValidateExport -->|Generate Test ZIPs| TestSkeletons[correct_answer.zip & wrong_answer.zip]
+                    ValidateExport -->|Generate Test ZIPs| TestSkeletons[stub_correct_answer.zip & stub_wrong_answer.zip]
                 end
 
                 subgraph Stage2["Stage 2: Upload to Autograder & Testing"]

@@ -77,10 +77,10 @@ questions:
     captured = capsys.readouterr()
     for asset_name in [
         "autograder.zip",
-        "correct_answer.zip",
-        "wrong_answer.zip",
-        "compiler_error.zip",
-        "correct_answer_wrong_location.zip",
+        "stub_correct_answer.zip",
+        "stub_wrong_answer.zip",
+        "stub_compiler_error.zip",
+        "stub_correct_answer_wrong_location.zip",
     ]:
         assert asset_name in captured.out
         assert (tmp_path / asset_name).exists()
@@ -110,10 +110,10 @@ questions:
     captured = capsys.readouterr()
     for asset_name in [
         "autograder.zip",
-        "correct_answer.zip",
-        "wrong_answer.zip",
-        "compiler_error.zip",
-        "correct_answer_wrong_location.zip",
+        "stub_correct_answer.zip",
+        "stub_wrong_answer.zip",
+        "stub_compiler_error.zip",
+        "stub_correct_answer_wrong_location.zip",
         "description.docx",
         "description.md",
     ]:
@@ -146,10 +146,10 @@ questions:
 
     captured = capsys.readouterr()
     for log_name in [
-        "config_correct_answer.log",
-        "config_wrong_answer.log",
-        "config_compiler_error.log",
-        "config_correct_answer_wrong_location.log",
+        "stub_correct_answer.log",
+        "stub_wrong_answer.log",
+        "stub_compiler_error.log",
+        "stub_correct_answer_wrong_location.log",
     ]:
         assert log_name in captured.out
         assert (tmp_path / log_name).exists()

@@ -111,7 +111,9 @@ def test_run_autograder_for_generated_submissions(tmp_path):
     correct_score = sum(t.get("score", 0) for t in results["correct_answer"]["tests"])
     wrong_score = sum(t.get("score", 0) for t in results["wrong_answer"]["tests"])
     compiler_score = sum(t.get("score", 0) for t in results["compiler_error"]["tests"])
-    wrong_loc_score = sum(t.get("score", 0) for t in results["correct_answer_wrong_location"]["tests"])
+    wrong_loc_score = sum(
+        t.get("score", 0) for t in results["correct_answer_wrong_location"]["tests"]
+    )
 
     assert correct_score == 10
     assert wrong_score == 0
@@ -130,10 +132,10 @@ def test_run_autograder_for_generated_submissions(tmp_path):
     assert wrong_log.exists()
     assert compiler_log.exists()
     assert wrong_loc_log.exists()
-    assert correct_log.name == "config_correct_answer.log"
-    assert wrong_log.name == "config_wrong_answer.log"
-    assert compiler_log.name == "config_compiler_error.log"
-    assert wrong_loc_log.name == "config_correct_answer_wrong_location.log"
+    assert correct_log.name == "stub_correct_answer.log"
+    assert wrong_log.name == "stub_wrong_answer.log"
+    assert compiler_log.name == "stub_compiler_error.log"
+    assert wrong_loc_log.name == "stub_correct_answer_wrong_location.log"
     assert "# Total Score = 10, Actual Score = 10" in correct_log.read_text(encoding="utf-8")
     assert "# Total Score = 10, Actual Score = 0" in wrong_log.read_text(encoding="utf-8")
     assert "# Total Score = 10, Actual Score = 0" in compiler_log.read_text(encoding="utf-8")

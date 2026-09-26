@@ -66,10 +66,10 @@ def main():
         engine.generate(str(out_dir), descriptions=descriptions)
         generated_assets = [
             out_dir / "autograder.zip",
-            out_dir / "correct_answer.zip",
-            out_dir / "wrong_answer.zip",
-            out_dir / "compiler_error.zip",
-            out_dir / "correct_answer_wrong_location.zip",
+            out_dir / "stub_correct_answer.zip",
+            out_dir / "stub_wrong_answer.zip",
+            out_dir / "stub_compiler_error.zip",
+            out_dir / "stub_correct_answer_wrong_location.zip",
         ]
         if descriptions:
             generated_assets.extend(

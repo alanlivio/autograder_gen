@@ -61,10 +61,10 @@ def test_cli_generates_all_assets(tmp_path):
     assert not (tmp_path / "description.docx").exists()
     assert not (tmp_path / "description.md").exists()
     assert not (tmp_path / "rubric.csv").exists()
-    assert (tmp_path / "correct_answer.zip").exists()
-    assert (tmp_path / "wrong_answer.zip").exists()
-    assert (tmp_path / "compiler_error.zip").exists()
-    assert (tmp_path / "correct_answer_wrong_location.zip").exists()
+    assert (tmp_path / "stub_correct_answer.zip").exists()
+    assert (tmp_path / "stub_wrong_answer.zip").exists()
+    assert (tmp_path / "stub_compiler_error.zip").exists()
+    assert (tmp_path / "stub_correct_answer_wrong_location.zip").exists()
 
 
 def test_cli_generates_descriptions(tmp_path):
@@ -116,6 +116,27 @@ def test_cli_run_submission_folder():
     assert result.returncode == 0
     assert "[AutograderRunner: Student View]" in result.stdout
     assert "Actual Score = 10" in result.stdout
+    assert (Path("tests/examples/py_simple") / "submission.log").exists()
+
+
+def test_cli_run_solution_flag():
+    python_executable = sys.executable
+    result = subprocess.run(
+        [
+            python_executable,
+            "autograder_gen/cli.py",
+            "--config",
+            "tests/examples/py_simple/config.yaml",
+            "--run-solution",
+            "tests/examples/py_simple/correct_answer",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "[AutograderRunner: Student View]" in result.stdout
+    assert "Actual Score = 10" in result.stdout
+    assert (Path("tests/examples/py_simple") / "submission.log").exists()
 
 
 def test_cli_run_submission_zip(tmp_path):
@@ -189,10 +210,10 @@ def test_cli_run_stubs_submissions_with_config():
     )
     assert result.returncode == 0
     assert "[AutograderRunner: Student View]" in result.stdout
-    assert "submission=correct_answer.zip" in result.stdout
-    assert "submission=wrong_answer.zip" in result.stdout
-    assert "submission=compiler_error.zip" in result.stdout
-    assert "submission=correct_answer_wrong_location.zip" in result.stdout
+    assert "submission=stub_correct_answer.zip" in result.stdout
+    assert "submission=stub_wrong_answer.zip" in result.stdout
+    assert "submission=stub_compiler_error.zip" in result.stdout
+    assert "submission=stub_correct_answer_wrong_location.zip" in result.stdout
 
 
 def test_cli_run_stubs_submissions_with_zip(tmp_path):
@@ -227,7 +248,7 @@ def test_cli_run_stubs_submissions_with_zip(tmp_path):
     )
     assert result.returncode == 0
     assert "[AutograderRunner: Student View]" in result.stdout
-    assert "submission=correct_answer.zip" in result.stdout
+    assert "submission=stub_correct_answer.zip" in result.stdout
 
 
 def test_cli_run_stubs_submissions_direct_arg():
@@ -244,4 +265,4 @@ def test_cli_run_stubs_submissions_direct_arg():
     )
     assert result.returncode == 0
     assert "[AutograderRunner: Student View]" in result.stdout
-    assert "submission=correct_answer.zip" in result.stdout
+    assert "submission=stub_correct_answer.zip" in result.stdout

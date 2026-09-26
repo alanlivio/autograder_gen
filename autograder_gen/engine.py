@@ -83,16 +83,16 @@ class Engine:
                 with open(output_path / "description.md", "wb") as f:
                     f.write(md_buffer.getbuffer())
             correct_buffer = self.generate_correct_answer_zip()
-            with open(output_path / "correct_answer.zip", "wb") as f:
+            with open(output_path / "stub_correct_answer.zip", "wb") as f:
                 f.write(correct_buffer.getbuffer())
             wrong_buffer = self.generate_wrong_answer_zip()
-            with open(output_path / "wrong_answer.zip", "wb") as f:
+            with open(output_path / "stub_wrong_answer.zip", "wb") as f:
                 f.write(wrong_buffer.getbuffer())
             compiler_buffer = self.generate_compiler_error_zip()
-            with open(output_path / "compiler_error.zip", "wb") as f:
+            with open(output_path / "stub_compiler_error.zip", "wb") as f:
                 f.write(compiler_buffer.getbuffer())
             wrong_loc_buffer = self.generate_wrong_file_location_zip()
-            with open(output_path / "correct_answer_wrong_location.zip", "wb") as f:
+            with open(output_path / "stub_correct_answer_wrong_location.zip", "wb") as f:
                 f.write(wrong_loc_buffer.getbuffer())
             return str(zip_path)
         finally:

@@ -40,6 +40,7 @@ def main():
     parser.add_argument(
         "--run-submission",
         "-r",
+        dest="run_submission",
         help="Path to submission directory or zip file to run using AutograderRunner",
     )
     parser.add_argument(
@@ -48,7 +49,7 @@ def main():
         nargs="?",
         const=True,
         default=False,
-        help="Run autograder for generated stub submissions (correct_answer.zip, wrong_answer.zip, compiler_error.zip, correct_answer_wrong_location.zip)",
+        help="Run autograder for generated stub submissions (stub_correct_answer.zip, stub_wrong_answer.zip, stub_compiler_error.zip, stub_correct_answer_wrong_location.zip)",
     )
     args = parser.parse_args()
     setup_logging()
@@ -111,13 +112,23 @@ def main():
             return 1
         print_success("Configuration validation passed")
 
+        output_dir = path.parent if str(path.parent) != "" else Path(".")
         if args.run_submission:
             sub_path = Path(args.run_submission)
             if not sub_path.exists():
                 print_error(f"Submission path not found: {args.run_submission}")
                 return 1
             runner = ag.AutograderRunner(path, verbose=True)
-            runner.run_autograder_for_submission(sub_path)
+            res = runner.run_autograder_for_submission(
+                sub_path, log_path=output_dir / "submission.log"
+            )
+            if "log_path" in res:
+                log_p = Path(res["log_path"])
+                try:
+                    display_path = str(log_p.resolve().relative_to(Path.cwd().resolve()))
+                except ValueError:
+                    display_path = str(log_p)
+                print(display_path)
             return 0
 
         if args.run_stubs_submissions:
@@ -150,7 +161,7 @@ def main():
         assets_desc = "description.docx, description.md, " if args.descriptions else ""
         print_success(
             f"Generated assets: autograder.zip, {assets_desc}"
-            "stub submissions for testing (correct_answer.zip, wrong_answer.zip, compiler_error.zip, correct_answer_wrong_location.zip)"
+            "stub submissions for testing (stub_correct_answer.zip, stub_wrong_answer.zip, stub_compiler_error.zip, stub_correct_answer_wrong_location.zip)"
         )
         return 0
     except Exception as e:
