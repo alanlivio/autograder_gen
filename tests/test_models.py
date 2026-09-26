@@ -95,6 +95,33 @@ def test_validator_and_utility_functions():
     }
     validator = ag.Validator()
     assert validator.validate_json(data) is True
+    assert len(validator.get_warnings()) == 0
 
     lint_res = ag.Validator.lint_config(data)
     assert lint_res["valid"] is True
+    assert lint_res["quality_score"] == 100
+
+
+def test_validator_output_comparison_no_command_warning():
+    data = {
+        "version": "1.0",
+        "language": "python",
+        "required_files": ["solution.py"],
+        "questions": [
+            {
+                "name": "Q1",
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 10,
+                        "type": "output_comparison",
+                        "name": "Hello Output Check",
+                        "expected_output": "Hello World\n",
+                    }
+                ],
+            }
+        ],
+    }
+    validator = ag.Validator()
+    assert validator.validate_json(data) is True
+    assert len(validator.get_warnings()) == 0

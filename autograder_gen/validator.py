@@ -87,27 +87,11 @@ class Validator:
         if len(q_names) != len(set(q_names)):
             self.warnings.append("Duplicate question names found.")
 
-        if not data.get("solution_script"):
-            self.warnings.append(
-                "No solution_script specified. Generator will create a placeholder."
-            )
-
-        # Warning for setup commands
-        if not data.get("setup_commands"):
-            self.warnings.append(
-                "No setup_commands specified. Make sure autograder environment has required packages."
-            )
-
     def _validate_output_comparison_warnings(self, item: Dict[str, Any]):
         """Check for potentially problematic output comparison configurations."""
         item_type = item.get("type", "")
         if item_type == "output_comparison":
-            cmd = item.get("command", "")
-            expected = item.get("expected_output", "")
-            if not cmd:
-                self.warnings.append(
-                    f"Output comparison item '{item.get('name', 'unnamed')}' has empty command"
-                )
+            expected = item.get("expected_output")
             if expected is None:
                 self.warnings.append(
                     f"Output comparison item '{item.get('name', 'unnamed')}' has null expected_output"

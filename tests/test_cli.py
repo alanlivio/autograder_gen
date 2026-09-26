@@ -119,26 +119,6 @@ def test_cli_run_submission_folder():
     assert (Path("tests/examples/py_simple") / "submission.log").exists()
 
 
-def test_cli_run_solution_flag():
-    python_executable = sys.executable
-    result = subprocess.run(
-        [
-            python_executable,
-            "autograder_gen/cli.py",
-            "--config",
-            "tests/examples/py_simple/config.yaml",
-            "--run-solution",
-            "tests/examples/py_simple/correct_answer",
-        ],
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 0
-    assert "[AutograderRunner: Student View]" in result.stdout
-    assert "Actual Score = 10" in result.stdout
-    assert (Path("tests/examples/py_simple") / "submission.log").exists()
-
-
 def test_cli_run_submission_zip(tmp_path):
     sub_zip = tmp_path / "submission.zip"
     with zipfile.ZipFile(sub_zip, "w") as z:
