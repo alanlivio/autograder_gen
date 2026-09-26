@@ -74,9 +74,6 @@ class Engine:
             md_buffer = self.generate_description_md()
             with open(output_path / "description.md", "wb") as f:
                 f.write(md_buffer.getbuffer())
-            rubric_buffer = self.generate_rubric_csv()
-            with open(output_path / "rubric.csv", "wb") as f:
-                f.write(rubric_buffer.getbuffer())
             correct_buffer = self.generate_correct_answer_zip()
             with open(output_path / "correct_answer.zip", "wb") as f:
                 f.write(correct_buffer.getbuffer())

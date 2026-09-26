@@ -67,8 +67,6 @@ def test_cli_unsupported_language(temp_config_file):
                     MAIN_PATH,
                     "--config",
                     config_path,
-                    "--output",
-                    temp_dir,
                 ],
                 capture_output=True,
                 text=True,

@@ -83,7 +83,6 @@ questions:
         "correct_answer_wrong_location.zip",
         "description.docx",
         "description.md",
-        "rubric.csv",
     ]:
         assert asset_name in captured.out
         assert (tmp_path / asset_name).exists()

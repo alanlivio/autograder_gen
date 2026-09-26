@@ -63,7 +63,6 @@ def main():
             out_dir / "correct_answer_wrong_location.zip",
             out_dir / "description.docx",
             out_dir / "description.md",
-            out_dir / "rubric.csv",
         ]
         for asset in generated_assets:
             if asset.exists():

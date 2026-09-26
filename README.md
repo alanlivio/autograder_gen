@@ -12,7 +12,7 @@ make venv
 
 ## CLI Usage
 
-The Command-Line Interface allows you to generate autograders (`autograder.zip`) directly from a configuration file.
+The Command-Line Interface allows you to generate autograders directly from a configuration file. Generated assessment files (autograder.zip, description.docx, description.md, stub submissions for testing) are created in the same folder as the config file.
 
 ```bash
 python autograder_gen/cli.py --config <path/to/config.yaml> [options]
@@ -22,7 +22,7 @@ python autograder_gen/cli.py --config <path/to/config.yaml> [options]
 
 - `--config`, `-c`: Path to your configuration file (YAML).
 - `--run-submission`, `-r`: Path to submission directory or zip file to run using the configuration.
-- `--output`, `-o`: Output directory for the generated files (default: `./output`).
+- `--run-stubs-submissions`: Run autograder for generated stub submissions (correct_answer.zip, wrong_answer.zip, compiler_error.zip, correct_answer_wrong_location.zip).
 
 ### Examples:
 
@@ -36,6 +36,12 @@ Run a submission directory or zip against an autograder configuration:
 
 ```bash
 python autograder_gen/cli.py --config tests/examples/py_simple/config.yaml --run-submission tests/examples/py_simple/correct_answer
+```
+
+Run autograder against generated stub submissions:
+
+```bash
+python autograder_gen/cli.py --config tests/examples/py_simple/config.yaml --run-stubs-submissions
 ```
 
 ## Web Interface

@@ -23,8 +23,6 @@ def test_cli_generates_autograder(tmp_path):
     config_path = tmp_path / "config.yaml"
     with open(config_path, "w") as f:
         json.dump(SAMPLE_CONFIG, f)
-    output_dir = tmp_path / "output"
-    output_dir.mkdir()
     python_executable = sys.executable
     result = subprocess.run(
         [
@@ -32,8 +30,6 @@ def test_cli_generates_autograder(tmp_path):
             "autograder_gen/cli.py",
             "--config",
             str(config_path),
-            "--output",
-            str(output_dir),
         ],
         capture_output=True,
         text=True,
@@ -41,7 +37,7 @@ def test_cli_generates_autograder(tmp_path):
     print("STDOUT:", result.stdout)
     print("STDERR:", result.stderr)
     assert result.returncode == 0, f"CLI failed: {result.stderr}"
-    zip_path = output_dir / "autograder.zip"
+    zip_path = tmp_path / "autograder.zip"
     assert zip_path.exists(), "autograder.zip was not created by the CLI"
 
 
@@ -49,8 +45,6 @@ def test_cli_generates_all_assets(tmp_path):
     config_path = tmp_path / "config.yaml"
     with open(config_path, "w") as f:
         json.dump(SAMPLE_CONFIG, f)
-    output_dir = tmp_path / "output_all"
-    output_dir.mkdir()
     python_executable = sys.executable
     result = subprocess.run(
         [
@@ -58,23 +52,19 @@ def test_cli_generates_all_assets(tmp_path):
             "autograder_gen/cli.py",
             "--config",
             str(config_path),
-            "--output",
-            str(output_dir),
         ],
         capture_output=True,
         text=True,
     )
-    # Check exit code
     assert result.returncode == 0, f"CLI failed: {result.stderr}"
-    # Check all assets exist
-    assert (output_dir / "autograder.zip").exists()
-    assert (output_dir / "description.docx").exists()
-    assert (output_dir / "description.md").exists()
-    assert (output_dir / "rubric.csv").exists()
-    assert (output_dir / "correct_answer.zip").exists()
-    assert (output_dir / "wrong_answer.zip").exists()
-    assert (output_dir / "compiler_error.zip").exists()
-    assert (output_dir / "correct_answer_wrong_location.zip").exists()
+    assert (tmp_path / "autograder.zip").exists()
+    assert (tmp_path / "description.docx").exists()
+    assert (tmp_path / "description.md").exists()
+    assert not (tmp_path / "rubric.csv").exists()
+    assert (tmp_path / "correct_answer.zip").exists()
+    assert (tmp_path / "wrong_answer.zip").exists()
+    assert (tmp_path / "compiler_error.zip").exists()
+    assert (tmp_path / "correct_answer_wrong_location.zip").exists()
 
 
 def test_cli_missing_config():
@@ -160,4 +150,78 @@ def test_cli_run_submission_not_found():
         text=True,
     )
     assert result.returncode != 0
+
+
+def test_cli_run_stubs_submissions_with_config():
+    python_executable = sys.executable
+    result = subprocess.run(
+        [
+            python_executable,
+            "autograder_gen/cli.py",
+            "--config",
+            "tests/examples/py_simple/config.yaml",
+            "--run-stubs-submissions",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "[AutograderRunner: Student View]" in result.stdout
+    assert "submission=correct_answer.zip" in result.stdout
+    assert "submission=wrong_answer.zip" in result.stdout
+    assert "submission=compiler_error.zip" in result.stdout
+    assert "submission=correct_answer_wrong_location.zip" in result.stdout
+
+
+def test_cli_run_stubs_submissions_with_zip(tmp_path):
+    cfg_src = Path("tests/examples/py_simple/config.yaml").read_text(encoding="utf-8")
+    cfg_file = tmp_path / "config.yaml"
+    cfg_file.write_text(cfg_src, encoding="utf-8")
+    python_executable = sys.executable
+    gen_result = subprocess.run(
+        [
+            python_executable,
+            "autograder_gen/cli.py",
+            "--config",
+            str(cfg_file),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert gen_result.returncode == 0
+    autograder_zip = tmp_path / "autograder.zip"
+    assert autograder_zip.exists()
+
+    result = subprocess.run(
+        [
+            python_executable,
+            "autograder_gen/cli.py",
+            "--config",
+            str(autograder_zip),
+            "--run-stubs-submissions",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "[AutograderRunner: Student View]" in result.stdout
+    assert "submission=correct_answer.zip" in result.stdout
+
+
+def test_cli_run_stubs_submissions_direct_arg():
+    python_executable = sys.executable
+    result = subprocess.run(
+        [
+            python_executable,
+            "autograder_gen/cli.py",
+            "--run-stubs-submissions",
+            "tests/examples/py_simple/config.yaml",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "[AutograderRunner: Student View]" in result.stdout
+    assert "submission=correct_answer.zip" in result.stdout
+
 

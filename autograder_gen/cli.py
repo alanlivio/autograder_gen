@@ -6,6 +6,7 @@ Provides CLI commands for validating configurations and generating Gradescope au
 import argparse
 import json
 import sys
+import zipfile
 from pathlib import Path
 import yaml
 
@@ -21,7 +22,12 @@ from autograder_gen.engine_utils import (
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate Gradescope autograder scripts from YAML configuration"
+        description=(
+            "Generate Gradescope autograder script from YAML configuration. "
+            "Generated files will be at the same folder as the config "
+            "(autograder.zip, description.docx, description.md, "
+            "stub submissions for testing)."
+        )
     )
     parser.add_argument("--config", "-c", help="Path to YAML configuration file")
     parser.add_argument(
@@ -30,17 +36,21 @@ def main():
         help="Path to submission directory or zip file to run using AutograderRunner",
     )
     parser.add_argument(
-        "--output",
-        "-o",
-        default="./output",
-        help="Output directory for generated assessment files (autograder.zip, description.docx, description.md, rubric.csv, answers.zip)",
+        "--run-stubs-submissions",
+        "--run-stub-submissions",
+        nargs="?",
+        const=True,
+        default=False,
+        help="Run autograder for generated stub submissions (correct_answer.zip, wrong_answer.zip, compiler_error.zip, correct_answer_wrong_location.zip)",
     )
     args = parser.parse_args()
     setup_logging()
     try:
         config_arg = args.config
         if not config_arg:
-            if args.run_submission:
+            if isinstance(args.run_stubs_submissions, str):
+                config_arg = args.run_stubs_submissions
+            elif args.run_submission:
                 sub_p = Path(args.run_submission)
                 for candidate in (
                     sub_p / "config.yaml",
@@ -51,14 +61,36 @@ def main():
                     if candidate.is_file():
                         config_arg = str(candidate)
                         break
+            elif args.run_stubs_submissions:
+                for candidate in (
+                    Path("config.yaml"),
+                    Path("config.yml"),
+                    Path("output/autograder.zip"),
+                    Path("autograder.zip"),
+                ):
+                    if candidate.is_file():
+                        config_arg = str(candidate)
+                        break
             if not config_arg:
                 print_error("Error: --config / -c is required")
                 return 2
 
         path = Path(config_arg)
-        with open(path, "r", encoding="utf-8") as f:
-            raw_config_data = yaml.safe_load(f)
-        # Validate configuration
+        if not path.exists():
+            print_error(f"Configuration file not found: {path}")
+            return 1
+
+        if path.is_file() and (path.suffix.lower() == ".zip" or zipfile.is_zipfile(path)):
+            with zipfile.ZipFile(path, "r") as z:
+                if "autograder_gen.yaml" in z.namelist():
+                    raw_config_data = yaml.safe_load(z.read("autograder_gen.yaml"))
+                else:
+                    print_error(f"autograder_gen.yaml not found in zip archive: {path}")
+                    return 1
+        else:
+            with open(path, "r", encoding="utf-8") as f:
+                raw_config_data = yaml.safe_load(f)
+
         validator = ag.Validator()
         is_valid = validator.validate_json(raw_config_data)
         errors = validator.get_errors()
@@ -80,6 +112,11 @@ def main():
             runner = ag.AutograderRunner(path, verbose=True)
             runner.run_autograder_for_submission(sub_path)
             return 0
+
+        if args.run_stubs_submissions:
+            runner = ag.AutograderRunner(path, verbose=True)
+            runner.run_autograder_for_generated_submissions()
+            return 0
         config = ag.Config.model_validate(raw_config_data)
         original_config_dict = None
         try:
@@ -99,11 +136,13 @@ def main():
         print(f"  Total Marks: {summary['total_marks']}")
         print(f"  Required Files: {', '.join(summary['required_files'])}")
 
+        output_dir = path.parent if str(path.parent) != "" else Path(".")
         generator = ag.Engine(config, original_config_dict, base_dir=path.parent)
-        output_path = generator.generate(args.output)
-        print_success(f"Autograder package generated successfully at: {args.output}")
+        output_path = generator.generate(str(output_dir))
+        print_success(f"Autograder package generated successfully at: {output_dir}")
         print_success(
-            f"Generated assets: autograder.zip, description.docx, description.md, rubric.csv, correct_answer.zip, wrong_answer.zip, compiler_error.zip, correct_answer_wrong_location.zip"
+            "Generated assets: autograder.zip, description.docx, description.md, "
+            "stub submissions for testing (correct_answer.zip, wrong_answer.zip, compiler_error.zip, correct_answer_wrong_location.zip)"
         )
         return 0
     except Exception as e:
