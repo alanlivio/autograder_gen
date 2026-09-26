@@ -83,6 +83,12 @@ class Engine:
             wrong_buffer = self.generate_wrong_answer_zip()
             with open(output_path / "wrong_answer.zip", "wb") as f:
                 f.write(wrong_buffer.getbuffer())
+            compiler_buffer = self.generate_compiler_error_zip()
+            with open(output_path / "compiler_error.zip", "wb") as f:
+                f.write(compiler_buffer.getbuffer())
+            wrong_loc_buffer = self.generate_wrong_file_location_zip()
+            with open(output_path / "correct_answer_wrong_location.zip", "wb") as f:
+                f.write(wrong_loc_buffer.getbuffer())
             return str(zip_path)
         finally:
             if self.temp_dir and self.temp_dir.exists():
@@ -422,6 +428,65 @@ class Engine:
         buffer.seek(0)
         return buffer
 
+    def generate_compiler_error_zip(self) -> BytesIO:
+        buffer = BytesIO()
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+            created_dirs = set()
+            for filename in self.config.required_files:
+                parent = Path(filename).parent
+                if str(parent) != "." and str(parent) not in created_dirs:
+                    created_dirs.add(str(parent))
+                    zipf.writestr(f"{parent}/", "")
+                content = self._generate_skeleton_content(filename, correct=False, compiler_error=True)
+                zipf.writestr(filename, content)
+        buffer.seek(0)
+        return buffer
+
+    def generate_wrong_file_location_zip(self) -> BytesIO:
+        buffer = BytesIO()
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+            created_dirs = set()
+            zipf.writestr("src/", "")
+            created_dirs.add("src")
+            for filename in self.config.required_files:
+                nested_filename = f"src/{filename}"
+                parent = Path(nested_filename).parent
+                parts = parent.parts
+                accum = ""
+                for p in parts:
+                    accum = f"{accum}/{p}" if accum else p
+                    if accum not in created_dirs:
+                        created_dirs.add(accum)
+                        zipf.writestr(f"{accum}/", "")
+                content = self._generate_skeleton_content(filename, correct=True)
+                zipf.writestr(nested_filename, content)
+
+            has_gitlab = any(
+                item.type == "gitlab_submission_exists"
+                for q in self.config.questions
+                for item in q.marking_items
+            )
+            has_github = any(
+                item.type == "github_submission_exists"
+                for q in self.config.questions
+                for item in q.marking_items
+            )
+            if has_gitlab:
+                zipf.writestr(
+                    "src/submission_metadata.json",
+                    json.dumps({"submission_method": "GitLab"}),
+                )
+            elif has_github:
+                zipf.writestr(
+                    "src/submission_metadata.json",
+                    json.dumps({"submission_method": "GitHub"}),
+                )
+        buffer.seek(0)
+        return buffer
+
+    generate_correct_answer_wrong_location_zip = generate_wrong_file_location_zip
+    generate_correct_answer_with_wrong_location_zip = generate_wrong_file_location_zip
+
     def generate_rubric_md(self) -> BytesIO:
         """Generate a Markdown document containing the assessment grading rubric matrix."""
         summary = self.config.get_config_summary()
@@ -486,7 +551,9 @@ class Engine:
         buffer.seek(0)
         return buffer
 
-    def _generate_skeleton_content(self, target_file: str, correct: bool = True) -> str:
+    def _generate_skeleton_content(
+        self, target_file: str, correct: bool = True, compiler_error: bool = False
+    ) -> str:
         import ast
 
         def get_python_literal_str(expected_str: str) -> str:
@@ -519,6 +586,21 @@ class Engine:
 
         if target_file.endswith(".pdf"):
             return ""
+
+        if compiler_error:
+            if self.config.language == "python":
+                functions = set()
+                for q in self.config.questions:
+                    for item in q.marking_items:
+                        if item.target_file == target_file and getattr(item, "function_name", ""):
+                            functions.add(item.function_name)
+                if functions:
+                    func = sorted(functions)[0]
+                    return f"def {func}(*args, **kwargs)\n    pass\n"
+                return "def syntax_error(\n    pass\n"
+            elif self.config.language == "java":
+                class_name = Path(target_file).stem
+                return f"public class {class_name} {{\n    public static void syntaxError() {{\n        return 0\n    }}\n}}\n"
 
         if self.config.language == "python":
             lines = ["# Skeleton for " + target_file, ""]

@@ -159,3 +159,42 @@ def test_generator_essential_exports():
     wrong_buf = generator.generate_wrong_answer_zip()
     with zipfile.ZipFile(wrong_buf, "r") as zf:
         assert len(zf.namelist()) > 0
+
+    compiler_buf = generator.generate_compiler_error_zip()
+    with zipfile.ZipFile(compiler_buf, "r") as zf:
+        assert len(zf.namelist()) > 0
+
+    wrong_loc_buf = generator.generate_correct_answer_wrong_location_zip()
+    with zipfile.ZipFile(wrong_loc_buf, "r") as zf:
+        assert len(zf.namelist()) > 0
+
+
+def test_skeleton_generation_compiler_error():
+    config_dict = {
+        "version": "1.0",
+        "language": "python",
+        "files_necessary": ["solution.py"],
+        "questions": [
+            {
+                "name": "Question 1",
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 10,
+                        "type": "function_test",
+                        "function_name": "add",
+                        "test_cases": [
+                            {"args": [1, 2], "expected": "3"},
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    config = ag.Config.model_validate(config_dict)
+    generator = ag.Engine(config, config_dict)
+    zip_bytes = generator.generate_compiler_error_zip()
+    with zipfile.ZipFile(zip_bytes, "r") as z:
+        assert "solution.py" in z.namelist()
+        content = z.read("solution.py").decode("utf-8")
+        assert "def add(*args, **kwargs)" in content

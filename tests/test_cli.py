@@ -72,6 +72,8 @@ def test_cli_generates_all_assets(tmp_path):
     assert (output_dir / "rubric.csv").exists()
     assert (output_dir / "correct_answer.zip").exists()
     assert (output_dir / "wrong_answer.zip").exists()
+    assert (output_dir / "compiler_error.zip").exists()
+    assert (output_dir / "correct_answer_wrong_location.zip").exists()
 
 
 def test_cli_example(tmp_path):

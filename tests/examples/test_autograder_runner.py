@@ -44,22 +44,22 @@ def run_autograder_sh_scenario(
         ("py_simple", "wrong_answer", 0),
         ("py_simple", "compiler_error", 0),
         ("py_simple", "missing_file", 0),
-        ("py_simple", "wrong_file_location", 10),
+        ("py_simple", "correct_answer_wrong_location", 10),
         ("py_function", "correct_answer", 10),
         ("py_function", "wrong_answer", 5),
         ("py_function", "compiler_error", 0),
         ("py_function", "missing_file", 0),
-        ("py_function", "wrong_file_location", 10),
+        ("py_function", "correct_answer_wrong_location", 10),
         ("py_complete", "correct_answer", 100),
         ("py_complete", "wrong_answer", 0),
         ("py_complete", "compiler_error", 0),
         ("py_complete", "missing_file", 0),
-        ("py_complete", "wrong_file_location", 100),
+        ("py_complete", "correct_answer_wrong_location", 100),
         ("java_simple", "correct_answer", 10),
         ("java_simple", "wrong_answer", 0),
         ("java_simple", "compiler_error", 0),
         ("java_simple", "missing_file", 0),
-        ("java_simple", "wrong_file_location", 10),
+        ("java_simple", "correct_answer_wrong_location", 10),
     ],
 )
 def test_examples_run_autograder_sh(example_name, subdir, expected_score):
@@ -104,27 +104,50 @@ def test_run_autograder_for_generated_submissions(tmp_path):
     results = runner.run_autograder_for_generated_submissions()
     assert "correct_answer" in results
     assert "wrong_answer" in results
+    assert "compiler_error" in results
+    assert "correct_answer_wrong_location" in results
+    assert "correct_answer_with_wrong_location" in results
 
     correct_score = sum(t.get("score", 0) for t in results["correct_answer"]["tests"])
     wrong_score = sum(t.get("score", 0) for t in results["wrong_answer"]["tests"])
+    compiler_score = sum(t.get("score", 0) for t in results["compiler_error"]["tests"])
+    wrong_loc_score = sum(t.get("score", 0) for t in results["correct_answer_wrong_location"]["tests"])
 
     assert correct_score == 10
     assert wrong_score == 0
+    assert compiler_score == 0
+    assert wrong_loc_score == 10
 
     assert "log_path" in results["correct_answer"]
     assert "log_path" in results["wrong_answer"]
+    assert "log_path" in results["compiler_error"]
+    assert "log_path" in results["correct_answer_wrong_location"]
     correct_log = Path(results["correct_answer"]["log_path"])
     wrong_log = Path(results["wrong_answer"]["log_path"])
+    compiler_log = Path(results["compiler_error"]["log_path"])
+    wrong_loc_log = Path(results["correct_answer_wrong_location"]["log_path"])
     assert correct_log.exists()
     assert wrong_log.exists()
+    assert compiler_log.exists()
+    assert wrong_loc_log.exists()
     assert correct_log.name == "config_correct_answer.log"
     assert wrong_log.name == "config_wrong_answer.log"
+    assert compiler_log.name == "config_compiler_error.log"
+    assert wrong_loc_log.name == "config_correct_answer_wrong_location.log"
     assert "# Total Score = 10, Actual Score = 10" in correct_log.read_text(encoding="utf-8")
     assert "# Total Score = 10, Actual Score = 0" in wrong_log.read_text(encoding="utf-8")
+    assert "# Total Score = 10, Actual Score = 0" in compiler_log.read_text(encoding="utf-8")
+    assert "# Total Score = 10, Actual Score = 10" in wrong_loc_log.read_text(encoding="utf-8")
 
     correct_text = correct_log.read_text(encoding="utf-8")
     wrong_text = wrong_log.read_text(encoding="utf-8")
+    compiler_text = compiler_log.read_text(encoding="utf-8")
+    wrong_loc_text = wrong_loc_log.read_text(encoding="utf-8")
     assert "[AutograderRunner Summary]" not in correct_text
     assert "Status =" not in correct_text
     assert "[AutograderRunner Summary]" not in wrong_text
     assert "Status =" not in wrong_text
+    assert "[AutograderRunner Summary]" not in compiler_text
+    assert "Status =" not in compiler_text
+    assert "[AutograderRunner Summary]" not in wrong_loc_text
+    assert "Status =" not in wrong_loc_text

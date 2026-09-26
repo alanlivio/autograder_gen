@@ -79,9 +79,45 @@ questions:
         "autograder.zip",
         "correct_answer.zip",
         "wrong_answer.zip",
+        "compiler_error.zip",
+        "correct_answer_wrong_location.zip",
         "description.docx",
         "description.md",
         "rubric.csv",
     ]:
         assert asset_name in captured.out
         assert (tmp_path / asset_name).exists()
+
+
+def test_batch_run_execution(tmp_path: Path, monkeypatch, capsys):
+    cfg_path = tmp_path / "config.yaml"
+    cfg_content = """version: '1.0'
+language: python
+required_files:
+  - solution.py
+questions:
+  - name: Q1
+    marking_items:
+      - name: Item 1
+        total_mark: 10
+        type: function_test
+        target_file: solution.py
+        function_name: add
+        test_cases:
+          - args: [1, 2]
+            expected: "3"
+"""
+    cfg_path.write_text(cfg_content, encoding="utf-8")
+
+    monkeypatch.setattr(sys, "argv", ["autograder-run-batch", str(tmp_path)])
+    batch_run_main()
+
+    captured = capsys.readouterr()
+    for log_name in [
+        "config_correct_answer.log",
+        "config_wrong_answer.log",
+        "config_compiler_error.log",
+        "config_correct_answer_wrong_location.log",
+    ]:
+        assert log_name in captured.out
+        assert (tmp_path / log_name).exists()

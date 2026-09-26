@@ -89,7 +89,7 @@ def main():
         output_path = generator.generate(args.output)
         print_success(f"Autograder package generated successfully at: {args.output}")
         print_success(
-            f"Generated assets: autograder.zip, description.docx, description.md, rubric.csv, correct_answer.zip, wrong_answer.zip"
+            f"Generated assets: autograder.zip, description.docx, description.md, rubric.csv, correct_answer.zip, wrong_answer.zip, compiler_error.zip, correct_answer_wrong_location.zip"
         )
         return 0
     except Exception as e:

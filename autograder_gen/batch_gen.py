@@ -59,6 +59,8 @@ def main():
             out_dir / "autograder.zip",
             out_dir / "correct_answer.zip",
             out_dir / "wrong_answer.zip",
+            out_dir / "compiler_error.zip",
+            out_dir / "correct_answer_wrong_location.zip",
             out_dir / "description.docx",
             out_dir / "description.md",
             out_dir / "rubric.csv",
