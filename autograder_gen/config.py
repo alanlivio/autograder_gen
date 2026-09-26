@@ -28,7 +28,6 @@ class MarkingItem(BaseModel):
     @classmethod
     def check_type(cls, v: str) -> str:
         allowed = {
-            "file_exists",
             "output_comparison",
             "signature_check",
             "function_test",

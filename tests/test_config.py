@@ -18,7 +18,7 @@ def test_config_total_score_single_question():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -40,12 +40,12 @@ def test_config_total_score_float_marks():
                     {
                         "target_file": "solution.py",
                         "total_mark": 2.5,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     },
                     {
                         "target_file": "solution.py",
                         "total_mark": 7.5,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     },
                 ],
             }
@@ -71,7 +71,7 @@ def test_config_total_score_multiple_questions_and_items():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     },
                     {
                         "target_file": "solution.py",
@@ -88,7 +88,7 @@ def test_config_total_score_multiple_questions_and_items():
                     {
                         "target_file": "helper.py",
                         "total_mark": 25,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             },
@@ -144,7 +144,7 @@ def test_config_missing_target_file_in_files_necessary():
                     {
                         "target_file": "missing.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -154,7 +154,7 @@ def test_config_missing_target_file_in_files_necessary():
         ag.Config.model_validate(data)
 
 
-def test_file_exists_with_time_limit_fails_validation():
+def test_file_exists_type_fails_validation():
     data = {
         "version": "1.0",
         "language": "python",
@@ -167,6 +167,29 @@ def test_file_exists_with_time_limit_fails_validation():
                         "target_file": "solution.py",
                         "total_mark": 0,
                         "type": "file_exists",
+                    }
+                ],
+            }
+        ],
+    }
+    with pytest.raises(ValidationError) as excinfo:
+        ag.Config.model_validate(data)
+    assert "type must be one of" in str(excinfo.value)
+
+
+def test_signature_check_with_time_limit_fails_validation():
+    data = {
+        "version": "1.0",
+        "language": "python",
+        "files_necessary": ["solution.py"],
+        "questions": [
+            {
+                "name": "Q1",
+                "marking_items": [
+                    {
+                        "target_file": "solution.py",
+                        "total_mark": 0,
+                        "type": "signature_check",
                         "time_limit": 5,
                     }
                 ],
@@ -175,7 +198,7 @@ def test_file_exists_with_time_limit_fails_validation():
     }
     with pytest.raises(ValidationError) as excinfo:
         ag.Config.model_validate(data)
-    assert "time_limit is not allowed for type 'file_exists'" in str(excinfo.value)
+    assert "time_limit is not allowed for type 'signature_check'" in str(excinfo.value)
 
 
 def test_strict_file_location_configuration():
@@ -190,7 +213,7 @@ def test_strict_file_location_configuration():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -215,7 +238,7 @@ def test_remove_use_of_java_package_configuration():
                     {
                         "target_file": "Solution.java",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -240,7 +263,7 @@ def test_required_files_and_backwards_compatibility():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -266,7 +289,7 @@ def test_required_files_and_backwards_compatibility():
                     {
                         "target_file": "main.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -288,7 +311,7 @@ def test_required_files_and_backwards_compatibility():
                     {
                         "target_file": "app.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -316,7 +339,7 @@ def test_question_strict_float_configuration():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             },
@@ -327,7 +350,7 @@ def test_question_strict_float_configuration():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             },

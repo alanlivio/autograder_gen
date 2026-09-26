@@ -15,7 +15,7 @@ def test_language_validation():
                 {
                     "name": "Q1",
                     "marking_items": [
-                        {"target_file": "t.py", "total_mark": 1, "type": "file_exists"}
+                        {"target_file": "t.py", "total_mark": 1, "type": "output_comparison"}
                     ],
                 }
             ],
@@ -30,7 +30,7 @@ def test_language_validation():
                 {
                     "name": "Q1",
                     "marking_items": [
-                        {"target_file": "t.py", "total_mark": 1, "type": "file_exists"}
+                        {"target_file": "t.py", "total_mark": 1, "type": "output_comparison"}
                     ],
                 }
             ],
@@ -51,7 +51,7 @@ def test_language_validation():
                             {
                                 "target_file": "t.py",
                                 "total_mark": 1,
-                                "type": "file_exists",
+                                "type": "output_comparison",
                             }
                         ],
                     }

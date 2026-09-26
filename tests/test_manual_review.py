@@ -239,10 +239,10 @@ def test_manual_review_generation_and_inspection(tmp_path: Path):
                         "type": "gitlab_submission_exists",
                     },
                     {
-                        "name": "Main.java File Exists",
+                        "name": "Main.java Output Check",
                         "target_file": "Main.java",
                         "total_mark": 0.0,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     },
                     {
                         "name": "report.pdf File Exists",

@@ -62,4 +62,3 @@ def test_web_app_import_and_export_all_templates(client, template_name):
     assert export_resp.status_code == 200
     assert export_resp.headers["Content-Type"] == "application/zip"
     assert export_resp.data.startswith(b"PK\x03\x04")
-

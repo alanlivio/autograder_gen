@@ -62,7 +62,9 @@ def run_autograder_scenario(
         if student_dir.exists():
             for student_file in student_dir.iterdir():
                 if student_file.is_dir():
-                    shutil.copytree(student_file, submission_dir / student_file.name, dirs_exist_ok=True)
+                    shutil.copytree(
+                        student_file, submission_dir / student_file.name, dirs_exist_ok=True
+                    )
                 elif student_file.is_file():
                     shutil.copy(student_file, submission_dir / student_file.name)
 
@@ -111,9 +113,7 @@ def run_autograder_scenario(
 @pytest.mark.parametrize("config_file", ["config.yaml"])
 def test_autograder_integration_py_simple(subdir, expected_score, config_file):
     """Test autograder execution for py_simple example across all scenarios."""
-    run_autograder_scenario(
-        "py_simple", subdir, expected_score, config_file=config_file
-    )
+    run_autograder_scenario("py_simple", subdir, expected_score, config_file=config_file)
 
 
 @pytest.mark.parametrize(
@@ -129,9 +129,7 @@ def test_autograder_integration_py_simple(subdir, expected_score, config_file):
 @pytest.mark.parametrize("config_file", ["config.yaml"])
 def test_autograder_integration_py_function(subdir, expected_score, config_file):
     """Test autograder execution for py_function example across all scenarios."""
-    run_autograder_scenario(
-        "py_function", subdir, expected_score, config_file=config_file
-    )
+    run_autograder_scenario("py_function", subdir, expected_score, config_file=config_file)
 
 
 @pytest.mark.parametrize(
@@ -147,9 +145,7 @@ def test_autograder_integration_py_function(subdir, expected_score, config_file)
 @pytest.mark.parametrize("config_file", ["config.yaml"])
 def test_autograder_integration_py_complete(subdir, expected_score, config_file):
     """Test autograder execution for py_complete example across all scenarios."""
-    run_autograder_scenario(
-        "py_complete", subdir, expected_score, config_file=config_file
-    )
+    run_autograder_scenario("py_complete", subdir, expected_score, config_file=config_file)
 
 
 @pytest.mark.skipif(shutil.which("javac") is None, reason="javac is not installed")

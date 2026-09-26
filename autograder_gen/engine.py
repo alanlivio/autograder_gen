@@ -162,17 +162,12 @@ class Engine:
             doc.add_heading(f"Question {i}: {question.name}", level=1)
             if hasattr(question, "description") and question.description:
                 doc.add_paragraph(question.description)
-            question_points = sum(
-                item.total_mark for item in question.marking_items if item.type != "file_exists"
-            )
+            question_points = sum(item.total_mark for item in question.marking_items)
             p = doc.add_paragraph()
             run = p.add_run(f"Total Points: {question_points}")
             run.bold = True
             doc.add_heading("Marking Items", level=2)
-            visible_item_idx = 1
-            for item in question.marking_items:
-                if item.type == "file_exists":
-                    continue
+            for visible_item_idx, item in enumerate(question.marking_items, 1):
                 item_name = getattr(item, "name", "") or f"Marking Item {visible_item_idx}"
                 doc.add_heading(f"{visible_item_idx}. {item_name}", level=3)
                 doc.add_paragraph(f"Points: {item.total_mark}")
@@ -226,17 +221,12 @@ class Engine:
             if hasattr(question, "description") and question.description:
                 lines.append(question.description)
                 lines.append("")
-            question_points = sum(
-                item.total_mark for item in question.marking_items if item.type != "file_exists"
-            )
+            question_points = sum(item.total_mark for item in question.marking_items)
             lines.append(f"**Total Points:** {question_points}")
             lines.append("")
             lines.append("### Marking Items")
             lines.append("")
-            visible_item_idx = 1
-            for item in question.marking_items:
-                if item.type == "file_exists":
-                    continue
+            for visible_item_idx, item in enumerate(question.marking_items, 1):
                 item_name = getattr(item, "name", "") or f"Marking Item {visible_item_idx}"
                 lines.append(f"#### {visible_item_idx}. {item_name}")
                 lines.append("")
@@ -320,9 +310,7 @@ class Engine:
             "  </div>",
         ]
         for i, question in enumerate(self.config.questions, 1):
-            question_points = sum(
-                item.total_mark for item in question.marking_items if item.type != "file_exists"
-            )
+            question_points = sum(item.total_mark for item in question.marking_items)
             html_lines.append('  <div class="question-card">')
             html_lines.append('    <div class="question-title">')
             html_lines.append(f"      <h2>Question {i}: {question.name}</h2>")
@@ -331,10 +319,7 @@ class Engine:
             if hasattr(question, "description") and question.description:
                 html_lines.append(f"    <p>{question.description}</p>")
             html_lines.append("    <h3>Marking Items</h3>")
-            visible_item_idx = 1
-            for item in question.marking_items:
-                if item.type == "file_exists":
-                    continue
+            for visible_item_idx, item in enumerate(question.marking_items, 1):
                 item_name = getattr(item, "name", "") or f"Marking Item {visible_item_idx}"
                 html_lines.append('    <div class="item-block">')
                 html_lines.append(
@@ -1281,7 +1266,6 @@ autograder.zip
 
 ## Test Types Supported
 
-- **file_exists**: Checks if required files are present in submission
 - **output_comparison**: Compares program output with expected results
 - **signature_check**: Validates function signatures and parameters
 - **function_test**: Tests function behavior with specific inputs and expected outputs

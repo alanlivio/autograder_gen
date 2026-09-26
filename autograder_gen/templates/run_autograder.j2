@@ -13,21 +13,27 @@ export AUTOGRADER_ROOT="${AUTOGRADER_ROOT}"
 export GRADESCOPE_RESULTS_PATH="${GRADESCOPE_RESULTS_PATH:-$RESULTS_DIR/results.json}"
 export GRADESCOPE_SOURCE_PATH="${GRADESCOPE_SOURCE_PATH:-$SOURCE_DIR}"
 
+FILE_CHECK_LOG="$RESULTS_DIR/file_check.log"
+> "$FILE_CHECK_LOG"
+
 echo "Starting autograder..."
 echo "Copying required submission files to source directory..."
 
 if [ -d "$SUBMISSION_DIR" ]; then
     cd "$SUBMISSION_DIR"
     {% for file in config.required_files %}
+    echo "Checking required file: {{ file }}..." | tee -a "$FILE_CHECK_LOG"
     if [ -f "{{ file }}" ]; then
+        echo "File '{{ file }}' exists." | tee -a "$FILE_CHECK_LOG"
         echo "Copying {{ file }}..."
         mkdir -p "$SOURCE_DIR/$(dirname "{{ file }}")"
         cp "{{ file }}" "$SOURCE_DIR/{{ file }}"
     else
-        echo "Warning: Required file {{ file }} not found in submission"
+        echo "Warning: Required file {{ file }} not found in submission" | tee -a "$FILE_CHECK_LOG"
         {% if not config.strict_file_location %}
         FOUND_FILE=$(find . -name "$(basename "{{ file }}")" -type f | head -n 1)
         if [ -n "$FOUND_FILE" ]; then
+            echo "Found file '{{ file }}' at $FOUND_FILE" | tee -a "$FILE_CHECK_LOG"
             TARGET_SUBDIR=$(dirname "$FOUND_FILE" | sed 's|^\./||')
             mkdir -p "$SOURCE_DIR/$TARGET_SUBDIR"
             cp "$FOUND_FILE" "$SOURCE_DIR/$TARGET_SUBDIR/"
@@ -44,12 +50,33 @@ if [ -d "$SUBMISSION_DIR" ]; then
     echo "Files copied to source directory:"
     ls -la "$SOURCE_DIR/"
 else
-    echo "Warning: Submission directory not found"
+    echo "Warning: Submission directory not found" | tee -a "$FILE_CHECK_LOG"
     exit 1
 fi
 
 cd "$SOURCE_DIR"
 echo "Running tests..."
 "$PYTHON" run_tests.py
+
+if [ -f "$GRADESCOPE_RESULTS_PATH" ] && [ -s "$FILE_CHECK_LOG" ]; then
+    "$PYTHON" -c "
+import json, os
+path = os.environ.get('GRADESCOPE_RESULTS_PATH')
+log_path = '$FILE_CHECK_LOG'
+if path and os.path.exists(path) and os.path.exists(log_path):
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        with open(log_path, 'r', encoding='utf-8') as f:
+            log_content = f.read().strip()
+        if log_content:
+            existing = data.get('output', '')
+            data['output'] = (log_content + '\n\n' + existing).strip() if existing else log_content
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2)
+    except Exception:
+        pass
+"
+fi
 
 echo "Autograder completed successfully"

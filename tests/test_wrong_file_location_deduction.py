@@ -22,7 +22,7 @@ def test_config_wrong_file_location_deduction_default():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -46,7 +46,7 @@ def test_config_wrong_file_location_deduction_custom():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -71,7 +71,7 @@ def test_config_wrong_file_location_deduction_requires_strict_false():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -98,7 +98,7 @@ def test_config_wrong_file_location_deduction_negative_fails():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -122,7 +122,7 @@ def test_config_wrong_file_location_deduction_global_fallback():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             },
@@ -133,7 +133,7 @@ def test_config_wrong_file_location_deduction_global_fallback():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             },
@@ -158,7 +158,8 @@ def test_wrong_file_location_deduction_execution(tmp_path: Path):
                     {
                         "target_file": "solution.py",
                         "total_mark": 10.0,
-                        "type": "file_exists",
+                        "type": "output_comparison",
+                        "expected_output": "hello",
                     }
                 ],
             }
@@ -215,7 +216,8 @@ def test_wrong_file_location_deduction_not_applied_when_location_correct(tmp_pat
                     {
                         "target_file": "solution.py",
                         "total_mark": 10.0,
-                        "type": "file_exists",
+                        "type": "output_comparison",
+                        "expected_output": "hello",
                     }
                 ],
             }
@@ -271,7 +273,8 @@ def test_wrong_file_location_deduction_by_question_execution(tmp_path: Path):
                     {
                         "target_file": "solution.py",
                         "total_mark": 10.0,
-                        "type": "file_exists",
+                        "type": "output_comparison",
+                        "expected_output": "hello",
                     }
                 ],
             },
@@ -282,7 +285,8 @@ def test_wrong_file_location_deduction_by_question_execution(tmp_path: Path):
                     {
                         "target_file": "solution.py",
                         "total_mark": 10.0,
-                        "type": "file_exists",
+                        "type": "output_comparison",
+                        "expected_output": "hello",
                     }
                 ],
             },

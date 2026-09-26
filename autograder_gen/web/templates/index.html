@@ -257,7 +257,6 @@
                 <div class="col-md-4">
                     <label class="form-label small font-weight-bold mb-1">Test Type</label>
                     <select class="form-select mi-type-select" onchange="showTypeFields(this)">
-                        <option value="file_exists">Check file exists</option>
                         <option value="output_comparison">Compare Output</option>
                         <option value="signature_check">Validate Signature</option>
                         <option value="function_test">Unit Test Function</option>
@@ -1055,7 +1054,7 @@
                                 miList.appendChild(miDiv);
                                 const typeSelect = miDiv.querySelector('select');
                                 if (typeSelect) {
-                                    typeSelect.value = mi.type || 'file_exists';
+                                    typeSelect.value = mi.type || 'output_comparison';
                                     showTypeFields(typeSelect);
                                 }
                                 updateQuestionNumbers();

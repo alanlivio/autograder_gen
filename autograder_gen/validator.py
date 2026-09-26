@@ -167,4 +167,3 @@ class Validator:
             },
             "issues": issues,
         }
-

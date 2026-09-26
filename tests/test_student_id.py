@@ -18,7 +18,7 @@ def test_config_retrieve_student_id_default():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -42,7 +42,7 @@ def test_config_retrieve_student_id_enabled():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -136,7 +136,7 @@ def test_generator_output_with_retrieve_student_id(tmp_path: Path):
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }

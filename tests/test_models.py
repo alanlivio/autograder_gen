@@ -4,16 +4,22 @@ import autograder_gen as ag
 
 
 def test_marking_item_schema_valid():
-    data = {"target_file": "solution.py", "total_mark": 10, "type": "file_exists"}
+    data = {"target_file": "solution.py", "total_mark": 10, "type": "output_comparison"}
     result = ag.MarkingItem(**data)
     assert result.target_file == "solution.py"
     assert result.total_mark == 10
-    assert result.type == "file_exists"
+    assert result.type == "output_comparison"
     assert result.time_limit == 30
 
 
+def test_marking_item_file_exists_type_invalid():
+    data = {"target_file": "solution.py", "total_mark": 10, "type": "file_exists"}
+    with pytest.raises(ValidationError):
+        ag.MarkingItem(**data)
+
+
 def test_marking_item_schema_float_total_mark():
-    data = {"target_file": "solution.py", "total_mark": 7.5, "type": "file_exists"}
+    data = {"target_file": "solution.py", "total_mark": 7.5, "type": "output_comparison"}
     result = ag.MarkingItem(**data)
     assert result.total_mark == 7.5
     assert isinstance(result.total_mark, float)
@@ -32,7 +38,7 @@ def test_question_schema_valid():
     data = {
         "name": "Q1",
         "marking_items": [
-            {"target_file": "solution.py", "total_mark": 10, "type": "file_exists"}
+            {"target_file": "solution.py", "total_mark": 10, "type": "output_comparison"}
         ],
     }
     result = ag.Question(**data)
@@ -52,7 +58,7 @@ def test_autograder_config_schema_full():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -86,8 +92,9 @@ def test_validator_and_utility_functions():
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                         "name": "check_exists",
+                        "expected_output": "expected",
                     }
                 ],
             }

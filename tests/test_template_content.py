@@ -18,7 +18,7 @@ CONFIG_FOR_TEMPLATES = {
                 {
                     "target_file": "solution.py",
                     "total_mark": 10,
-                    "type": "file_exists",
+                    "type": "output_comparison",
                     "name": "check_solution_py_exists",
                 },
                 {
@@ -126,7 +126,10 @@ def test_output_comparison_template(tmp_path):
 
         assert "def test_output_test(self):" in test_content
         assert 'print(f"# 1.1) output_test")' in test_content
-        assert "from grader_utils import StudentMessage, normalize_output, compare_outputs" in test_content
+        assert (
+            "from grader_utils import StudentMessage, normalize_output, compare_outputs"
+            in test_content
+        )
         assert "self.fail(StudentMessage.COMPILATION_ERROR)" in test_content
         assert "self.fail(StudentMessage.RUNTIME_ERROR)" in test_content
         assert "StudentMessage.WRONG_ANSWER_FILE.format(file_name=target_file)" in test_content
@@ -169,7 +172,10 @@ def test_function_test_template_expected_actual_output(tmp_path):
         assert 'print(f"# 1.1) Math Test")' in test_content
         assert 'expected_out = normalize_output("3")' in test_content
         assert "actual_out = normalize_output(str(result))" in test_content
-        assert "from grader_utils import StudentMessage, normalize_output, compare_outputs" in test_content
+        assert (
+            "from grader_utils import StudentMessage, normalize_output, compare_outputs"
+            in test_content
+        )
         assert (
             "StudentMessage.WRONG_ANSWER_FUNCTION.format(function_name=function_name)"
             in test_content
@@ -185,19 +191,19 @@ def test_function_test_template_expected_actual_output(tmp_path):
         )
 
 
-def test_file_exists_template_student_message(tmp_path):
+def test_run_autograder_logs_checking_required_files(tmp_path):
     config_dict = {
         "version": "1.0",
         "language": "python",
-        "files_necessary": ["solution.py"],
+        "required_files": ["solution.py"],
         "questions": [
             {
-                "name": "File Existence",
+                "name": "Output Test",
                 "marking_items": [
                     {
                         "target_file": "solution.py",
                         "total_mark": 10,
-                        "type": "file_exists",
+                        "type": "output_comparison",
                     }
                 ],
             }
@@ -205,16 +211,13 @@ def test_file_exists_template_student_message(tmp_path):
     }
     config = ag.Config.model_validate(config_dict)
     generator = ag.Engine(config, config_dict)
-    output_dir = tmp_path / "output_fe"
+    output_dir = tmp_path / "output_log"
     zip_path = generator.generate(str(output_dir))
 
     with zipfile.ZipFile(zip_path, "r") as z:
-        assert "grader_utils.py" in z.namelist()
-        test_content = z.read("tests/question_1_test.py").decode("utf-8")
-        assert "from grader_utils import StudentMessage, normalize_output, compare_outputs" in test_content
-        assert "StudentMessage.WRONG_FILE.format(file_name=target_file)" in test_content
-        assert "StudentMessage.CORRECT_FILE.format(file_name=target_file)" in test_content
-        assert "self.fail(StudentMessage.WRONG_FILE.format(file_name=target_file))" in test_content
+        run_autograder = z.read("run_autograder").decode("utf-8")
+        assert "Checking required file: solution.py..." in run_autograder
+        assert "File 'solution.py' exists." in run_autograder
 
 
 def test_java_remove_package_template(tmp_path):
@@ -232,9 +235,7 @@ def test_java_remove_package_template(tmp_path):
                         "total_mark": 10,
                         "type": "function_test",
                         "function_name": "add",
-                        "test_cases": [
-                            {"args": [1.0, 2.0], "expected": "3.0"}
-                        ],
+                        "test_cases": [{"args": [1.0, 2.0], "expected": "3.0"}],
                     }
                 ],
             }
@@ -248,7 +249,10 @@ def test_java_remove_package_template(tmp_path):
     with zipfile.ZipFile(zip_path, "r") as z:
         assert "grader_utils.py" in z.namelist()
         test_content = z.read("tests/question_1_test.py").decode("utf-8")
-        assert "from grader_utils import StudentMessage, normalize_output, compare_outputs, remove_package_line" in test_content
+        assert (
+            "from grader_utils import StudentMessage, normalize_output, compare_outputs, remove_package_line"
+            in test_content
+        )
         assert "remove_package_line(file_path)" in test_content
         assert "remove_package_line(java_file)" in test_content
 
@@ -268,9 +272,7 @@ def test_java_remove_package_execution(tmp_path):
                         "total_mark": 10,
                         "type": "function_test",
                         "function_name": "add",
-                        "test_cases": [
-                            {"args": [1.0, 2.0], "expected": "3.0"}
-                        ],
+                        "test_cases": [{"args": [1.0, 2.0], "expected": "3.0"}],
                     }
                 ],
             }
@@ -309,9 +311,7 @@ def test_float_comparison_tolerance_non_strict(tmp_path):
                         "total_mark": 10,
                         "type": "function_test",
                         "function_name": "calc_volume",
-                        "test_cases": [
-                            {"args": [20.24], "expected": "4341.40345"}
-                        ],
+                        "test_cases": [{"args": [20.24], "expected": "4341.40345"}],
                     }
                 ],
             }
@@ -350,9 +350,7 @@ def test_float_comparison_strict_fails(tmp_path):
                         "total_mark": 10,
                         "type": "function_test",
                         "function_name": "calc_volume",
-                        "test_cases": [
-                            {"args": [20.24], "expected": "4341.40345"}
-                        ],
+                        "test_cases": [{"args": [20.24], "expected": "4341.40345"}],
                     }
                 ],
             }
@@ -381,5 +379,3 @@ def test_student_message_compilation_error():
 
     assert StudentMessage.COMPILATION_ERROR == "[COMPILATION_ERROR] Check compile errors above."
     assert not hasattr(StudentMessage, "COMPILER_ERROR")
-
-

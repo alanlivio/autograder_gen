@@ -59,7 +59,10 @@ def test_remove_package_line_standard(tmp_path):
 
 def test_remove_package_line_with_comment_and_spaces(tmp_path):
     f = tmp_path / "Solution.java"
-    f.write_text("// student code\n  package   my.pkg.name ; // comment\npublic class Solution {}\n", encoding="utf-8")
+    f.write_text(
+        "// student code\n  package   my.pkg.name ; // comment\npublic class Solution {}\n",
+        encoding="utf-8",
+    )
     remove_package_line(f)
     assert f.read_text(encoding="utf-8") == "// student code\npublic class Solution {}\n"
 
@@ -100,4 +103,3 @@ def test_compare_outputs_float_requires_exact_when_strict():
 def test_compare_outputs_non_numeric_fallback():
     assert compare_outputs("abc", "abd", strict_float=False) is False
     assert compare_outputs("result: 42.0", "result: 42.00", strict_float=False) is False
-

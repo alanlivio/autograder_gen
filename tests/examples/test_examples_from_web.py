@@ -34,9 +34,7 @@ def load_example(example_name, ext):
         return yaml.safe_load(f)
 
 
-@pytest.mark.parametrize(
-    "example_name", ["py_complete", "py_function", "py_simple", "java_simple"]
-)
+@pytest.mark.parametrize("example_name", ["py_complete", "py_function", "py_simple", "java_simple"])
 @pytest.mark.parametrize("ext", ["json", "yaml"])
 def test_web_api_validate_examples(client, example_name, ext):
     config_data = load_example(example_name, ext)
@@ -52,9 +50,7 @@ def test_web_api_validate_examples(client, example_name, ext):
     ), f"Validation failed for {example_name} ({ext}): {data.get('errors')}"
 
 
-@pytest.mark.parametrize(
-    "example_name", ["py_complete", "py_function", "py_simple", "java_simple"]
-)
+@pytest.mark.parametrize("example_name", ["py_complete", "py_function", "py_simple", "java_simple"])
 @pytest.mark.parametrize("ext", ["json", "yaml"])
 def test_web_export_bundle_examples(client, example_name, ext):
     config_data = load_example(example_name, ext)

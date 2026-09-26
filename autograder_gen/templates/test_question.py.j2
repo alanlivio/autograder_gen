@@ -353,9 +353,7 @@ class TestQuestion{{ question_number }}(unittest.TestCase):
 {% set test_name = ('item_' + loop.index|string)|lower %}
 {% endif %}
 
-{% if item.type == "file_exists" %}
-    {% include 'subtemplates/file_exists_method.j2' %}
-{% elif item.type == "output_comparison" %}
+{% if item.type == "output_comparison" %}
     {% include 'subtemplates/output_comparison_method.j2' %}
 {% elif item.type == "signature_check" %}
     {% include 'subtemplates/signature_check_method.j2' %}

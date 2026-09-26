@@ -66,7 +66,7 @@ questions:
     marking_items:
       - name: Item 1
         total_mark: 10
-        type: file_exists
+        type: output_comparison
         target_file: test.py
 """
     cfg_path.write_text(cfg_content, encoding="utf-8")
@@ -99,7 +99,7 @@ questions:
     marking_items:
       - name: Item 1
         total_mark: 10
-        type: file_exists
+        type: output_comparison
         target_file: test.py
 """
     cfg_path.write_text(cfg_content, encoding="utf-8")

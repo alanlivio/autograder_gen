@@ -178,6 +178,41 @@ class AutograderRunner:
                 print(hl)
         output_buffer.extend(header_lines)
 
+        file_check_lines: list[str] = []
+        if results.get("_file_check_log"):
+            file_check_lines = [
+                line.strip() for line in results["_file_check_log"].splitlines() if line.strip()
+            ]
+        elif results.get("output"):
+            for line in results["output"].splitlines():
+                stripped = line.strip()
+                if (
+                    stripped.startswith("Checking required file:")
+                    or (stripped.startswith("File '") and stripped.endswith("' exists."))
+                    or stripped.startswith("Warning: Required file")
+                    or (stripped.startswith("Found file '") and " at " in stripped)
+                ):
+                    file_check_lines.append(stripped)
+        elif results.get("_stdout"):
+            for line in results["_stdout"].splitlines():
+                stripped = line.strip()
+                if (
+                    stripped.startswith("Checking required file:")
+                    or (stripped.startswith("File '") and stripped.endswith("' exists."))
+                    or stripped.startswith("Warning: Required file")
+                    or (stripped.startswith("Found file '") and " at " in stripped)
+                ):
+                    file_check_lines.append(stripped)
+
+        if not file_check_lines and self.config_obj and self.config_obj.required_files:
+            file_check_lines = self._get_fallback_file_check_lines(actual_submission)
+
+        if file_check_lines:
+            file_check_text = "\n".join(file_check_lines)
+            if should_print:
+                print(f"\n{file_check_text}")
+            output_buffer.append(f"\n{file_check_text}")
+
         tests = results.get("tests", [])
 
         def _parse_test_number(t: dict[str, Any]) -> tuple[int, ...]:
@@ -589,4 +624,57 @@ class AutograderRunner:
             raise RuntimeError(error_msg)
 
         with open(results_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+            res_dict = json.load(f)
+
+        file_check_log_path = results_dir / "file_check.log"
+        if file_check_log_path.exists():
+            try:
+                res_dict["_file_check_log"] = file_check_log_path.read_text(encoding="utf-8")
+            except Exception:
+                pass
+
+        res_dict["_stdout"] = process.stdout
+        res_dict["_stderr"] = process.stderr
+        return res_dict
+
+    def _get_fallback_file_check_lines(
+        self,
+        actual_submission: str | Path | list[str | Path] | tuple[str | Path, ...] | None,
+    ) -> list[str]:
+        if not self.config_obj or not self.config_obj.required_files:
+            return []
+
+        sub_files: list[str] = []
+        if actual_submission is not None:
+            if isinstance(actual_submission, (str, Path)):
+                p = Path(actual_submission)
+                if p.is_file() and p.suffix.lower() == ".zip" and zipfile.is_zipfile(p):
+                    try:
+                        with zipfile.ZipFile(p, "r") as z:
+                            sub_files = [n for n in z.namelist() if not n.endswith("/")]
+                    except Exception:
+                        pass
+                elif p.is_dir():
+                    try:
+                        sub_files = [str(f.relative_to(p)) for f in p.rglob("*") if f.is_file()]
+                    except Exception:
+                        pass
+                elif p.is_file():
+                    sub_files = [p.name]
+            elif isinstance(actual_submission, (list, tuple)):
+                sub_files = [Path(x).name for x in actual_submission if Path(x).is_file()]
+
+        lines: list[str] = []
+        for req_file in self.config_obj.required_files:
+            lines.append(f"Checking required file: {req_file}...")
+            norm_req = req_file.lstrip("./")
+            if any(f.lstrip("./") == norm_req for f in sub_files):
+                lines.append(f"File '{req_file}' exists.")
+            else:
+                lines.append(f"Warning: Required file {req_file} not found in submission")
+                if not getattr(self.config_obj, "strict_file_location", False):
+                    req_base = Path(req_file).name
+                    found_matches = [f for f in sub_files if Path(f).name == req_base]
+                    if found_matches:
+                        lines.append(f"Found file '{req_file}' at {found_matches[0]}")
+        return lines

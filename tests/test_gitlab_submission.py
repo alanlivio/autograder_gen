@@ -37,7 +37,7 @@ def test_marking_item_github_submission_exists_without_target_file():
 def test_marking_item_target_file_required_for_other_types():
     data = {
         "total_mark": 5,
-        "type": "file_exists",
+        "type": "output_comparison",
     }
     with pytest.raises(ValidationError) as excinfo:
         ag.MarkingItem(**data)

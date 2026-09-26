@@ -12,7 +12,7 @@ SAMPLE_CONFIG = {
         {
             "name": "Q1",
             "marking_items": [
-                {"target_file": "solution.py", "total_mark": 10, "type": "file_exists"}
+                {"target_file": "solution.py", "total_mark": 10, "type": "output_comparison"}
             ],
         }
     ],

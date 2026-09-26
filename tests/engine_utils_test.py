@@ -73,7 +73,7 @@ def test_is_supported_language_file():
 
 
 def test_sanitize_filename():
-    assert sanitize_filename('test:file*name?.txt') == "test_file_name_.txt"
+    assert sanitize_filename("test:file*name?.txt") == "test_file_name_.txt"
     assert sanitize_filename("   ...clean...   ") == "clean"
     assert sanitize_filename("   ...   ") == "unnamed"
 

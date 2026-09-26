@@ -33,9 +33,7 @@ def complex_calculation(input_data, algorithm="default", precision=2, debug=Fals
         return round(sum(input_data) / len(input_data), precision) if input_data else 0
 
 
-def handle_edge_cases(
-    input_val, strict_mode=True, absolute=False, validate=False, transform=False
-):
+def handle_edge_cases(input_val, strict_mode=True, absolute=False, validate=False, transform=False):
     """Handle various edge cases in input processing.
 
     Args:
