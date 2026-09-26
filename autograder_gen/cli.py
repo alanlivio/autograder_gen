@@ -23,13 +23,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate Gradescope autograder scripts from YAML configuration"
     )
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--config", "-c", help="Path to YAML configuration file")
-    group.add_argument(
-        "--example",
-        "-e",
-        help="Generate an example autograder YAML configuration file (py_simple, py_function, py_complete, java_simple)",
-    )
+    parser.add_argument("--config", "-c", required=True, help="Path to YAML configuration file")
     parser.add_argument(
         "--output",
         "-o",
@@ -39,17 +33,6 @@ def main():
     args = parser.parse_args()
     setup_logging()
     try:
-        if args.example:
-            out_dir = Path(args.output)
-            out_dir.mkdir(parents=True, exist_ok=True)
-            target_path = out_dir / f"{args.example}.yaml"
-            yaml_str = ag.Config.get_example_config_yaml(args.example)
-            with open(target_path, "w", encoding="utf-8") as f:
-                f.write(yaml_str)
-            print_success(
-                f"Example '{args.example}' configuration generated at: {target_path}"
-            )
-            return 0
         path = Path(args.config)
         with open(path, "r", encoding="utf-8") as f:
             raw_config_data = yaml.safe_load(f)

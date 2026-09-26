@@ -76,36 +76,11 @@ def test_cli_generates_all_assets(tmp_path):
     assert (output_dir / "correct_answer_wrong_location.zip").exists()
 
 
-def test_cli_example(tmp_path):
-    output_dir = tmp_path / "out_example"
+def test_cli_missing_config():
     python_executable = sys.executable
     result = subprocess.run(
-        [
-            python_executable,
-            "autograder_gen/cli.py",
-            "--example",
-            "py_simple",
-            "--output",
-            str(output_dir),
-        ],
+        [python_executable, "autograder_gen/cli.py"],
         capture_output=True,
         text=True,
     )
-    assert result.returncode == 0, f"CLI example failed: {result.stderr}"
-    generated_yaml = output_dir / "py_simple.yaml"
-    assert generated_yaml.exists()
-    content = generated_yaml.read_text(encoding="utf-8")
-    assert "language: python" in content
-    conflict_result = subprocess.run(
-        [
-            python_executable,
-            "autograder_gen/cli.py",
-            "--example",
-            "py_simple",
-            "--config",
-            "some_config.yaml",
-        ],
-        capture_output=True,
-        text=True,
-    )
-    assert conflict_result.returncode != 0
+    assert result.returncode != 0
